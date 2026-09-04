@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowPulse AI · 新一代团队智能协作与自动化工作流</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --surface: #111827;
+      --surface-border: #1f293d;
+      --surface-hover: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-cyan: #06b6d4;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --gradient-accent: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #8b5cf6 100%);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; border: none; font-family: inherit; }
+
+    /* 导航栏 */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(9, 13, 22, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--surface-border);
+      padding: 1rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand { display: flex; align-items: center; gap: 0.6rem; font-weight: 700; font-size: 1.15rem; }
+    .brand-icon { width: 28px; height: 28px; background: var(--gradient-accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; }
+    .nav-links { display: flex; gap: 1.5rem; font-size: 0.9rem; color: var(--text-muted); }
+    .nav-links a:hover { color: #fff; }
+    .nav-actions { display: flex; gap: 0.75rem; align-items: center; }
+    .btn-secondary { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--surface-border); padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; }
+    .btn-primary { background: var(--gradient-accent); color: #fff; padding: 0.5rem 1.25rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 0 20px rgba(6, 182, 212, 0.35); }
+
+    /* Hero Section */
+    .hero {
+      max-width: 1200px; margin: 0 auto; padding: 5rem 1.5rem 4rem; text-align: center;
+      display: flex; flex-direction: column; align-items: center; position: relative;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.35rem 0.85rem; border-radius: 9999px;
+      background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3);
+      color: var(--accent-cyan); font-size: 0.85rem; margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-size: 3.5rem; font-weight: 800; line-height: 1.15; max-width: 860px; margin-bottom: 1.25rem;
+      background: linear-gradient(180deg, #ffffff 40%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 1.15rem; color: var(--text-muted); max-width: 640px; margin-bottom: 2rem;
+    }
+    .hero-actions { display: flex; gap: 1rem; margin-bottom: 3.5rem; }
+    .btn-lg { padding: 0.75rem 1.75rem; font-size: 1rem; border-radius: 8px; font-weight: 600; }
+
+    /* 模拟界面展示卡片 */
+    .hero-mockup {
+      width: 100%; max-width: 980px;
+      background: var(--surface); border: 1px solid var(--surface-border);
+      border-radius: 12px; overflow: hidden; box-shadow: 0 25px 60px -15px rgba(0,0,0,0.7);
+    }
+    .mockup-header {
+      background: #0d121f; padding: 0.75rem 1rem; border-bottom: 1px solid var(--surface-border);
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .circle { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .mockup-body { padding: 2rem; display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; text-align: left; }
+    .workflow-card {
+      background: #0c101d; border: 1px solid var(--surface-border); border-radius: 8px; padding: 1.25rem;
+    }
+    .workflow-step {
+      display: flex; align-items: center; gap: 1rem; padding: 0.75rem;
+      border-radius: 6px; background: rgba(255,255,255,0.02); margin-bottom: 0.75rem;
+      border-left: 3px solid var(--accent-cyan);
+    }
+
+    /* Bento 特性网格 */
+    .features { max-width: 1200px; margin: 4rem auto; padding: 0 1.5rem; }
+    .section-title { text-align: center; margin-bottom: 3rem; }
+    .section-title h2 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .section-title p { color: var(--text-muted); font-size: 1rem; }
+    .bento-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+    }
+    .bento-item {
+      background: var(--surface); border: 1px solid var(--surface-border);
+      border-radius: 12px; padding: 1.75rem; transition: transform 0.2s, border-color 0.2s;
+    }
+    .bento-item:hover { transform: translateY(-4px); border-color: var(--accent-cyan); }
+    .bento-item.col-span-2 { grid-column: span 2; }
+    .bento-icon { width: 40px; height: 40px; border-radius: 8px; background: rgba(59,130,246,0.15); color: var(--accent-blue); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 1.25rem; }
+    .bento-item h3 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+    .bento-item p { font-size: 0.9rem; color: var(--text-muted); }
+
+    /* 定价板块 */
+    .pricing { max-width: 1100px; margin: 5rem auto; padding: 0 1.5rem; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .pricing-card {
+      background: var(--surface); border: 1px solid var(--surface-border); border-radius: 12px;
+      padding: 2rem; position: relative; display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .pricing-card.featured { border-color: var(--accent-cyan); box-shadow: 0 0 30px rgba(6,182,212,0.15); }
+    .plan-badge { position: absolute; top: -12px; right: 20px; background: var(--accent-cyan); color: #000; font-size: 0.75rem; font-weight: 700; padding: 2px 10px; border-radius: 9999px; }
+    .price-num { font-size: 2.5rem; font-weight: 800; }
+    .price-period { color: var(--text-muted); font-size: 0.9rem; }
+    .plan-features { list-style: none; margin: 1.5rem 0; font-size: 0.9rem; color: var(--text-muted); }
+    .plan-features li { margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+
+    /* FAQ 手风琴 */
+    .faq { max-width: 800px; margin: 4rem auto; padding: 0 1.5rem; }
+    .faq-item { border-bottom: 1px solid var(--surface-border); }
+    .faq-question {
+      width: 100%; text-align: left; padding: 1.25rem 0; background: none; color: #fff;
+      font-size: 1.05rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center;
+    }
+    .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.25s ease-out; color: var(--text-muted); font-size: 0.95rem; }
+    .faq-item.active .faq-answer { max-height: 200px; padding-bottom: 1.25rem; }
+    .faq-item.active .faq-toggle { transform: rotate(45deg); }
+    .faq-toggle { font-size: 1.25rem; transition: transform 0.2s; }
+
+    /* 页脚 */
+    footer { border-top: 1px solid var(--surface-border); padding: 3rem 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.2rem; }
+      .bento-grid, .pricing-grid, .mockup-body { grid-template-columns: 1fr; }
+      .bento-item.col-span-2 { grid-column: span 1; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-icon">F</div>
+      <span>FlowPulse AI</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#features">功能特性</a>
+      <a href="#workflow">交互演示</a>
+      <a href="#pricing">方案定价</a>
+      <a href="#faq">常见问题</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="btn-secondary">登录</button>
+      <button class="btn-primary">免费试用</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="badge">✨ FlowPulse 2.0 现已就绪 · 体验下一代 AI 协作</div>
+    <h1>将团队工作流重塑为<br>自主运转的智能引擎</h1>
+    <p>打通多模态 AI 与企业业务系统，秒级编排从需求分析、代码开发到自动化部署的全链路。</p>
+    <div class="hero-actions">
+      <button class="btn-primary btn-lg">立即开启 14 天免费体验</button>
+      <button class="btn-secondary btn-lg">查看交互视频演示</button>
+    </div>
+
+    <!-- 模拟工作流画报 -->
+    <div class="hero-mockup">
+      <div class="mockup-header">
+        <span class="circle" style="background:#ef4444;"></span>
+        <span class="circle" style="background:#eab308;"></span>
+        <span class="circle" style="background:#22c55e;"></span>
+        <span style="font-size:0.75rem; color:var(--text-muted); margin-left: 0.5rem;">flowpulse-workspace / autonomous-pipeline.v2</span>
+      </div>
+      <div class="mockup-body">
+        <div class="workflow-card">
+          <div style="font-size:0.85rem; font-weight:600; margin-bottom:0.75rem; color:var(--accent-cyan);">活跃管道状态：运行中 (3 智能体协同)</div>
+          <div class="workflow-step">
+            <span>⚡</span>
+            <div>
+              <div style="font-size:0.85rem; font-weight:600;">GitHub Webhook 触发</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">收到 Issue #108: 添加微信支付回调支持</div>
+            </div>
+          </div>
+          <div class="workflow-step" style="border-color: var(--accent-purple);">
+            <span>🧠</span>
+            <div>
+              <div style="font-size:0.85rem; font-weight:600;">Coder Agent 深度思考与补丁生成</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">上下文匹配 14 个文件，自测覆盖率 96%</div>
+            </div>
+          </div>
+          <div class="workflow-step" style="border-color: #22c55e;">
+            <span>🚀</span>
+            <div>
+              <div style="font-size:0.85rem; font-weight:600;">CI/CD 自动化流水线验证并部署</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">耗时 18 秒 · 阶段预发测试全部通过</div>
+            </div>
+          </div>
+        </div>
+        <div class="workflow-card">
+          <div style="font-size:0.85rem; font-weight:600; margin-bottom:0.75rem;">关键指标</div>
+          <div style="margin-bottom:1rem;">
+            <div style="font-size:1.8rem; font-weight:800; color:var(--accent-cyan);">+320%</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">团队研发吞吐量</div>
+          </div>
+          <div>
+            <div style="font-size:1.8rem; font-weight:800; color:#22c55e;">99.98%</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">自动化任务准确率</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bento Grid -->
+  <section class="features" id="features">
+    <div class="section-title">
+      <h2>专为工程团队打造的模块化架构</h2>
+      <p>无需冗长胶水代码，通过可视化与自然语言轻松编排业务流</p>
+    </div>
+    <div class="bento-grid">
+      <div class="bento-item col-span-2">
+        <div class="bento-icon">⚡</div>
+        <h3>动态智能体协同编排</h3>
+        <p>支持自研小模型与云端前沿大模型混合路由，按任务复杂度动态分流，节约 70% 推理成本。</p>
+      </div>
+      <div class="bento-item">
+        <div class="bento-icon">🔒</div>
+        <h3>企业级数据沙箱</h3>
+        <p>全内存加密运行，支持私有化部署与 SOC2 / ISO27001 认证合规。</p>
+      </div>
+      <div class="bento-item">
+        <div class="bento-icon">📊</div>
+        <h3>毫秒级链路追踪</h3>
+        <p>可视化呈现每个决策节点、Prompt 消耗及工具调用耗时，瓶颈一目了然。</p>
+      </div>
+      <div class="bento-item col-span-2">
+        <div class="bento-icon">🧩</div>
+        <h3>开箱即用 200+ 现成生态插件</h3>
+        <p>一键接入 GitHub、Linear、Slack、Notion、PostgreSQL 及各类内部专有 API。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 定价 -->
+  <section class="pricing" id="pricing">
+    <div class="section-title">
+      <h2>透明平价，支持弹性按需升级</h2>
+      <p>从敏捷独立团队到超大规模企业，皆有合适选择</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div>
+          <h3>Starter</h3>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.25rem;">轻量级自动化与个人尝试</p>
+          <div style="margin: 1.5rem 0;">
+            <span class="price-num">¥0</span>
+            <span class="price-period">/ 永久免费</span>
+          </div>
+          <ul class="plan-features">
+            <li>✓ 每月 5,000 次执行调用</li>
+            <li>✓ 单智能体工作流支持</li>
+            <li>✓ 社区技术支持</li>
+          </ul>
+        </div>
+        <button class="btn-secondary" style="width:100%; padding:0.75rem;">免费开通</button>
+      </div>
+
+      <div class="pricing-card featured">
+        <span class="plan-badge">最受欢迎</span>
+        <div>
+          <h3>Pro 进阶版</h3>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.25rem;">专为成长期高速创新团队设计</p>
+          <div style="margin: 1.5rem 0;">
+            <span class="price-num">¥199</span>
+            <span class="price-period">/ 团队 / 月</span>
+          </div>
+          <ul class="plan-features">
+            <li>✓ 无限并发任务执行</li>
+            <li>✓ 多智能体协同编排</li>
+            <li>✓ 团队协作与审计日志</li>
+            <li>✓ 专属客服优先响应通道</li>
+          </ul>
+        </div>
+        <button class="btn-primary" style="width:100%; padding:0.75rem;">立即开始试用</button>
+      </div>
+
+      <div class="pricing-card">
+        <div>
+          <h3>Enterprise</h3>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.25rem;">定制隔离环境与私有化部署</p>
+          <div style="margin: 1.5rem 0;">
+            <span class="price-num">定制</span>
+            <span class="price-period">/ 年付咨询</span>
+          </div>
+          <ul class="plan-features">
+            <li>✓ 专有模型私有集群部署</li>
+            <li>✓ 99.99% SLA 服务等级保证</li>
+            <li>✓ 专属解决方案架构师</li>
+          </ul>
+        </div>
+        <button class="btn-secondary" style="width:100%; padding:0.75rem;">联系专属顾问</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq" id="faq">
+    <div class="section-title">
+      <h2>常见问题解答</h2>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question">
+        <span>平台支持接入我们自己微调的本地大模型吗？</span>
+        <span class="faq-toggle">+</span>
+      </button>
+      <div class="faq-answer">
+        支持。FlowPulse 完美兼容 OpenAI、vLLM、Ollama 等标准 API 格式，只需在工作空间配置对应 Endpoint 即可无缝调用。
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question">
+        <span>试用期结束后如果未续费，数据会被清除吗？</span>
+        <span class="faq-toggle">+</span>
+      </button>
+      <div class="faq-answer">
+        您的工作流配置和历史历史将被安全保留在免费 Starter 计划内，随时可以通过一键升级恢复 Pro 特权。
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 FlowPulse AI Technologies Inc. 保持简单，高效创造。</p>
+  </footer>
+
+  <script>
+    document.querySelectorAll(".faq-question").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const item = btn.parentElement;
+        item.classList.toggle("active");
+      });
+    });
+  </script>
+</body>
+</html>

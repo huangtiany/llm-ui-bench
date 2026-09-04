@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexusAgent Workspace · 智能体工作台</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-panel: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-white: #f0f6fc;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-purple: #bc8cff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
+
+    /* 三栏布局 */
+    .sidebar { width: 260px; background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+    .chat-pane { flex: 1; display: flex; flex-direction: column; background: var(--bg); border-right: 1px solid var(--border); }
+    .artifact-pane { width: 420px; background: var(--bg-panel); display: flex; flex-direction: column; }
+
+    /* 左侧 Sidebar */
+    .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .btn-new-chat { background: #238636; color: #fff; border: none; border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+    .agent-team { padding: 1rem; }
+    .agent-team-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #8b949e; margin-bottom: 0.75rem; }
+    .agent-pill { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.6rem; border-radius: 6px; background: rgba(255,255,255,0.03); margin-bottom: 0.4rem; font-size: 0.82rem; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+
+    /* 中间对话流 */
+    .chat-header { padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .message-stream { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+    .msg-user { align-self: flex-end; background: #1f6feb; color: #fff; padding: 0.75rem 1rem; border-radius: 12px 12px 2px 12px; max-width: 80%; font-size: 0.9rem; }
+    .msg-agent { align-self: flex-start; display: flex; flex-direction: column; gap: 0.75rem; max-width: 90%; }
+    .agent-header { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; font-weight: 600; color: var(--text-white); }
+    .role-badge { background: rgba(188, 140, 255, 0.15); color: var(--accent-purple); padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; }
+
+    /* 思考链折叠 */
+    .thought-card {
+      background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+    }
+    .thought-header {
+      padding: 0.5rem 0.75rem; font-size: 0.8rem; color: #8b949e; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .thought-body { padding: 0.75rem; font-size: 0.82rem; color: #8b949e; border-top: 1px solid rgba(255,255,255,0.05); line-height: 1.6; }
+
+    /* 工具调用卡片 */
+    .tool-card {
+      background: #090d12; border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.85rem; font-family: monospace; font-size: 0.8rem; color: #7ee787;
+    }
+
+    /* 底部输入框 */
+    .chat-input-box { padding: 1rem 1.25rem; border-top: 1px solid var(--border); background: var(--bg-panel); }
+    .input-wrapper { display: flex; gap: 0.5rem; }
+    .input-field { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.85rem; color: #fff; font-size: 0.85rem; outline: none; }
+    .btn-send { background: var(--accent); color: #000; border: none; border-radius: 6px; padding: 0.6rem 1.2rem; font-weight: 600; cursor: pointer; }
+
+    /* 右侧制品 Artifacts */
+    .artifact-header { padding: 0.875rem 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .artifact-code { flex: 1; padding: 1rem; font-family: monospace; font-size: 0.8rem; background: #0b0e14; overflow: auto; color: #e6edf3; line-height: 1.5; }
+
+    @media (max-width: 992px) {
+      .artifact-pane { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span style="font-weight: 700; color: #fff;">NexusAgent</span>
+      <button class="btn-new-chat">+ 新任务</button>
+    </div>
+    <div class="agent-team">
+      <div class="agent-team-title">活跃智能体集群</div>
+      <div class="agent-pill">
+        <span class="status-dot"></span>
+        <span style="color:#fff;">Planner Agent</span>
+        <span style="color:#8b949e; font-size:0.75rem; margin-left:auto;">就绪</span>
+      </div>
+      <div class="agent-pill">
+        <span class="status-dot"></span>
+        <span style="color:#fff;">Coder Agent</span>
+        <span style="color:var(--accent); font-size:0.75rem; margin-left:auto;">思考中</span>
+      </div>
+      <div class="agent-pill">
+        <span class="status-dot" style="background:#8b949e; box-shadow:none;"></span>
+        <span style="color:#8b949e;">Reviewer Agent</span>
+        <span style="color:#8b949e; font-size:0.75rem; margin-left:auto;">等待</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-pane">
+    <div class="chat-header">
+      <span style="font-size:0.9rem; font-weight:600; color:#fff;">Task #402: 优化高并发下订单分布式事务机制</span>
+      <span style="font-size:0.8rem; color:#8b949e;">模型: Claude 3.5 Sonnet + Router</span>
+    </div>
+
+    <div class="message-stream" id="messageStream">
+      <div class="msg-user">
+        我们目前的下单减库存接口在 5000 QPS 存在偶发超卖，请设计基于 Redis Lua 脚本的原子扣减与补偿方案，并输出对应的生产级执行逻辑。
+      </div>
+
+      <div class="msg-agent">
+        <div class="agent-header">
+          <span>Nexus Orchestrator</span>
+          <span class="role-badge">Planner + Coder</span>
+        </div>
+
+        <div class="thought-card">
+          <div class="thought-header">
+            <span>🧠</span>
+            <span style="font-weight: 500;">展开思考过程 (Chain of Thought · 3 步)</span>
+          </div>
+          <div class="thought-body">
+            1. 分析超卖根本原因：传统先查后扣存在并发间隙，必须利用 Redis 单线程执行 Lua 脚本实现原子原子化扣减。<br>
+            2. 构思 Redis Lua 脚本逻辑：检查键是否存在、校验 stock >= quantity，若充足则 redis.call("DECRBY") 并记录回滚审计 key。<br>
+            3. 输出生产级 TypeScript + Redis 核心实现并同步至右侧 Artifacts 画布。
+          </div>
+        </div>
+
+        <div class="tool-card">
+          > execute_tool: redis_cli.eval("check_and_deduct.lua", keys=["stock:sku_98214"])
+          <br><span style="color:#8b949e;">耗时: 1.4ms · 状态: 成功 (1)</span>
+        </div>
+
+        <div style="font-size:0.9rem; color:var(--text-white); line-height:1.6;">
+          已根据您的要求设计并实现了基于 Redis Lua 的高并发原子扣减机制。右侧已实时同步完整的逻辑代码与降级补偿方案。
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input-box">
+      <div class="input-wrapper">
+        <input type="text" class="input-field" placeholder="向 Agent 团队输入指令或补充上下文要求..." id="chatInput">
+        <button class="btn-send" id="sendBtn">发送</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="artifact-pane">
+    <div class="artifact-header">
+      <span style="font-size:0.85rem; font-weight:600; color:#fff;">📄 deduct_stock.lua</span>
+      <button style="background:none; border:1px solid var(--border); color:var(--text); padding:2px 8px; border-radius:4px; font-size:0.75rem; cursor:pointer;" onclick="alert(已复制到剪贴板)">复制</button>
+    </div>
+    <div class="artifact-code">
+--[[
+  NexusAgent 生成 · 高并发原子减库存脚本
+  KEYS[1]: 库存主 Key (例如: stock:sku_1001)
+  ARGV[1]: 扣减数量
+]]
+local stock_key = KEYS[1]
+local deduct_num = tonumber(ARGV[1])
+
+local current_stock = tonumber(redis.call(GET, stock_key))
+
+-- 如果键不存在，返回 -1 错误码
+if not current_stock then
+    return -1
+end
+
+-- 如果库存不足，返回 0 拒绝
+if current_stock < deduct_num then
+    return 0
+end
+
+-- 执行原子扣减
+redis.call(DECRBY, stock_key, deduct_num)
+return 1
+    </div>
+  </div>
+
+  <script>
+    const sendBtn = document.getElementById("sendBtn");
+    const input = document.getElementById("chatInput");
+    const stream = document.getElementById("messageStream");
+
+    sendBtn.addEventListener("click", () => {
+      const val = input.value.trim();
+      if (!val) return;
+      const userDiv = document.createElement("div");
+      userDiv.className = "msg-user";
+      userDiv.textContent = val;
+      stream.appendChild(userDiv);
+      input.value = "";
+      stream.scrollTop = stream.scrollHeight;
+    });
+  </script>
+</body>
+</html>

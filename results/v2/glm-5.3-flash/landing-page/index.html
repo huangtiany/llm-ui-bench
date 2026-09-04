@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>雙清館 · 泉州絃管社 — 一間還在口傳心授的南音館閣</title>
+<meta name="description" content="雙清館，清光緒二十二年立於泉州金魚巷。琵琶橫抱，洞簫十目九節，五人排場，一撩一拍慢慢過完。">
+<style>
+:root{
+  --paper:#f2ecdd; --paper2:#e8dfc9; --ink:#211d16; --ink2:#5a5140;
+  --ver:#a63a2b; --ver2:#7f2b1f; --amber:#b98a2e;
+  --dark:#171410; --dpaper:#ddd3ba; --dline:rgba(221,211,186,.22);
+  --line:rgba(33,29,22,.22);
+  --song:"Songti SC","Noto Serif CJK SC","Source Han Serif SC","STSong","SimSun",serif;
+  --kai:"Kaiti SC","STKaiti","KaiTi","Noto Serif CJK SC",serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+  --noise:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='240'%20height='240'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.9'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3C/filter%3E%3Crect%20width='240'%20height='240'%20filter='url(%23n)'%20opacity='0.4'/%3E%3C/svg%3E");
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);color:var(--ink);font-family:var(--song);
+  font-size:16px;line-height:1.9;padding-left:76px;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+::selection{background:var(--ver);color:var(--paper)}
+:focus-visible{outline:2px solid var(--ver);outline-offset:3px}
+section,footer{scroll-margin-top:24px}
+
+/* ---------- 全局颗粒层（贯穿全页的纸张噪点） ---------- */
+.grain{position:fixed;inset:0;z-index:60;pointer-events:none;mix-blend-mode:multiply;opacity:.5;background-image:var(--noise);background-size:240px 240px}
+.dark{position:relative;background:var(--dark);color:var(--dpaper)}
+.dark::after{content:"";position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;opacity:.10;background-image:var(--noise);background-size:240px 240px}
+
+/* ---------- 左侧书脊导航 ---------- */
+.rail{position:fixed;left:0;top:0;bottom:0;width:76px;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:20px 0;border-right:1px solid var(--line);transition:border-color .6s,color .6s}
+.rail .seal{width:30px;display:block}
+.rail-links{display:flex;flex-direction:column;gap:1.5rem}
+.rail-links a{position:relative;text-decoration:none;color:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .4s}
+.rail-links a .rn{font-size:.95rem;font-weight:700}
+.rail-links a .rt{position:absolute;left:112%;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;font-size:.72rem;letter-spacing:.32em;opacity:0;pointer-events:none;background:var(--paper);color:var(--ink);border:1px solid var(--line);padding:8px 3px;transition:opacity .35s;white-space:nowrap}
+.rail-links a:hover .rt,.rail-links a:focus-visible .rt{opacity:1}
+.rail-links a.on{color:var(--ver)}
+.rail-links a.on .rn{transform:scale(1.25)}
+.prog{position:absolute;left:37.5px;top:130px;bottom:130px;width:1px;background:var(--line)}
+.prog i{display:block;width:100%;height:100%;background:var(--ver);transform:scaleY(0);transform-origin:top}
+body.on-dark .rail{border-color:var(--dline);color:var(--dpaper)}
+body.on-dark .rail-links a .rt{background:var(--dark);color:var(--dpaper);border-color:var(--dline)}
+body.on-dark .prog{background:var(--dline)}
+
+/* ---------- 窄屏顶栏 ---------- */
+.topbar{display:none}
+
+/* ---------- 通用章节 ---------- */
+.chap{position:relative;padding:clamp(5rem,11vh,8rem) clamp(1.5rem,7vw,7rem) clamp(5rem,12vh,9rem) calc(clamp(1.5rem,7vw,7rem) + 20px)}
+.tear{display:block;height:34px;margin:0 0 -1px;width:100%}
+.tear svg{display:block;width:100%;height:100%}
+.chap-head{display:flex;align-items:baseline;gap:2.2rem;border-bottom:1px solid var(--line);padding-bottom:2rem;margin-bottom:clamp(2.5rem,6vh,4.5rem)}
+.chap-head .juan{writing-mode:vertical-rl;font-family:var(--kai);color:var(--ver);font-size:1.05rem;letter-spacing:.55em;align-self:center}
+.chap-head h2{font-size:clamp(2.4rem,5.5vw,4.2rem);font-weight:900;letter-spacing:.34em;line-height:1.15}
+.chap-head h2 i{font-style:normal;color:var(--ver)}
+.chap-head .chap-code{margin-left:auto;font-family:var(--mono);font-size:.68rem;letter-spacing:.22em;color:var(--ink2)}
+.dark .chap-head{border-color:var(--dline)}
+.dark .chap-head .chap-code{color:rgba(221,211,186,.55)}
+p.tx{max-width:38ch;font-size:1.02rem;line-height:2.15;color:var(--ink)}
+.dark p.tx{color:var(--dpaper)}
+
+/* ---------- 序章 ---------- */
+.hero{position:relative;min-height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:6rem clamp(1.5rem,6vw,6rem) 0 calc(clamp(1.5rem,6vw,6rem) + 20px)}
+.walls{position:absolute;inset:0;pointer-events:none}
+.wall{position:absolute;inset:-6%;display:flex;flex-wrap:wrap;align-content:space-around;gap:1vw 4vw;font-family:var(--kai);font-weight:700;font-size:clamp(5.5rem,15vh,10.5rem);line-height:1;will-change:transform}
+.wall span{color:rgba(33,29,22,.09)}
+.wall.w2 span{color:rgba(166,58,43,.10)}
+@supports (-webkit-text-stroke:1px #000){
+  .wall span{color:transparent;-webkit-text-stroke:1.2px rgba(33,29,22,.22)}
+  .wall.w2 span{-webkit-text-stroke:1px rgba(166,58,43,.26)}
+}
+.wall.w2{filter:blur(1.5px);opacity:.75;left:10%}
+.hero-in{position:relative;z-index:2}
+.hero .code{font-family:var(--mono);font-size:.7rem;letter-spacing:.28em;color:var(--ink2);border:1px solid var(--line);display:inline-block;padding:.35rem .8rem;margin-bottom:3.5rem}
+.hero-grid{display:grid;grid-template-columns:1.05fr .9fr 1.25fr;gap:3rem;align-items:end;min-height:56vh}
+.v-group{display:flex;gap:1.4rem;justify-content:flex-end}
+.kicker{writing-mode:vertical-rl;font-size:.78rem;letter-spacing:.5em;color:var(--ver);border-inline-start:1px solid var(--line);padding-inline-start:.7rem;align-self:center}
+h1.big-v{writing-mode:vertical-rl;font-weight:900;font-size:clamp(4.2rem,9.5vw,8rem);letter-spacing:.14em;line-height:1.05}
+.hero-mid{position:relative;text-align:center;min-height:38vh}
+.listen{font-family:var(--kai);font-weight:700;font-size:clamp(8rem,22vh,14rem);line-height:1;position:relative;z-index:1}
+.hero-seal{position:absolute;z-index:2;width:104px;right:6%;bottom:-4%;transform:rotate(-7deg);mix-blend-mode:multiply}
+.hero-right .lede{font-size:1.05rem;line-height:2.2;max-width:34ch}
+.hero-right .lede strong{color:var(--ver)}
+.hero-right .lede2{margin-top:1.4rem;font-family:var(--kai);font-size:1.1rem;color:var(--ink2);max-width:30ch}
+.btn{display:inline-block;margin-top:2.2rem;border:1px solid var(--ink);background:var(--ink);color:var(--paper);font-family:var(--song);font-size:.85rem;letter-spacing:.4em;text-indent:.4em;padding:.75rem 1.5rem;text-decoration:none;cursor:pointer;transition:background .35s,color .35s,letter-spacing .35s}
+.btn:hover{background:transparent;color:var(--ink);letter-spacing:.5em}
+.btn.ghost{background:transparent;color:inherit}
+.btn.ghost:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.45;cursor:default;letter-spacing:.4em}
+.hero-foot{position:relative;z-index:2;margin-top:auto;padding:1.4rem 0 1.6rem;border-top:1px dashed var(--line);display:flex;align-items:center;justify-content:space-between;gap:2rem}
+.liaos{display:flex;gap:1.1rem;align-items:center;font-size:.72rem}
+.liaos span{width:9px;height:9px;border-radius:50%;border:1px solid var(--ink2)}
+.liaos span:nth-child(4n+1){background:var(--ver);border-color:var(--ver)}
+.scroll-hint{writing-mode:vertical-rl;font-size:.75rem;letter-spacing:.5em;color:var(--ink2);display:flex;align-items:center;gap:.6rem}
+.scroll-hint::after{content:"";width:1px;height:52px;background:var(--ink2);animation:drop 2.2s ease-in-out infinite;transform-origin:top}
+@keyframes drop{0%{transform:scaleY(0)}55%{transform:scaleY(1)}100%{transform:scaleY(1);opacity:0}}
+
+/* ---------- 卷壹 緣起 ---------- */
+.qi-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(3rem,6vw,6rem)}
+.qi-grid .lead::first-letter{font-family:var(--kai);font-size:3.4em;float:left;line-height:.9;color:var(--ver);margin:.06em .18em 0 0;font-weight:700}
+.pull{margin:2.6rem 0 0;font-family:var(--kai);font-size:1.35rem;line-height:2;color:var(--ink);border-left:3px solid var(--ver);padding-left:1.3rem}
+.pull small{display:block;margin-top:.8rem;font-size:.72rem;letter-spacing:.3em;color:var(--ink2)}
+.nianpu{list-style:none}
+.nianpu li{display:grid;grid-template-columns:150px 1fr;gap:1.2rem;padding:1.35rem 0;border-top:1px solid var(--line)}
+.nianpu li:last-child{border-bottom:1px solid var(--line)}
+.nianpu .yr{font-weight:900;font-size:1.55rem;line-height:1.3;letter-spacing:.08em}
+.nianpu .yr b{display:block;font-size:.68rem;font-weight:400;font-family:var(--mono);letter-spacing:.2em;color:var(--ver);margin-top:.2rem}
+.nianpu p{font-size:.92rem;color:var(--ink2);line-height:2}
+.nianpu li.now .yr{color:var(--ver)}
+
+/* ---------- 卷貳 排場 ---------- */
+.chap.pai{background:var(--paper2)}
+.chap.pai .side-rule{position:absolute;top:0;bottom:0;left:calc(20px + 4vw);width:1px;background-image:repeating-linear-gradient(to bottom,var(--line) 0 5px,transparent 5px 14px);pointer-events:none}
+.pai-grid{display:grid;grid-template-columns:1.25fr .9fr;gap:clamp(2.5rem,5vw,5rem);align-items:start}
+.pai-svg{width:100%;height:auto;display:block}
+.rug{fill:none;stroke:var(--line);stroke-width:1}
+.rug2{fill:none;stroke:var(--line);stroke-width:1;stroke-dasharray:5 7}
+.seat{cursor:pointer}
+.seat .disc{fill:var(--paper);stroke:var(--ink);stroke-width:1.4;transition:all .45s cubic-bezier(.2,.7,.2,1)}
+.seat .zi{font-family:var(--kai);font-size:42px;fill:var(--ink);text-anchor:middle;transition:all .45s}
+.seat .en{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;fill:var(--ink2);text-anchor:middle;transition:fill .45s}
+.seat:hover .disc,.seat:hover .zi{transform:translateY(-4px)}
+.seat:hover .disc{stroke:var(--ver)}
+.seat.on .disc{fill:var(--ver);stroke:var(--ver2)}
+.seat.on .zi{fill:var(--paper);transform:translateY(-4px)}
+.seat.on .en{fill:#eecfb9}
+.seat:focus{outline:none}
+.seat:focus-visible .disc{stroke:var(--ver);stroke-dasharray:4 4}
+.pai-note{margin-top:1.2rem;font-size:.74rem;letter-spacing:.2em;color:var(--ink2);font-family:var(--mono)}
+.inst-panel{position:sticky;top:70px;border:1px solid var(--line);background:var(--paper);padding:2rem 2.1rem 1.8rem;min-height:280px}
+.inst-panel h3{font-size:2rem;font-weight:900;letter-spacing:.2em;display:flex;align-items:baseline;gap:1rem}
+.inst-panel .poj{font-family:var(--mono);font-size:.68rem;letter-spacing:.3em;color:var(--ver)}
+.inst-panel .desc{margin-top:1rem;font-size:.94rem;line-height:2.1;color:var(--ink2)}
+.inst-panel .tag{display:inline-block;margin-top:1.4rem;font-size:.7rem;letter-spacing:.3em;border:1px solid var(--ver);color:var(--ver);padding:.25rem .7rem}
+.inst-panel .legend-q{margin-top:2rem;font-family:var(--kai);font-size:.86rem;line-height:2;color:var(--ink2);border-top:1px dashed var(--line);padding-top:1.2rem}
+
+/* ---------- 卷叁 工乂譜 ---------- */
+.pu-grid{display:grid;grid-template-columns:1.35fr .75fr;gap:clamp(2.5rem,5vw,4.5rem);align-items:start}
+.score{display:flex;flex-direction:row-reverse;overflow-x:auto;padding:0 0 .6rem;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.cell{flex:0 0 92px;background:none;border:none;border-top:1px solid var(--ink);display:flex;flex-direction:column;align-items:center;gap:.55rem;padding:1.35rem 0 1rem;cursor:pointer;font-family:inherit;color:inherit;transition:background .3s}
+.cell + .cell{border-left:1px dashed var(--line)}
+.cell:hover{background:rgba(166,58,43,.07)}
+.cell .zi{font-family:var(--kai);font-size:3.4rem;line-height:1;transition:transform .3s,color .3s}
+.cell .liao{font-size:.6rem;color:rgba(33,29,22,.35)}
+.cell .liao.on{color:var(--amber);font-size:.8rem}
+.cell .idx{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;color:rgba(33,29,22,.4)}
+.cell.on{background:rgba(166,58,43,.1)}
+.cell.on .zi{color:var(--ver);transform:translateY(-5px) scale(1.1)}
+.readout{font-family:var(--mono);font-size:.78rem;letter-spacing:.12em;border:1px solid var(--line);padding:1rem 1.2rem;background:var(--paper);color:var(--ink2)}
+.readout b{color:var(--ver);font-size:1rem}
+.pu-btns{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.4rem}
+.pu-btns .btn{margin-top:0;padding:.6rem 1.2rem;font-size:.78rem}
+.legend{margin-top:1.6rem;font-size:.78rem;color:var(--ink2);line-height:2.1;letter-spacing:.06em}
+.legend b{color:var(--amber)}
+.score-wrap{border-bottom:1px solid var(--ink);padding-bottom:.2rem}
+.guan-quote{margin-top:2.6rem;font-family:var(--kai);font-size:.95rem;line-height:2.1;color:var(--ink2);border-left:3px solid var(--ver);padding-left:1.2rem}
+
+/* ---------- 卷肆 過曲（墨底变奏） ---------- */
+.qu{overflow:hidden}
+.qu .big-bg{position:absolute;right:2%;top:2%;font-family:var(--kai);font-size:36vh;line-height:1;color:transparent;-webkit-text-stroke:1px rgba(221,211,186,.12);pointer-events:none;user-select:none}
+@supports not (-webkit-text-stroke:1px #000){.qu .big-bg{color:rgba(221,211,186,.07)}}
+.poem{display:flex;flex-direction:row-reverse;gap:clamp(1.6rem,4.5vw,4rem);height:clamp(320px,46vh,460px);margin:1rem 0 3rem}
+.poem p{writing-mode:vertical-rl;font-family:var(--kai);font-size:clamp(1.5rem,3vw,2.5rem);letter-spacing:.42em;line-height:1.9;color:var(--dpaper)}
+.poem p::after{content:"。";color:var(--ver)}
+.poem p:nth-child(odd){transform:translateY(26px)}
+.poem p:first-child{font-size:clamp(1.8rem,3.6vw,3rem);color:var(--paper)}
+.colo{display:flex;justify-content:flex-end;align-items:flex-end;gap:1.6rem}
+.colo .ctext{text-align:right;font-size:.78rem;letter-spacing:.28em;color:rgba(221,211,186,.6);line-height:2.2}
+.colo .seal{width:52px;mix-blend-mode:screen;opacity:.92}
+
+/* ---------- 卷伍 入館 ---------- */
+.guan-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(3rem,6vw,6rem);align-items:start}
+.info > div{display:grid;grid-template-columns:110px 1fr;gap:1.2rem;padding:1.15rem 0;border-top:1px dashed var(--line)}
+.info > div:last-child{border-bottom:1px dashed var(--line)}
+.info dt{font-family:var(--mono);font-size:.68rem;letter-spacing:.3em;color:var(--ver);padding-top:.5rem}
+.info dd{font-size:.95rem;line-height:2}
+.info dd small{display:block;color:var(--ink2);font-size:.78rem}
+.gform{border:1px solid var(--line);background:var(--paper2);padding:2.2rem 2.2rem 2rem}
+.gform h3{font-family:var(--kai);font-size:1.35rem;letter-spacing:.2em;margin-bottom:.4rem}
+.gform .fs{font-size:.78rem;color:var(--ink2);margin-bottom:1.8rem;letter-spacing:.1em}
+.gform label{display:block;font-family:var(--mono);font-size:.64rem;letter-spacing:.3em;color:var(--ink2);margin:1.3rem 0 .2rem}
+.gform input,.gform select,.gform textarea{width:100%;background:transparent;border:0;border-bottom:1px solid var(--ink);font-family:var(--song);font-size:1rem;color:var(--ink);padding:.55rem .15rem;border-radius:0;resize:vertical}
+.gform select{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 49%,var(--ink) 50%),linear-gradient(-45deg,transparent 49%,var(--ink) 50%);background-size:6px 6px;background-repeat:no-repeat;background-position:right 6px center}
+.gform :is(input,select,textarea):focus{outline:none;border-bottom-color:var(--ver)}
+.gform textarea{min-height:96px}
+
+/* ---------- 页脚 ---------- */
+.foot .tear{margin-top:-33px}
+.mq{overflow:hidden;border-top:1px solid var(--dline);border-bottom:1px solid var(--dline);padding:1rem 0;position:relative;z-index:1}
+.mq-in{display:flex;width:max-content;animation:mq 38s linear infinite;font-family:var(--kai);font-size:1.05rem;letter-spacing:.5em;color:rgba(221,211,186,.75)}
+.mq-in span{white-space:nowrap;padding-right:2.5em}
+@keyframes mq{to{transform:translateX(-50%)}}
+.foot-in{position:relative;z-index:1;display:flex;gap:2.4rem;align-items:flex-end;padding:3rem clamp(1.5rem,7vw,7rem) 2.6rem calc(clamp(1.5rem,7vw,7rem) + 20px)}
+.foot .seal{width:56px;flex:0 0 auto;mix-blend-mode:screen}
+.fb{font-size:.85rem;letter-spacing:.12em;line-height:2.1}
+.fb.mono{font-family:var(--mono);font-size:.66rem;letter-spacing:.24em;color:rgba(221,211,186,.55)}
+.fb.small{font-size:.72rem;color:rgba(221,211,186,.5)}
+
+/* ---------- 浮贴（页内反馈） ---------- */
+#toast{position:fixed;left:50%;bottom:2.4rem;transform:translate(-50%,140%);z-index:70;background:var(--paper);color:var(--ink);border:1px solid var(--ink);padding:.9rem 1.5rem .9rem 1.2rem;font-size:.88rem;letter-spacing:.1em;max-width:min(88vw,480px);display:flex;align-items:center;gap:.7rem;box-shadow:6px 6px 0 rgba(33,29,22,.14);transition:transform .45s cubic-bezier(.2,.8,.25,1)}
+#toast::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--ver);flex:0 0 auto}
+#toast.show{transform:translate(-50%,0)}
+
+/* ---------- 滚动渐显 ---------- */
+[data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+[data-reveal].in{opacity:1;transform:none}
+.poem p[data-reveal]{transform:translateY(26px) }
+.poem p[data-reveal].in{transform:none}
+.poem p:nth-child(odd)[data-reveal].in{transform:translateY(26px)}
+
+/* ---------- 窄屏 ---------- */
+@media (max-width:1000px){
+  body{padding-left:0;padding-top:0}
+  .rail{display:none}
+  .topbar{display:flex;position:sticky;top:0;z-index:45;align-items:center;gap:1.2rem;background:var(--paper);border-bottom:1px solid var(--line);padding:.65rem 1.2rem;transition:background .6s,color .6s}
+  body.on-dark .topbar{background:var(--dark);color:var(--dpaper);border-color:var(--dline)}
+  .tb-brand{font-weight:900;letter-spacing:.3em;text-decoration:none;color:inherit;font-size:1rem}
+  .tb-links{display:flex;gap:1rem;overflow-x:auto;font-size:.78rem;letter-spacing:.15em}
+  .tb-links a{text-decoration:none;color:inherit;white-space:nowrap;padding:.2rem 0;border-bottom:2px solid transparent}
+  .tb-links a.on{color:var(--ver);border-bottom-color:var(--ver)}
+  .hero-grid{grid-template-columns:1fr;gap:2.2rem;min-height:0}
+  .v-group{justify-content:flex-start}
+  .kicker{writing-mode:horizontal-tb;border:0;padding:0}
+  .hero-mid{min-height:30vh;text-align:left}
+  .listen{font-size:clamp(6rem,24vw,9rem)}
+  .hero-seal{width:76px}
+  .qi-grid,.pai-grid,.pu-grid,.guan-grid{grid-template-columns:1fr}
+  .inst-panel{position:static;min-height:0}
+  .poem{height:auto;min-height:300px;overflow-x:auto;padding-bottom:1rem}
+  .nianpu li{grid-template-columns:96px 1fr;gap:.8rem}
+  .nianpu .yr{font-size:1.15rem}
+  .info > div{grid-template-columns:80px 1fr}
+  .foot-in{flex-direction:column;align-items:flex-start}
+  .qi-grid .lead::first-letter{font-size:2.6em}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+  [data-reveal]{opacity:1;transform:none}
+  .wall,.wall span{transform:none !important}
+}
+</style>
+</head>
+<body>
+
+<!-- 印章图样（内联 SVG 精灵，全页复用） -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.11 0.17" numOctaves="3" seed="7" result="t"/>
+      <feDisplacementMap in="SourceGraphic" in2="t" scale="5"/>
+    </filter>
+    <g id="sealArt">
+      <g filter="url(#rough)">
+        <rect x="6" y="6" width="108" height="178" rx="9" fill="#a63a2b"/>
+        <text x="60" y="80" text-anchor="middle" font-size="58" font-weight="700" fill="#f2ecdd" font-family="Kaiti SC,STKaiti,KaiTi,serif">雙</text>
+        <text x="60" y="148" text-anchor="middle" font-size="58" font-weight="700" fill="#f2ecdd" font-family="Kaiti SC,STKaiti,KaiTi,serif">清</text>
+        <text x="60" y="176" text-anchor="middle" font-size="19" letter-spacing="7" fill="#f2ecdd" font-family="Songti SC,STSong,SimSun,serif">館記</text>
+      </g>
+    </g>
+  </defs>
+</svg>
+
+<div class="grain" aria-hidden="true"></div>
+
+<!-- 窄屏顶栏 -->
+<div class="topbar">
+  <a class="tb-brand" href="#xu">雙清館</a>
+  <nav class="tb-links" aria-label="章节导航">
+    <a href="#xu">序·聽</a><a href="#qi">壹·緣起</a><a href="#pai">貳·排場</a><a href="#pu">叁·工乂譜</a><a href="#qu">肆·過曲</a><a href="#guan">伍·入館</a>
+  </nav>
+</div>
+
+<!-- 书脊 -->
+<nav class="rail" aria-label="书脊导航">
+  <a class="rail-brand" href="#xu" aria-label="回到卷首">
+    <svg class="seal" viewBox="0 0 120 190" aria-hidden="true"><use href="#sealArt"/></svg>
+  </a>
+  <div class="rail-links">
+    <a href="#xu"><span class="rn">序</span><span class="rt">聽</span></a>
+    <a href="#qi"><span class="rn">壹</span><span class="rt">緣起</span></a>
+    <a href="#pai"><span class="rn">貳</span><span class="rt">排場</span></a>
+    <a href="#pu"><span class="rn">叁</span><span class="rt">工乂譜</span></a>
+    <a href="#qu"><span class="rn">肆</span><span class="rt">過曲</span></a>
+    <a href="#guan"><span class="rn">伍</span><span class="rt">入館</span></a>
+  </div>
+  <div class="prog" aria-hidden="true"><i></i></div>
+</nav>
+
+<!-- 序章 -->
+<header id="xu" class="hero">
+  <div class="walls" aria-hidden="true">
+    <div class="wall w1" data-p="0.05" data-seed="1" data-count="18"></div>
+    <div class="wall w2" data-p="0.11" data-seed="4" data-count="12"></div>
+  </div>
+  <div class="hero-in">
+    <p class="code" data-reveal>檔案 QZ-JY-1896 · 卷首 · 泉州</p>
+    <div class="hero-grid">
+      <div class="hero-left" data-reveal data-d="80">
+        <div class="v-group">
+          <h1 class="big-v">雙清館</h1>
+          <p class="kicker">泉州絃管 · 館閣之音 · 一八九六</p>
+        </div>
+      </div>
+      <div class="hero-mid" data-reveal data-d="200">
+        <span class="listen" aria-hidden="true">聽</span>
+        <svg class="seal hero-seal" viewBox="0 0 120 190" aria-hidden="true"><use href="#sealArt"/></svg>
+      </div>
+      <div class="hero-right" data-reveal data-d="320">
+        <p class="lede">絃管一響，<strong>唐宋自遠方來</strong>。雙清館立於泉州金魚巷深處，是一間仍以口傳心授度日的南音館閣——琵琶橫抱，洞簫十目九節，唱的還是泉州腔。</p>
+        <p class="lede2">世上日日都在加快，館裡唯有一撩一拍，慢慢過完。</p>
+        <a class="btn" href="#qi">展 卷</a>
+      </div>
+    </div>
+    <div class="hero-foot">
+      <div class="liaos" id="liaos" aria-hidden="true"></div>
+      <p class="scroll-hint" aria-hidden="true">下卷</p>
+    </div>
+  </div>
+</header>
+
+<!-- 卷壹 緣起 -->
+<section id="qi" class="chap qi">
+  <div class="chap-head">
+    <span class="juan" aria-hidden="true">卷壹</span>
+    <h2 data-reveal>緣<i>起</i></h2>
+    <span class="chap-code" data-reveal data-d="120">QUÁN I · ORIGIN</span>
+  </div>
+  <div class="qi-grid">
+    <div>
+      <p class="tx lead" data-reveal>清光緒二十二年，泉州城中幾位讀書人閒居無事，自置管弦，立館於金魚巷內。取「雙清」為名，一謂簫、弦兩件皆清，二謂處世清白，不逐時流。</p>
+      <p class="tx" data-reveal data-d="120" style="margin-top:1.6rem">一百三十年間，館舍修了三回，琵琶換了兩床，唯排場未變：五人對坐，執拍者歌。南音被人稱作「中國音樂的活化石」，二〇〇九年列入人類非物質文化遺產代表作名錄——而對巷子裡的人來說，它只是十五夜的燈、簫，與一壺濃茶。</p>
+      <p class="pull" data-reveal data-d="200">郎君爺神位前不設麥克風。<br>想聽，就走近些。<small>—— 館訓 · 記於民國某年重修梁上</small></p>
+    </div>
+    <ol class="nianpu">
+      <li data-reveal><span class="yr">一八九六<b>QING · 1896</b></span><p>立館於金魚巷，郎君爺開爐，定名「雙清」。</p></li>
+      <li data-reveal data-d="60"><span class="yr">一九二三<b>1923</b></span><p>重修館舍，添置橫抱琵琶一床。匠人落款在鳳眼內側，至今可辨。</p></li>
+      <li data-reveal data-d="60"><span class="yr">一九五二<b>1952</b></span><p>館務中輟數年後復聚。老先生們把抄本用油紙包了三層埋在後井邊，取出時一字未損。</p></li>
+      <li data-reveal data-d="60"><span class="yr">一九八四<b>1984</b></span><p>系統整理工乂譜抄本二十八冊，始與各地弦友互訪。</p></li>
+      <li data-reveal data-d="60"><span class="yr">二〇〇九<b>UNESCO</b></span><p>南音列入人類非物質文化遺產代表作名錄。巷口掛了新燈籠，舊的那只收進櫃頂。</p></li>
+      <li class="now" data-reveal data-d="60"><span class="yr">今<b>NOW</b></span><p>傳習班每週六開課，學員自八歲至七十餘。郎君爺春秋二祭，五人排場，照舊。</p></li>
+    </ol>
+  </div>
+</section>
+
+<!-- 卷貳 排場 -->
+<section id="pai" class="chap pai">
+  <div class="tear" aria-hidden="true">
+    <svg viewBox="0 0 1200 34" preserveAspectRatio="none"><path fill="#e8dfc9" d="M0 34 L0 20 L28 24 60 12 92 22 128 10 168 20 205 8 248 19 292 11 336 23 378 12 420 21 468 9 512 20 558 12 604 24 648 10 694 21 740 13 786 23 830 11 876 20 922 9 968 19 1012 12 1058 22 1104 10 1150 20 1200 13 L1200 34 Z"/></svg>
+  </div>
+  <div class="side-rule" aria-hidden="true"></div>
+  <div class="chap-head">
+    <span class="juan" aria-hidden="true">卷貳</span>
+    <h2 data-reveal>排<i>場</i></h2>
+    <span class="chap-code" data-reveal data-d="120">QUÁN II · ENSEMBLE</span>
+  </div>
+  <p class="tx" data-reveal style="max-width:52ch;margin-bottom:3rem">南音以「上四管」坐奏為正：歌者執拍居中，琵琶、三弦與洞簫、二弦分侍左右。五人即是整個樂隊，也是五件會呼吸的家具。<b style="color:var(--ver)">點一點，認識各自的來歷。</b></p>
+  <div class="pai-grid">
+    <div data-reveal>
+      <svg class="pai-svg" viewBox="0 0 640 440" role="group" aria-label="五人排场示意图，可点击各座位了解乐器">
+        <rect class="rug" x="70" y="30" width="500" height="380" rx="24"/>
+        <rect class="rug2" x="86" y="46" width="468" height="348" rx="18"/>
+        <g aria-hidden="true">
+          <ellipse cx="320" cy="86" rx="14" ry="8" fill="none" stroke="#5a5140" stroke-width="1.2"/>
+          <path d="M316 80 q4 -18 -3 -30 q-6 -10 1 -22" fill="none" stroke="#a63a2b" stroke-width="1.3" stroke-linecap="round" opacity=".8"/>
+          <path d="M324 80 q-3 -14 3 -26 q5 -9 -1 -19" fill="none" stroke="#a63a2b" stroke-width="1.1" stroke-linecap="round" opacity=".55"/>
+        </g>
+        <g transform="translate(170,150)"><g class="seat" data-inst="pipa" tabindex="0" role="button" aria-pressed="false" aria-label="琵琶">
+          <circle class="disc" r="52"/><text class="zi" y="8">琵</text><text class="en" y="34">PHÂ-PÊ</text>
+        </g></g>
+        <g transform="translate(170,300)"><g class="seat" data-inst="sanxian" tabindex="0" role="button" aria-pressed="false" aria-label="三弦">
+          <circle class="disc" r="52"/><text class="zi" y="8">三</text><text class="en" y="34">SAM-HIÂN</text>
+        </g></g>
+        <g transform="translate(470,150)"><g class="seat" data-inst="dongxiao" tabindex="0" role="button" aria-pressed="false" aria-label="洞箫">
+          <circle class="disc" r="52"/><text class="zi" y="8">簫</text><text class="en" y="34">TŌNG-SIAU</text>
+        </g></g>
+        <g transform="translate(470,300)"><g class="seat" data-inst="erxian" tabindex="0" role="button" aria-pressed="false" aria-label="二弦">
+          <circle class="disc" r="52"/><text class="zi" y="8">二</text><text class="en" y="34">JĪ-HIÂN</text>
+        </g></g>
+        <g transform="translate(320,225)"><g class="seat" data-inst="paiban" tabindex="0" role="button" aria-pressed="false" aria-label="拍板与歌者">
+          <circle class="disc" r="60"/><text class="zi" y="10" style="font-size:48px">拍</text><text class="en" y="38">PHAH-PÁN</text>
+        </g></g>
+        <text x="320" y="432" text-anchor="middle" font-size="12" letter-spacing="4" fill="#5a5140" font-family="Songti SC,STSong,SimSun,serif">郎 君 爐 在 北 面　弦 友 環 爐 而 坐</text>
+      </svg>
+      <p class="pai-note">圖面左右從歌者自身計 · 非按坐姿比例</p>
+    </div>
+    <aside class="inst-panel" id="instPanel" data-reveal data-d="150" aria-live="polite"></aside>
+  </div>
+</section>
+
+<!-- 卷叁 工乂譜 -->
+<section id="pu" class="chap pu">
+  <div class="tear" aria-hidden="true">
+    <svg viewBox="0 0 1200 34" preserveAspectRatio="none"><path fill="#f2ecdd" d="M0 34 L0 20 L28 24 60 12 92 22 128 10 168 20 205 8 248 19 292 11 336 23 378 12 420 21 468 9 512 20 558 12 604 24 648 10 694 21 740 13 786 23 830 11 876 20 922 9 968 19 1012 12 1058 22 1104 10 1150 20 1200 13 L1200 34 Z"/></svg>
+  </div>
+  <div class="chap-head">
+    <span class="juan" aria-hidden="true">卷叁</span>
+    <h2 data-reveal>工<i>乂</i>譜</h2>
+    <span class="chap-code" data-reveal data-d="120">QUÁN III · NOTATION</span>
+  </div>
+  <p class="tx" data-reveal style="max-width:52ch;margin-bottom:3rem">館藏抄本皆以工乂譜錄之：五個譜字記音，撩拍記節。字不似字，倒像某種蟲跡——其實是唐宋大曲一路爬梳下來的指紋。</p>
+  <div class="pu-grid">
+    <div class="score-wrap" data-reveal>
+      <div class="score" id="score" aria-label="工乂谱谱字，点击可试听近似音"></div>
+    </div>
+    <aside data-reveal data-d="140">
+      <div class="readout" id="readout">點一個譜字，聽它近似的音。</div>
+      <div class="pu-btns">
+        <button class="btn" id="playPhrase" type="button">試奏一句</button>
+        <button class="btn ghost" id="muteBtn" type="button" aria-pressed="false">聲 · 開</button>
+      </div>
+      <p class="legend"><b>●</b> 為撩（弱拍），無點為正拍；讀序<b style="color:var(--ver)">自右而左</b>。五音近似擬奏，非南音原調。</p>
+      <p class="guan-quote">老執事說：譜是骨，腔是肉。抄本的蟲蛀洞裡，往往正好躲著一個「思」字。</p>
+    </aside>
+  </div>
+</section>
+
+<!-- 卷肆 過曲 -->
+<section id="qu" class="chap qu dark" data-dark>
+  <div class="tear" aria-hidden="true">
+    <svg viewBox="0 0 1200 34" preserveAspectRatio="none"><path fill="#171410" d="M0 34 L0 20 L28 24 60 12 92 22 128 10 168 20 205 8 248 19 292 11 336 23 378 12 420 21 468 9 512 20 558 12 604 24 648 10 694 21 740 13 786 23 830 11 876 20 922 9 968 19 1012 12 1058 22 1104 10 1150 20 1200 13 L1200 34 Z"/></svg>
+  </div>
+  <span class="big-bg" aria-hidden="true">曲</span>
+  <div class="chap-head">
+    <span class="juan" aria-hidden="true">卷肆</span>
+    <h2 data-reveal>過<i>曲</i></h2>
+    <span class="chap-code" data-reveal data-d="120">QUÁN IV · ARIA</span>
+  </div>
+  <div class="poem">
+    <p data-reveal>元夜燈花落滿階</p>
+    <p data-reveal data-d="160">阮抱琵琶過西街</p>
+    <p data-reveal data-d="320">簫聲慢　月色白</p>
+    <p data-reveal data-d="480">一曲相思寄與儂</p>
+  </div>
+  <p class="tx" data-reveal style="max-width:46ch">散曲不設布景，一開口，燈市、石橋與涼夜便都到了。此段為館中執事新撰，依泉腔十三韻試唱，未錄指法。</p>
+  <div class="colo" data-reveal data-d="160">
+    <p class="ctext">錄於丙申年冬月<br>雙清館藏板 · 執事手鈔</p>
+    <svg class="seal" viewBox="0 0 120 190" aria-hidden="true"><use href="#sealArt"/></svg>
+  </div>
+</section>
+
+<!-- 卷伍 入館 -->
+<section id="guan" class="chap guan">
+  <div class="tear" aria-hidden="true">
+    <svg viewBox="0 0 1200 34" preserveAspectRatio="none"><path fill="#f2ecdd" d="M0 34 L0 20 L28 24 60 12 92 22 128 10 168 20 205 8 248 19 292 11 336 23 378 12 420 21 468 9 512 20 558 12 604 24 648 10 694 21 740 13 786 23 830 11 876 20 922 9 968 19 1012 12 1058 22 1104 10 1150 20 1200 13 L1200 34 Z"/></svg>
+  </div>
+  <div class="chap-head">
+    <span class="juan" aria-hidden="true">卷伍</span>
+    <h2 data-reveal>入<i>館</i></h2>
+    <span class="chap-code" data-reveal data-d="120">QUÁN V · VISIT</span>
+  </div>
+  <div class="guan-grid">
+    <dl class="info">
+      <div data-reveal><dt>地址</dt><dd>福建省泉州市鯉城區金魚巷四十七號<small>巷口第三間，認門前朱燈籠；入館不收門票。</small></dd></div>
+      <div data-reveal data-d="80"><dt>開館</dt><dd>週三至週日 09:00 – 17:30<small>每月十五夜場雅集 19:30，請提早一刻鐘，散場後巷口有粥。</small></dd></div>
+      <div data-reveal data-d="160"><dt>傳習</dt><dd>每週六上午，孩童班與成人班<small>工乂譜抄讀隔週開課，自帶毛筆，紙由館中出。</small></dd></div>
+      <div data-reveal data-d="240"><dt>問事</dt><dd>留言如下，執事筆復。</dd></div>
+    </dl>
+    <form class="gform" id="guest" data-reveal data-d="160" novalidate>
+      <h3>留一句話給執事</h3>
+      <p class="fs">雅集座位以月為限，先到先得。</p>
+      <label for="q_name">稱呼</label>
+      <input id="q_name" name="q_name" type="text" autocomplete="name" placeholder="弦友貴姓">
+      <label for="q_kind">來意</label>
+      <select id="q_kind" name="q_kind">
+        <option>雅集夜場預約</option>
+        <option>傳習班報名</option>
+        <option>工乂譜抄本查閱</option>
+        <option>只想來坐坐</option>
+      </select>
+      <label for="q_msg">留言</label>
+      <textarea id="q_msg" name="q_msg" rows="3" placeholder="幾人同行？聽過南音嗎？"></textarea>
+      <button class="btn" type="submit">呈給執事</button>
+    </form>
+  </div>
+</section>
+
+<!-- 页脚 -->
+<footer class="foot dark" data-dark>
+  <div class="tear" aria-hidden="true">
+    <svg viewBox="0 0 1200 34" preserveAspectRatio="none"><path fill="#171410" d="M0 34 L0 20 L28 24 60 12 92 22 128 10 168 20 205 8 248 19 292 11 336 23 378 12 420 21 468 9 512 20 558 12 604 24 648 10 694 21 740 13 786 23 830 11 876 20 922 9 968 19 1012 12 1058 22 1104 10 1150 20 1200 13 L1200 34 Z"/></svg>
+  </div>
+  <div class="mq" aria-hidden="true"><div class="mq-in" id="mqIn"></div></div>
+  <div class="foot-in">
+    <svg class="seal" viewBox="0 0 120 190" aria-hidden="true"><use href="#sealArt"/></svg>
+    <div>
+      <p class="fb">雙清館弦管社 · 清光緒二十二年立 · 泉州金魚巷四十七號</p>
+      <p class="fb mono">SIANG-TSHING-KÓAN · HIÂN-KÓAN · QUANZHOU 24.9°N 118.6°E</p>
+      <p class="fb small">本頁紙紋與噪點皆自俱足，未假外物。MMXXVI。</p>
+    </div>
+  </div>
+</footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- 谱字墙（序章视差背景） ---------- */
+var GLYPHS = '乂工六思一乙郎君拍撩';
+document.querySelectorAll('.wall').forEach(function(w){
+  var count = parseInt(w.dataset.count || '16', 10);
+  var seed = parseInt(w.dataset.seed || '0', 10);
+  var html = '';
+  for (var i = 0; i < count; i++) {
+    var g = GLYPHS.charAt((i * 7 + seed * 3) % GLYPHS.length);
+    html += '<span aria-hidden="true">' + g + '</span>';
+  }
+  w.innerHTML = html;
+});
+
+/* ---------- 撩拍点行 ---------- */
+var liaos = document.getElementById('liaos');
+if (liaos) {
+  var s = '';
+  for (var j = 0; j < 20; j++) s += '<span></span>';
+  liaos.innerHTML = s;
+}
+
+/* ---------- 滚动渐显 ---------- */
+var io = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+document.querySelectorAll('[data-reveal]').forEach(function(el){ io.observe(el); });
+
+/* ---------- 章节高亮 + 墨底切换 ---------- */
+var links = Array.prototype.slice.call(document.querySelectorAll('a[href^="#"]'));
+var navIO = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if (!e.isIntersecting) return;
+    var id = '#' + e.target.id;
+    links.forEach(function(a){ a.classList.toggle('on', a.getAttribute('href') === id); });
+    document.body.classList.toggle('on-dark', e.target.hasAttribute('data-dark'));
+  });
+}, { rootMargin: '-42% 0px -52% 0px', threshold: 0 });
+document.querySelectorAll('section[id], header[id], footer[id]').forEach(function(sec){ navIO.observe(sec); });
+
+/* ---------- 进度 + 视差 ---------- */
+var fill = document.querySelector('.prog i');
+var layers = Array.prototype.slice.call(document.querySelectorAll('[data-p]'));
+var ticking = false;
+function onScroll(){
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(function(){
+    ticking = false;
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    if (fill) fill.style.transform = 'scaleY(' + (h > 0 ? Math.min(1, window.scrollY / h) : 0) + ')';
+    if (!reduce) {
+      var y = window.scrollY;
+      if (y < window.innerHeight * 1.3) {
+        layers.forEach(function(l){
+          l.style.transform = 'translate3d(0,' + (y * parseFloat(l.dataset.p)).toFixed(1) + 'px,0)';
+        });
+      }
+    }
+  });
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
+/* ---------- 浮贴 ---------- */
+var toastEl = document.getElementById('toast'), toastTimer;
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 4200);
+}
+
+/* ---------- 排场：乐器面板 ---------- */
+var INST = {
+  paiban:  { n:'拍板', poj:'PHAH-PÁN',  d:'五片荔木以繩貫之，歌者自執，起拍收拍。全館之節，在一人手中；板一慢，眾人皆慢。', tag:'節 · 全曲之綱' },
+  pipa:    { n:'琵琶', poj:'PHÂ-PÊ',    d:'橫抱曲項，猶存唐制。指甲彈之，不用義甲撥片，奏定骨幹音，眾樂隨之，是館閣之首。', tag:'骨幹 · 領奏' },
+  sanxian: { n:'三弦', poj:'SAM-HIÂN',  d:'長柄方筒，蒙蟒皮，聲沉而圓。與琵琶一剛一柔，相讓不相奪。', tag:'低音 · 相和' },
+  dongxiao:{ n:'洞簫', poj:'TŌNG-SIAU', d:'必取十目九節之竹，規制近乎唐尺八。聲嗚咽而清遠，長氣貫曲，與歌最親。', tag:'文 · 潤腔' },
+  erxian:  { n:'二弦', poj:'JĪ-HIÂN',   d:'仿魏晉奚琴遺制。包尾補腔，隨簫而不掩簫——館規第一條：最忌搶板。', tag:'絲 · 補腔' }
+};
+var panel = document.getElementById('instPanel');
+function setInst(id){
+  var d = INST[id];
+  if (!d || !panel) return;
+  document.querySelectorAll('.seat').forEach(function(s){
+    var on = s.dataset.inst === id;
+    s.classList.toggle('on', on);
+    s.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  panel.innerHTML = '<h3>' + d.n + '</h3><p class="poj">' + d.poj + '</p><p class="desc">' + d.d + '</p><span class="tag">' + d.tag + '</span><p class="legend-q">康熙年間賜號「御前清曲」，五人遂得坐奏——宮廷的椅子，養成了南音的規矩。</p>';
+}
+document.querySelectorAll('.seat').forEach(function(s){
+  s.addEventListener('click', function(){ setInst(s.dataset.inst); });
+  s.addEventListener('keydown', function(ev){
+    if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); setInst(s.dataset.inst); }
+  });
+});
+setInst('pipa');
+
+/* ---------- 工乂譜：擬音（Web Audio，本地合成） ---------- */
+var PITCH = {
+  '一': { f: 261.6, n: 'C4' },
+  '思': { f: 293.7, n: 'D4' },
+  '乂': { f: 329.6, n: 'E4' },
+  '工': { f: 392.0, n: 'G4' },
+  '六': { f: 440.0, n: 'A4' },
+  '乙': { f: 523.3, n: 'C5' }
+};
+var SENT = [['乂',1],['工',0],['六',0],['工',1],['乂',0],['思',0],['思',1],['一',0],['一',1],['思',0],['乂',0],['工',0]];
+var AC = null, muted = false;
+function audioCtx(){
+  var Ctor = window.AudioContext || window.webkitAudioContext;
+  if (!Ctor) return null;
+  if (!AC) AC = new Ctor();
+  if (AC.state === 'suspended') AC.resume();
+  return AC;
+}
+function tone(freq, delay, dur){
+  if (muted) return;
+  var c = audioCtx();
+  if (!c) return;
+  var t0 = c.currentTime + (delay || 0);
+  var g = c.createGain();
+  var lp = c.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 1900;
+  var o1 = c.createOscillator(); o1.type = 'triangle'; o1.frequency.value = freq;
+  var o2 = c.createOscillator(); o2.type = 'sine'; o2.frequency.value = freq * 2.01;
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.linearRampToValueAtTime(0.15, t0 + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0008, t0 + dur);
+  o1.connect(lp); o2.connect(lp); lp.connect(g); g.connect(c.destination);
+  o1.start(t0); o2.start(t0);
+  o1.stop(t0 + dur + 0.05); o2.stop(t0 + dur + 0.05);
+}
+var scoreEl = document.getElementById('score');
+var readout = document.getElementById('readout');
+function pad3(n){ return (n < 10 ? '00' : n < 100 ? '0' : '') + n; }
+SENT.forEach(function(c, i){
+  var b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'cell';
+  b.setAttribute('aria-label', '谱字' + c[0]);
+  b.innerHTML = '<span class="zi" aria-hidden="true">' + c[0] + '</span>' +
+                '<span class="liao' + (c[1] ? ' on' : '') + '" aria-hidden="true">' + (c[1] ? '●' : '·') + '</span>' +
+                '<span class="idx" aria-hidden="true">QZ-' + pad3(31 + i) + '</span>';
+  b.addEventListener('click', function(){
+    var p = PITCH[c[0]];
+    document.querySelectorAll('.cell.on').forEach(function(x){ x.classList.remove('on'); });
+    b.classList.add('on');
+    readout.innerHTML = '譜字 <b>' + c[0] + '</b>　近擬音 <b>' + p.n + '</b>' + (c[1] ? '　<span style="color:var(--amber)">撩</span>' : '');
+    tone(p.f, 0, 0.9);
+  });
+  scoreEl.appendChild(b);
+});
+var playBtn = document.getElementById('playPhrase');
+if (playBtn) playBtn.addEventListener('click', function(){
+  if (playBtn.disabled) return;
+  if (muted) { toast('目前「聲 · 沉」，先開聲再奏。'); return; }
+  audioCtx();
+  playBtn.disabled = true;
+  playBtn.textContent = '奏中……';
+  SENT.forEach(function(c, i){
+    var p = PITCH[c[0]];
+    tone(p.f, i * 0.38, 0.85);
+    setTimeout(function(){ var b = scoreEl.children[i]; if (b) b.classList.add('on'); }, i * 380);
+    setTimeout(function(){ var b = scoreEl.children[i]; if (b) b.classList.remove('on'); }, i * 380 + 330);
+  });
+  setTimeout(function(){ playBtn.disabled = false; playBtn.textContent = '試奏一句'; }, SENT.length * 380 + 500);
+});
+var muteBtn = document.getElementById('muteBtn');
+if (muteBtn) muteBtn.addEventListener('click', function(){
+  muted = !muted;
+  muteBtn.textContent = muted ? '聲 · 沉' : '聲 · 開';
+  muteBtn.setAttribute('aria-pressed', String(muted));
+});
+
+/* ---------- 入館留言（页内反馈） ---------- */
+var form = document.getElementById('guest');
+if (form) form.addEventListener('submit', function(ev){
+  ev.preventDefault();
+  var name = form.elements['q_name'].value.trim();
+  if (!name) { toast('留個稱呼，執事方好回執。'); form.elements['q_name'].focus(); return; }
+  var btn = form.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.textContent = '已錄';
+  toast('收妥，' + name + '。回執將由執事筆復，或貼於巷口朱燈籠下。');
+  form.reset();
+  setTimeout(function(){ btn.disabled = false; btn.textContent = '呈給執事'; }, 2600);
+});
+
+/* ---------- 页脚跑马灯 ---------- */
+var mqIn = document.getElementById('mqIn');
+if (mqIn) {
+  var base = '乂　工　六　思　一　撩　拍　◦　';
+  var chunk = base.repeat(6);
+  mqIn.innerHTML = '<span>' + chunk + '</span><span>' + chunk + '</span>';
+}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,2246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AegisGuard 全球智能风控与欺诈决策中枢</title>
+  <style>
+    :root {
+      --bg-base: #0a0e17;
+      --bg-surface: #111827;
+      --bg-elevated: #1a2234;
+      --bg-hover: #222d42;
+      --border-subtle: #1f293d;
+      --border-strong: #2e3d5b;
+
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --primary-glow: rgba(59, 130, 246, 0.25);
+
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.12);
+      --danger-border: rgba(239, 68, 68, 0.35);
+
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.12);
+      --warning-border: rgba(245, 158, 11, 0.35);
+
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.12);
+      --success-border: rgba(16, 185, 129, 0.35);
+
+      --purple: #8b5cf6;
+      --cyan: #06b6d4;
+
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 10px;
+      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+    }
+
+    [data-theme="light"] {
+      --bg-base: #f3f4f6;
+      --bg-surface: #ffffff;
+      --bg-elevated: #f9fafb;
+      --bg-hover: #f3f4f6;
+      --border-subtle: #e5e7eb;
+      --border-strong: #d1d5db;
+
+      --text-main: #111827;
+      --text-muted: #4b5563;
+      --text-dim: #9ca3af;
+
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-glow: rgba(37, 99, 235, 0.15);
+
+      --danger: #dc2626;
+      --danger-bg: #fee2e2;
+      --danger-border: #fca5a5;
+
+      --warning: #d97706;
+      --warning-bg: #fef3c7;
+      --warning-border: #fcd34d;
+
+      --success: #059669;
+      --success-bg: #d1fae5;
+      --success-border: #6ee7b7;
+
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.4;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 顶部导航与引擎状态条 */
+    header {
+      height: 52px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      flex-shrink: 0;
+      z-index: 30;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--primary), var(--purple));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-strong);
+      border-radius: 12px;
+      color: var(--cyan);
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    .engine-metrics {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: var(--bg-elevated);
+      padding: 4px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .metric-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .metric-pill .label {
+      color: var(--text-muted);
+    }
+
+    .metric-pill .val {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      user-select: none;
+      background: var(--bg-elevated);
+      color: var(--text-main);
+      border-color: var(--border-subtle);
+    }
+
+    .btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-strong);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+      border-color: var(--danger);
+    }
+    .btn-danger:hover {
+      opacity: 0.9;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+      border-color: var(--success);
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+
+    .btn-icon {
+      padding: 6px;
+      width: 32px;
+      height: 32px;
+    }
+
+    /* 主工作台分栏结构 */
+    .workbench-layout {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      grid-template-rows: auto 1fr;
+      height: calc(100vh - 52px);
+      overflow: hidden;
+      background: var(--bg-base);
+    }
+
+    /* 顶部图表与流控监控概览条 */
+    .top-telemetry-bar {
+      grid-column: 1 / -1;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 10px 16px;
+      display: grid;
+      grid-template-columns: 340px 1fr 280px;
+      gap: 16px;
+      align-items: center;
+      min-height: 110px;
+    }
+
+    .telemetry-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .telemetry-card h4 {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .telemetry-kpis {
+      display: flex;
+      gap: 16px;
+      margin-top: 4px;
+    }
+
+    .kpi-item .kpi-num {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .kpi-item .kpi-sub {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    /* 左侧主体：表格与过滤栏 */
+    .main-stream-pane {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      border-right: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      overflow: hidden;
+    }
+
+    .filter-action-toolbar {
+      padding: 10px 16px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      max-width: 320px;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 6px 10px 6px 28px;
+      color: var(--text-main);
+      font-size: 12px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .search-box input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-glow);
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+    }
+
+    .filter-tags-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+    }
+
+    .chip-filter {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+
+    .chip-filter:hover {
+      background: var(--bg-hover);
+      color: var(--text-main);
+    }
+
+    .chip-filter.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .select-input {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      border-radius: var(--radius-md);
+      padding: 5px 8px;
+      font-size: 12px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* 数据表格容器 */
+    .table-viewport {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+    }
+
+    table.data-grid {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      text-align: left;
+    }
+
+    table.data-grid thead {
+      position: sticky;
+      top: 0;
+      background: var(--bg-elevated);
+      z-index: 10;
+      box-shadow: 0 1px 0 var(--border-subtle);
+    }
+
+    table.data-grid th {
+      padding: 8px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      border-bottom: 1px solid var(--border-subtle);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    table.data-grid th:hover {
+      color: var(--text-main);
+      background: var(--bg-hover);
+    }
+
+    table.data-grid th .sort-icon {
+      display: inline-block;
+      margin-left: 4px;
+      font-size: 9px;
+      opacity: 0.6;
+    }
+
+    table.data-grid td {
+      padding: 8px 10px;
+      font-size: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      white-space: nowrap;
+      transition: background 0.1s;
+    }
+
+    table.data-grid tbody tr {
+      cursor: pointer;
+    }
+
+    table.data-grid tbody tr:hover {
+      background: var(--bg-hover);
+    }
+
+    table.data-grid tbody tr.selected {
+      background: rgba(59, 130, 246, 0.15) !important;
+      position: relative;
+    }
+
+    table.data-grid tbody tr.selected td:first-child {
+      border-left: 3px solid var(--primary);
+    }
+
+    /* 状态徽章 */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      line-height: 1.2;
+    }
+
+    .badge-critical {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid var(--danger-border);
+    }
+
+    .badge-warning {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border: 1px solid var(--warning-border);
+    }
+
+    .badge-pass {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid var(--success-border);
+    }
+
+    .badge-review {
+      background: rgba(139, 92, 246, 0.12);
+      color: var(--purple);
+      border: 1px solid rgba(139, 92, 246, 0.35);
+    }
+
+    .score-meter {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .meter-bar {
+      width: 44px;
+      height: 5px;
+      background: var(--bg-hover);
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .meter-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+
+    /* 分页与批量状态栏 */
+    .table-footer-bar {
+      height: 40px;
+      padding: 0 16px;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 右侧：决策工作台与证据链核查区 */
+    .detail-decision-pane {
+      height: 100%;
+      background: var(--bg-surface);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      border-left: 1px solid var(--border-subtle);
+    }
+
+    .pane-tabs {
+      display: flex;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0 8px;
+    }
+
+    .pane-tab {
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pane-tab:hover {
+      color: var(--text-main);
+    }
+
+    .pane-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: var(--bg-surface);
+    }
+
+    .pane-content-wrapper {
+      padding: 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .section-box {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      position: relative;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 6px;
+    }
+
+    .kv-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px 12px;
+    }
+
+    .kv-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .kv-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .kv-value {
+      font-size: 12px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--text-main);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* 规则命中流水列表 */
+    .rule-hit-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rule-hit-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      background: var(--bg-hover);
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--warning);
+      font-size: 11px;
+    }
+
+    .rule-hit-item.critical {
+      border-left-color: var(--danger);
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    /* 表单与决策操作台 */
+    .decision-action-box {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-group label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .form-control {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 7px 10px;
+      color: var(--text-main);
+      font-size: 12px;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-glow);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 54px;
+      font-family: var(--font-sans);
+    }
+
+    .decision-buttons-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    /* 模拟器策略调优界面 */
+    .strategy-sim-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .slider-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+
+    .slider-header span:last-child {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 4px;
+      background: var(--border-strong);
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 0 6px var(--primary-glow);
+    }
+
+    /* Toast 提示浮窗 */
+    #toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast-msg {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-strong);
+      border-left: 4px solid var(--primary);
+      color: var(--text-main);
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slide-in {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* SVG 图标通用样式 */
+    .icon {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    /* 滚动条美化 */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-base);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 顶部导航与监控指示条 -->
+  <header>
+    <div class="brand-section">
+      <div class="brand-logo">
+        <svg class="icon" style="width:18px;height:18px;" viewBox="0 0 24 24">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <div class="brand-title">
+        AegisGuard <span style="font-weight:400;color:var(--text-muted);">反欺诈风控中枢</span>
+        <span class="brand-badge">PROD-APAC-01</span>
+      </div>
+    </div>
+
+    <!-- 实时引擎健康度 -->
+    <div class="engine-metrics">
+      <div class="metric-pill">
+        <div class="status-dot"></div>
+        <span class="label">引擎状态:</span>
+        <span class="val" style="color:var(--success);">LIVE PREDICATING</span>
+      </div>
+      <div class="metric-pill">
+        <span class="label">处理延迟:</span>
+        <span class="val" id="tele-latency">14.8 ms</span>
+      </div>
+      <div class="metric-pill">
+        <span class="label">QPS 吞吐:</span>
+        <span class="val" id="tele-qps">3,420 /s</span>
+      </div>
+      <div class="metric-pill">
+        <span class="label">今日拦截挽回:</span>
+        <span class="val" style="color:var(--danger);">$482,900</span>
+      </div>
+    </div>
+
+    <!-- 操作区与工具 -->
+    <div class="header-actions">
+      <button class="btn btn-sm" id="btn-toggle-theme" title="切换明暗主题">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <span id="theme-text">主题</span>
+      </button>
+      <button class="btn btn-sm btn-primary" id="btn-export-audit">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        导出审查审计包
+      </button>
+    </div>
+  </header>
+
+  <!-- 主工作区 -->
+  <div class="workbench-layout">
+
+    <!-- 顶部遥测与监控趋势条 (含 2 组可视化图表) -->
+    <div class="top-telemetry-bar">
+      <!-- 汇总卡片 -->
+      <div class="telemetry-card">
+        <h4>实时欺诈态势分布 (24H) <span class="badge badge-critical" style="font-size:9px;">高危聚集</span></h4>
+        <div class="telemetry-kpis">
+          <div class="kpi-item">
+            <div class="kpi-num" id="kpi-intercept-rate">3.48%</div>
+            <div class="kpi-sub">当前阻断拦截率</div>
+          </div>
+          <div class="kpi-item">
+            <div class="kpi-num" style="color:var(--warning);" id="kpi-review-queue">42 笔</div>
+            <div class="kpi-sub">待人工核决队列</div>
+          </div>
+          <div class="kpi-item">
+            <div class="kpi-num" style="color:var(--success);">99.98%</div>
+            <div class="kpi-sub">规则命中精度</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 图表 1: 实时交易时序与阻断尖峰图 (SVG 贝塞尔平滑走势图) -->
+      <div class="telemetry-card" style="padding:6px 12px;">
+        <h4>
+          <span>交易流量与风控拦截时序流</span>
+          <span style="font-size:10px;font-family:var(--font-mono);color:var(--text-dim);">■ 正常交易量(柱) — 拦截高危指数(线)</span>
+        </h4>
+        <div style="flex:1;position:relative;width:100%;height:68px;" id="timeseries-chart-container">
+          <!-- 动态注入 SVG 时序图 -->
+        </div>
+      </div>
+
+      <!-- 快速决策过滤模式切换 -->
+      <div class="telemetry-card">
+        <h4>核决分流工作模式</h4>
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <button class="btn btn-sm btn-primary" style="flex:1;" id="mode-highrisk">⚡ 高危加急 (Score > 85)</button>
+          <button class="btn btn-sm" style="flex:1;" id="mode-all">全部待审</button>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:4px;">
+          提示: 点击表格任意行，右侧工作台将实时展开多维证据图谱。
+        </div>
+      </div>
+    </div>
+
+    <!-- 左侧：风控队列数据表格 -->
+    <div class="main-stream-pane">
+
+      <!-- 过滤与搜索工具栏 -->
+      <div class="filter-action-toolbar">
+        <div class="toolbar-row">
+          <div class="search-box">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="filter-keyword" placeholder="搜索交易流水号 / 邮箱 / 卡号指纹 / IP ...">
+          </div>
+
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select class="select-input" id="filter-decision">
+              <option value="ALL">全量处置状态 (全部)</option>
+              <option value="PENDING" selected>待人工核决 (PENDING)</option>
+              <option value="INTERCEPT">自动拦截 (INTERCEPT)</option>
+              <option value="PASSED">放行通过 (PASSED)</option>
+            </select>
+
+            <select class="select-input" id="filter-risk-level">
+              <option value="ALL">所有风险等级</option>
+              <option value="CRITICAL">极高危 (Score ≥ 80)</option>
+              <option value="MEDIUM">中风险 (50 ≤ Score < 80)</option>
+              <option value="LOW">低风险 (Score < 50)</option>
+            </select>
+
+            <button class="btn btn-sm btn-danger" id="btn-batch-intercept" disabled>
+              批量拦截 (<span id="selected-count">0</span>)
+            </button>
+          </div>
+        </div>
+
+        <!-- 标签快捷过滤 -->
+        <div class="toolbar-row">
+          <div class="filter-tags-group">
+            <span style="font-size:11px;color:var(--text-dim);">快捷筛选:</span>
+            <div class="chip-filter active" data-tag="ALL">全部通道</div>
+            <div class="chip-filter" data-tag="STRIPE">Stripe 跨境</div>
+            <div class="chip-filter" data-tag="ADYEN">Adyen 欧陆</div>
+            <div class="chip-filter" data-tag="CRYPTO">USDT / Web3 出海</div>
+            <div class="chip-filter" data-tag="APPLEPAY">Apple Pay 快速付</div>
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);" id="grid-meta-count">
+            展示 12 / 12 条记录
+          </div>
+        </div>
+      </div>
+
+      <!-- 表格视口 -->
+      <div class="table-viewport">
+        <table class="data-grid" id="transactions-table">
+          <thead>
+            <tr>
+              <th style="width:36px;text-align:center;">
+                <input type="checkbox" id="select-all-checkbox">
+              </th>
+              <th data-sort="id">交易编号/时间 <span class="sort-icon">▼</span></th>
+              <th data-sort="amount">金额与币种 <span class="sort-icon">▲▼</span></th>
+              <th data-sort="score">风险综合分 <span class="sort-icon">▲▼</span></th>
+              <th>账户主体/邮箱</th>
+              <th>IP & 归属地</th>
+              <th>触发核心规则</th>
+              <th data-sort="status">处置决策 <span class="sort-icon">▲▼</span></th>
+              <th style="text-align:right;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <!-- 动态渲染数据行 -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 分页与底部信息 -->
+      <div class="table-footer-bar">
+        <div>
+          <span>已勾选 <strong id="footer-selected-num" style="color:var(--primary);">0</strong> 条</span>
+          <span style="margin: 0 8px;">|</span>
+          <span>每页 25 条 (自动流式增量接收中)</span>
+        </div>
+        <div class="pagination-controls">
+          <button class="btn btn-sm" id="btn-page-prev">上一页</button>
+          <span style="font-family:var(--font-mono);" id="page-indicator">第 1 / 1 页</span>
+          <button class="btn btn-sm" id="btn-page-next">下一页</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 右侧：决策工作台、证据链下钻与策略模拟器 -->
+    <div class="detail-decision-pane">
+
+      <!-- 切换选项卡 -->
+      <div class="pane-tabs">
+        <div class="pane-tab active" data-target="tab-evidence">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          交易证据链核查
+        </div>
+        <div class="pane-tab" data-target="tab-network">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          设备/资金团伙图谱 (图表2)
+        </div>
+        <div class="pane-tab" data-target="tab-strategy">
+          <svg class="icon" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          动态策略回测模拟器 (图表3)
+        </div>
+      </div>
+
+      <!-- Tab 1: 证据链核查详情 -->
+      <div class="pane-content-wrapper" id="tab-evidence">
+
+        <!-- 交易头部概览 -->
+        <div class="section-box" style="border-left:4px solid var(--danger);">
+          <div class="section-title">
+            <span>流水核查: <span id="detail-txid" style="font-family:var(--font-mono);color:var(--primary);">TX-984210</span></span>
+            <span class="badge badge-critical" id="detail-badge-score">RISK SCORE: 92</span>
+          </div>
+          <div class="kv-grid">
+            <div class="kv-item">
+              <span class="kv-label">交易金额</span>
+              <span class="kv-value" id="detail-amount">$8,940.00 USD</span>
+            </div>
+            <div class="kv-item">
+              <span class="kv-label">通道 / 卡段</span>
+              <span class="kv-value" id="detail-channel">Stripe 3DS (BIN: 411111)</span>
+            </div>
+            <div class="kv-item">
+              <span class="kv-label">发生时间戳</span>
+              <span class="kv-value" id="detail-timestamp">2026-09-04 14:22:18 UTC</span>
+            </div>
+            <div class="kv-item">
+              <span class="kv-label">设备指纹 ID</span>
+              <span class="kv-value" id="detail-devid">FP-e9a832bf71</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 多维风险特征雷达图 (原生手绘 SVG 图表) -->
+        <div class="section-box">
+          <div class="section-title">
+            <span>6 维反欺诈特征偏离度 (Radar Analysis)</span>
+            <span style="font-size:10px;color:var(--text-dim);">基线 vs 实时捕获</span>
+          </div>
+          <div style="width:100%;height:180px;display:flex;align-items:center;justify-content:center;" id="radar-chart-box">
+            <!-- 动态生成雷达图 -->
+          </div>
+        </div>
+
+        <!-- 命中规则链 -->
+        <div class="section-box">
+          <div class="section-title">
+            <span>规则链触发追踪 (<span id="detail-rule-count">3</span> 项命中)</span>
+            <span class="badge badge-warning" style="font-size:9px;">阻断级</span>
+          </div>
+          <div class="rule-hit-list" id="detail-rules-container">
+            <!-- 动态规则列表 -->
+          </div>
+        </div>
+
+        <!-- 可操作核决表单 -->
+        <div class="decision-action-box">
+          <div class="section-title" style="margin-bottom:0;padding-bottom:0;border:none;">
+            <span style="color:var(--primary);display:flex;align-items:center;gap:6px;">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              风控员核决裁定
+            </span>
+            <span style="font-size:10px;color:var(--text-dim);">审计日志自动留存</span>
+          </div>
+
+          <div class="form-group">
+            <label>核决判定处置动作</label>
+            <select class="form-control" id="form-action-select">
+              <option value="INTERCEPT">阻断交易并封禁卡号指纹 (Block & Blacklist)</option>
+              <option value="PASSED">人工审核通过并放行 (Release & Whitelist)</option>
+              <option value="STEPUP">要求 3DS2 强化身份二次核身 (Step-up Auth)</option>
+              <option value="HOLD">暂缓支付进入反洗钱 AML 二次调查</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>判定依据备注 / 调查凭证</label>
+            <textarea class="form-control" id="form-action-reason" placeholder="输入判定理由，如：IP 处于高危机房网段且关联卡号 10 分钟内碰撞 5 次..."></textarea>
+          </div>
+
+          <div class="decision-buttons-row">
+            <button class="btn btn-danger" id="btn-submit-intercept">直接拦截</button>
+            <button class="btn btn-success" id="btn-submit-pass">放行通过</button>
+            <button class="btn btn-primary" id="btn-submit-decision">提交裁定</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tab 2: 设备与资金关系拓扑图谱 (Canvas 实现) -->
+      <div class="pane-content-wrapper" id="tab-network" style="display:none;">
+        <div class="section-box" style="flex:1;display:flex;flex-direction:column;">
+          <div class="section-title">
+            <span>黑产洗钱团伙关联网络图谱</span>
+            <span class="badge badge-critical" style="font-size:9px;">发现 1 度强关联</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
+            节点图说明：中心节点为当前交易，红/紫节点为共享相同设备指纹、同一代理 IP 或相同收款钱包的关联实体。
+          </div>
+          <div style="flex:1;min-height:320px;background:var(--bg-base);border-radius:var(--radius-sm);position:relative;overflow:hidden;" id="network-canvas-container">
+            <canvas id="network-canvas" width="440" height="340" style="width:100%;height:100%;display:block;"></canvas>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11px;">
+            <span style="color:var(--danger);">● 核心涉案黑卡</span>
+            <span style="color:var(--cyan);">● 关联 IP 代理池</span>
+            <span style="color:var(--purple);">● 目标商户终端</span>
+            <button class="btn btn-sm" id="btn-refresh-network">重新聚集网络</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: 动态策略回测与 ROC 权衡曲线模拟器 -->
+      <div class="pane-content-wrapper" id="tab-strategy" style="display:none;">
+        <div class="strategy-sim-pane">
+          <div class="section-box">
+            <div class="section-title">
+              <span>动态策略敏感度与拦截阈值模拟</span>
+              <span class="badge badge-review">仿真回测引擎</span>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:14px;margin-top:10px;">
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span>高危自动拦截评分阈值 (Score Threshold)</span>
+                  <span id="val-score-threshold">85 分</span>
+                </div>
+                <input type="range" id="slider-threshold" min="50" max="95" value="85">
+              </div>
+
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span>设备碰撞敏感度加权 (Device Collision Weight)</span>
+                  <span id="val-device-weight">1.4x</span>
+                </div>
+                <input type="range" id="slider-device" min="0.5" max="3.0" step="0.1" value="1.4">
+              </div>
+
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span>地理跳变容忍半径 (Geo-Velocity Tolerance)</span>
+                  <span id="val-geo-radius">350 km/h</span>
+                </div>
+                <input type="range" id="slider-geo" min="100" max="1000" step="50" value="350">
+              </div>
+            </div>
+          </div>
+
+          <!-- 回测 ROC 权衡曲线图 (SVG) -->
+          <div class="section-box">
+            <div class="section-title">
+              <span>回测收益模拟: 欺诈拦截率 vs 客户误伤率 (Trade-off)</span>
+            </div>
+            <div style="width:100%;height:180px;" id="roc-chart-container">
+              <!-- 动态 SVG 曲线 -->
+            </div>
+            <div style="display:flex;justify-content:space-around;margin-top:8px;font-size:11px;font-family:var(--font-mono);">
+              <div>预计挽回: <strong style="color:var(--success);" id="sim-save-amount">$1,280,400</strong></div>
+              <div>预计误伤: <strong style="color:var(--danger);" id="sim-fpos-rate">0.12%</strong></div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="btn-deploy-policy" style="width:100%;">
+            灰度发布当前策略至亚太集群 (Canary 10%)
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- 全局 Toast 容器 -->
+  <div id="toast-container"></div>
+
+  <script>
+    /**
+     * AegisGuard 业务状态机与模拟数据引擎
+     */
+    const STATE = {
+      theme: 'dark',
+      filter: {
+        keyword: '',
+        decision: 'PENDING',
+        riskLevel: 'ALL',
+        tag: 'ALL'
+      },
+      sort: {
+        key: 'score',
+        order: 'desc'
+      },
+      page: 1,
+      pageSize: 20,
+      selectedIds: new Set(),
+      currentTx: null,
+
+      // 策略模拟参数
+      policySim: {
+        threshold: 85,
+        deviceWeight: 1.4,
+        geoRadius: 350
+      },
+
+      // 模拟数据集
+      transactions: []
+    };
+
+    // 预置丰富逼真的模拟数据集
+    const INITIAL_RECORDS = [
+      {
+        id: 'TX-984210',
+        timestamp: '14:22:18',
+        fullTime: '2026-09-04 14:22:18 UTC',
+        amount: 8940.00,
+        currency: 'USD',
+        channel: 'STRIPE',
+        bin: '411111 (US Chase Visa Gold)',
+        user: 'r.vance@enterprise-logistics.net',
+        ip: '185.220.101.5 (DE / Tor Exit)',
+        devId: 'FP-e9a832bf71',
+        score: 94,
+        decision: 'PENDING',
+        riskFactors: { velocity: 95, deviceMismatch: 90, ipReputation: 98, geoJump: 88, cardSpin: 92, amountAnomaly: 85 },
+        rules: [
+          { name: 'TOR_EXIT_NODE_DETECTED', desc: '检测到来自暗网/Tor 出口节点的访问请求', level: 'critical' },
+          { name: 'HIGH_VELOCITY_CARD_SPINNING', desc: '同一设备指纹在 5 分钟内更换 4 张不同卡号', level: 'critical' },
+          { name: 'IMPOSSIBLE_TRAVEL_SPEED', desc: '地理跃迁测算速度达 4,200 km/h (前序坐标: 新加坡)', level: 'warning' }
+        ]
+      },
+      {
+        id: 'TX-984209',
+        timestamp: '14:21:45',
+        fullTime: '2026-09-04 14:21:45 UTC',
+        amount: 3200.00,
+        currency: 'EUR',
+        channel: 'ADYEN',
+        bin: '520082 (FR BNP Paribas)',
+        user: 'lucas.dupont@paris-luxury.fr',
+        ip: '82.64.18.204 (FR / Residential)',
+        devId: 'FP-4a71c89012',
+        score: 78,
+        decision: 'PENDING',
+        riskFactors: { velocity: 65, deviceMismatch: 70, ipReputation: 40, geoJump: 30, cardSpin: 85, amountAnomaly: 88 },
+        rules: [
+          { name: 'HIGH_VALUE_NEW_ACCOUNT', desc: '注册不足 2 小时的新账户单笔交易超 €3,000', level: 'warning' },
+          { name: 'CARD_NAME_MISMATCH', desc: '持卡人姓名与注册主体姓名 Levenshtein 距离过大', level: 'warning' }
+        ]
+      },
+      {
+        id: 'TX-984208',
+        timestamp: '14:20:10',
+        fullTime: '2026-09-04 14:20:10 UTC',
+        amount: 14500.00,
+        currency: 'USDT',
+        channel: 'CRYPTO',
+        bin: 'TRX-7881902',
+        user: 'trader_k7@protonmail.com',
+        ip: '103.251.167.22 (HK / Datacenter)',
+        devId: 'FP-11c0028e99',
+        score: 91,
+        decision: 'PENDING',
+        riskFactors: { velocity: 92, deviceMismatch: 88, ipReputation: 95, geoJump: 75, cardSpin: 60, amountAnomaly: 98 },
+        rules: [
+          { name: 'AML_CHAINALYSIS_SANCTION', desc: '收款 TRC-20 钱包地址关联 Tornado.cash 混币记录', level: 'critical' },
+          { name: 'HEADLESS_BROWSER_EMULATION', desc: '检测到 Puppeteer/Selenium 自动化指纹脚本注入', level: 'critical' }
+        ]
+      },
+      {
+        id: 'TX-984207',
+        timestamp: '14:18:55',
+        fullTime: '2026-09-04 14:18:55 UTC',
+        amount: 49.99,
+        currency: 'USD',
+        channel: 'APPLEPAY',
+        bin: '424242 (US Apple Card)',
+        user: 'sarah.connor@gmail.com',
+        ip: '73.189.44.12 (US / Comcast)',
+        devId: 'FP-88ba3019af',
+        score: 12,
+        decision: 'PASSED',
+        riskFactors: { velocity: 10, deviceMismatch: 5, ipReputation: 12, geoJump: 8, cardSpin: 5, amountAnomaly: 15 },
+        rules: [
+          { name: 'DEVICE_BIOMETRIC_VERIFIED', desc: 'Apple Pay 硬件安全芯片 FaceID 生物认证通过', level: 'pass' }
+        ]
+      },
+      {
+        id: 'TX-984206',
+        timestamp: '14:16:30',
+        fullTime: '2026-09-04 14:16:30 UTC',
+        amount: 2150.00,
+        currency: 'USD',
+        channel: 'STRIPE',
+        bin: '400022 (UK Barclays)',
+        user: 'alex.smith99@outlook.com',
+        ip: '194.26.29.112 (NL / VPN Proxy)',
+        devId: 'FP-e9a832bf71', // 与 TX-984210 共享设备指纹
+        score: 88,
+        decision: 'PENDING',
+        riskFactors: { velocity: 85, deviceMismatch: 82, ipReputation: 89, geoJump: 70, cardSpin: 90, amountAnomaly: 75 },
+        rules: [
+          { name: 'SHARED_SUSPICIOUS_DEVICE', desc: '当前设备已被标记在黑名单欺诈聚类组 #CL-409', level: 'critical' },
+          { name: 'PROXY_RESIDENTIAL_DETECTED', desc: '商业住宅代理中继出口 IP', level: 'warning' }
+        ]
+      },
+      {
+        id: 'TX-984205',
+        timestamp: '14:15:02',
+        fullTime: '2026-09-04 14:15:02 UTC',
+        amount: 880.00,
+        currency: 'EUR',
+        channel: 'ADYEN',
+        bin: '510001 (DE Deutsche Bank)',
+        user: 'hans.gruber@nmi-holding.de',
+        ip: '91.200.12.8 (DE / Vodafone)',
+        devId: 'FP-72a39011de',
+        score: 64,
+        decision: 'PENDING',
+        riskFactors: { velocity: 50, deviceMismatch: 60, ipReputation: 45, geoJump: 70, cardSpin: 65, amountAnomaly: 55 },
+        rules: [
+          { name: 'ABNORMAL_OFF_HOURS_ORDER', desc: '持卡人当地时间凌晨 03:40 突发大额异地交易', level: 'warning' }
+        ]
+      },
+      {
+        id: 'TX-984204',
+        timestamp: '14:12:19',
+        fullTime: '2026-09-04 14:12:19 UTC',
+        amount: 199.00,
+        currency: 'USD',
+        channel: 'STRIPE',
+        bin: '411111 (US Wells Fargo)',
+        user: 'elena.rostova@yandex.ru',
+        ip: '195.201.88.4 (RU / Rostelecom)',
+        devId: 'FP-33bb0182cc',
+        score: 96,
+        decision: 'INTERCEPT',
+        riskFactors: { velocity: 98, deviceMismatch: 95, ipReputation: 99, geoJump: 90, cardSpin: 94, amountAnomaly: 70 },
+        rules: [
+          { name: 'GLOBAL_OFAC_SANCTION_MATCH', desc: '发卡行地域命中制裁受限地区名单', level: 'critical' },
+          { name: 'CARD_CVV_BRUTE_FORCE', desc: '检测到 CVV 暴力穷举碰撞重试 8 次', level: 'critical' }
+        ]
+      },
+      {
+        id: 'TX-984203',
+        timestamp: '14:10:44',
+        fullTime: '2026-09-04 14:10:44 UTC',
+        amount: 5600.00,
+        currency: 'USD',
+        channel: 'STRIPE',
+        bin: '480011 (SG DBS Bank)',
+        user: 'chen.wei@singapore-trading.sg',
+        ip: '202.166.40.11 (SG / Singtel)',
+        devId: 'FP-99aa1100aa',
+        score: 28,
+        decision: 'PASSED',
+        riskFactors: { velocity: 20, deviceMismatch: 15, ipReputation: 10, geoJump: 12, cardSpin: 10, amountAnomaly: 35 },
+        rules: [
+          { name: 'ENTERPRISE_WHITELIST_MATCH', desc: '商户企业采购免密白名单命中', level: 'pass' }
+        ]
+      },
+      {
+        id: 'TX-984202',
+        timestamp: '14:08:12',
+        fullTime: '2026-09-04 14:08:12 UTC',
+        amount: 4300.00,
+        currency: 'EUR',
+        channel: 'ADYEN',
+        bin: '550012 (IT UniCredit)',
+        user: 'marco.rossi@milan-design.it',
+        ip: '185.220.101.5 (DE / Tor Exit)', // 与 TX-984210 共享 Tor 出口 IP
+        score: 93,
+        decision: 'PENDING',
+        riskFactors: { velocity: 90, deviceMismatch: 92, ipReputation: 98, geoJump: 85, cardSpin: 89, amountAnomaly: 80 },
+        rules: [
+          { name: 'TOR_EXIT_NODE_DETECTED', desc: '检测到来自暗网/Tor 出口节点的访问请求', level: 'critical' },
+          { name: 'CARD_ISSUER_COUNTRY_MISMATCH', desc: '发卡国 (IT) 与当前代理 IP 归属 (DE) 差异巨大', level: 'warning' }
+        ]
+      },
+      {
+        id: 'TX-984201',
+        timestamp: '14:05:30',
+        fullTime: '2026-09-04 14:05:30 UTC',
+        amount: 75.00,
+        currency: 'USD',
+        channel: 'APPLEPAY',
+        bin: '400012 (US Chase)',
+        user: 'david.miller@gmail.com',
+        ip: '68.100.22.18 (US / AT&T)',
+        devId: 'FP-55dd120011',
+        score: 18,
+        decision: 'PASSED',
+        riskFactors: { velocity: 15, deviceMismatch: 10, ipReputation: 8, geoJump: 5, cardSpin: 5, amountAnomaly: 20 },
+        rules: [
+          { name: 'LOW_RISK_BASELINE', desc: '用户常驻设备，无任何异常特征', level: 'pass' }
+        ]
+      },
+      {
+        id: 'TX-984200',
+        timestamp: '14:02:11',
+        fullTime: '2026-09-04 14:02:11 UTC',
+        amount: 6800.00,
+        currency: 'USDT',
+        channel: 'CRYPTO',
+        bin: 'ETH-0x89a1b02',
+        user: 'ghost_wallet99@tutanota.io',
+        ip: '109.201.133.10 (RU / Hosting)',
+        devId: 'FP-e9a832bf71', // 再次共享同一设备指纹！
+        score: 97,
+        decision: 'INTERCEPT',
+        riskFactors: { velocity: 98, deviceMismatch: 96, ipReputation: 99, geoJump: 95, cardSpin: 96, amountAnomaly: 92 },
+        rules: [
+          { name: 'SYNDICATE_COLLISION_CLUSTER', desc: '命中宙斯盾反欺诈团伙聚类图谱核心黑节点 #SYNDICATE-09', level: 'critical' },
+          { name: 'AUTOMATED_DRAIN_PATTERN', desc: '钱包短时间多笔连续清算提现', level: 'critical' }
+        ]
+      },
+      {
+        id: 'TX-984199',
+        timestamp: '14:00:05',
+        fullTime: '2026-09-04 14:00:05 UTC',
+        amount: 1500.00,
+        currency: 'USD',
+        channel: 'STRIPE',
+        bin: '411111 (US Citi)',
+        user: 'billing@cloud-saas-test.co',
+        ip: '52.14.99.102 (US / AWS EC2)',
+        devId: 'FP-22ee901177',
+        score: 72,
+        decision: 'PENDING',
+        riskFactors: { velocity: 70, deviceMismatch: 75, ipReputation: 80, geoJump: 40, cardSpin: 60, amountAnomaly: 65 },
+        rules: [
+          { name: 'DATACENTER_IP_TRAFFIC', desc: '请求来自于云数据中心公网机房 IP', level: 'warning' }
+        ]
+      }
+    ];
+
+    STATE.transactions = JSON.parse(JSON.stringify(INITIAL_RECORDS));
+    STATE.currentTx = STATE.transactions[0];
+
+    /**
+     * UI 渲染与更新核心
+     */
+    function initApp() {
+      bindEvents();
+      renderTimeSeriesChart();
+      renderTable();
+      renderDetailPane();
+      renderRadarChart();
+      renderNetworkCanvas();
+      renderROCChart();
+      startLiveTelemetrySimulation();
+    }
+
+    /**
+     * 事件监听绑定
+     */
+    function bindEvents() {
+      // 搜索与过滤联动
+      document.getElementById('filter-keyword').addEventListener('input', (e) => {
+        STATE.filter.keyword = e.target.value.trim().toLowerCase();
+        STATE.page = 1;
+        renderTable();
+      });
+
+      document.getElementById('filter-decision').addEventListener('change', (e) => {
+        STATE.filter.decision = e.target.value;
+        STATE.page = 1;
+        renderTable();
+      });
+
+      document.getElementById('filter-risk-level').addEventListener('change', (e) => {
+        STATE.filter.riskLevel = e.target.value;
+        STATE.page = 1;
+        renderTable();
+      });
+
+      // 通道标签点击筛选
+      document.querySelectorAll('.chip-filter').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.chip-filter').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          STATE.filter.tag = chip.dataset.tag;
+          STATE.page = 1;
+          renderTable();
+        });
+      });
+
+      // 表格表头排序
+      document.querySelectorAll('table.data-grid th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+          const key = th.dataset.sort;
+          if (STATE.sort.key === key) {
+            STATE.sort.order = STATE.sort.order === 'asc' ? 'desc' : 'asc';
+          } else {
+            STATE.sort.key = key;
+            STATE.sort.order = 'desc';
+          }
+          renderTable();
+        });
+      });
+
+      // 全选/取消全选
+      document.getElementById('select-all-checkbox').addEventListener('change', (e) => {
+        const visibleList = getFilteredTransactions();
+        if (e.target.checked) {
+          visibleList.forEach(item => STATE.selectedIds.add(item.id));
+        } else {
+          STATE.selectedIds.clear();
+        }
+        updateSelectionUI();
+        renderTableRowsOnly();
+      });
+
+      // 批量处置
+      document.getElementById('btn-batch-intercept').addEventListener('click', () => {
+        if (STATE.selectedIds.size === 0) return;
+        const count = STATE.selectedIds.size;
+        STATE.transactions.forEach(tx => {
+          if (STATE.selectedIds.has(tx.id)) {
+            tx.decision = 'INTERCEPT';
+          }
+        });
+        showToast(`已成功批量阻断并拦截 ${count} 笔高危交易！`, 'danger');
+        STATE.selectedIds.clear();
+        updateSelectionUI();
+        renderTable();
+        if (STATE.currentTx) renderDetailPane();
+      });
+
+      // 快捷工作模式切换
+      document.getElementById('mode-highrisk').addEventListener('click', () => {
+        document.getElementById('filter-risk-level').value = 'CRITICAL';
+        document.getElementById('filter-decision').value = 'PENDING';
+        STATE.filter.riskLevel = 'CRITICAL';
+        STATE.filter.decision = 'PENDING';
+        renderTable();
+        showToast('已切换至「加急高危核决视图」', 'warning');
+      });
+
+      document.getElementById('mode-all').addEventListener('click', () => {
+        document.getElementById('filter-risk-level').value = 'ALL';
+        document.getElementById('filter-decision').value = 'ALL';
+        STATE.filter.riskLevel = 'ALL';
+        STATE.filter.decision = 'ALL';
+        renderTable();
+        showToast('已切换至「全量交易流视图」', 'primary');
+      });
+
+      // 选项卡切换
+      document.querySelectorAll('.pane-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.pane-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          const targetId = tab.dataset.target;
+          document.querySelectorAll('.pane-content-wrapper').forEach(p => p.style.display = 'none');
+          document.getElementById(targetId).style.display = 'flex';
+
+          if (targetId === 'tab-network') {
+            setTimeout(renderNetworkCanvas, 50);
+          } else if (targetId === 'tab-strategy') {
+            setTimeout(renderROCChart, 50);
+          }
+        });
+      });
+
+      // 表单核决操作提交
+      document.getElementById('btn-submit-decision').addEventListener('click', handleDecisionSubmit);
+      document.getElementById('btn-submit-intercept').addEventListener('click', () => {
+        document.getElementById('form-action-select').value = 'INTERCEPT';
+        handleDecisionSubmit();
+      });
+      document.getElementById('btn-submit-pass').addEventListener('click', () => {
+        document.getElementById('form-action-select').value = 'PASSED';
+        handleDecisionSubmit();
+      });
+
+      // 策略回测滑块实时联动
+      document.getElementById('slider-threshold').addEventListener('input', (e) => {
+        STATE.policySim.threshold = parseInt(e.target.value);
+        document.getElementById('val-score-threshold').textContent = `${STATE.policySim.threshold} 分`;
+        renderROCChart();
+      });
+
+      document.getElementById('slider-device').addEventListener('input', (e) => {
+        STATE.policySim.deviceWeight = parseFloat(e.target.value);
+        document.getElementById('val-device-weight').textContent = `${STATE.policySim.deviceWeight.toFixed(1)}x`;
+        renderROCChart();
+      });
+
+      document.getElementById('slider-geo').addEventListener('input', (e) => {
+        STATE.policySim.geoRadius = parseInt(e.target.value);
+        document.getElementById('val-geo-radius').textContent = `${STATE.policySim.geoRadius} km/h`;
+        renderROCChart();
+      });
+
+      document.getElementById('btn-deploy-policy').addEventListener('click', () => {
+        showToast('新策略已进入亚太集群灰度节点 (Canary: 10% 流量生效中)', 'success');
+      });
+
+      // 主题切换
+      document.getElementById('btn-toggle-theme').addEventListener('click', () => {
+        STATE.theme = STATE.theme === 'dark' ? 'light' : 'dark';
+        if (STATE.theme === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.getElementById('theme-text').textContent = '浅色';
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+          document.getElementById('theme-text').textContent = '深色';
+        }
+        renderTimeSeriesChart();
+        renderRadarChart();
+        renderNetworkCanvas();
+        renderROCChart();
+      });
+
+      // 导出审计报告
+      document.getElementById('btn-export-audit').addEventListener('click', () => {
+        showToast('已生成符合 PCI-DSS / SOC2 标准的加密核决审计数据包', 'success');
+      });
+
+      document.getElementById('btn-refresh-network').addEventListener('click', () => {
+        renderNetworkCanvas();
+        showToast('拓扑引力场已重构并重新聚集节点', 'primary');
+      });
+    }
+
+    /**
+     * 数据过滤与排序
+     */
+    function getFilteredTransactions() {
+      return STATE.transactions.filter(item => {
+        // 搜索关键词
+        if (STATE.filter.keyword) {
+          const kw = STATE.filter.keyword;
+          const matchKw = item.id.toLowerCase().includes(kw) ||
+                          item.user.toLowerCase().includes(kw) ||
+                          item.ip.toLowerCase().includes(kw) ||
+                          item.bin.toLowerCase().includes(kw);
+          if (!matchKw) return false;
+        }
+
+        // 决策状态过滤
+        if (STATE.filter.decision !== 'ALL' && item.decision !== STATE.filter.decision) {
+          return false;
+        }
+
+        // 风险等级过滤
+        if (STATE.filter.riskLevel === 'CRITICAL' && item.score < 80) return false;
+        if (STATE.filter.riskLevel === 'MEDIUM' && (item.score < 50 || item.score >= 80)) return false;
+        if (STATE.filter.riskLevel === 'LOW' && item.score >= 50) return false;
+
+        // 通道标签过滤
+        if (STATE.filter.tag !== 'ALL' && item.channel !== STATE.filter.tag) {
+          return false;
+        }
+
+        return true;
+      }).sort((a, b) => {
+        let valA = a[STATE.sort.key];
+        let valB = b[STATE.sort.key];
+        if (typeof valA === 'string') valA = valA.toLowerCase();
+        if (typeof valB === 'string') valB = valB.toLowerCase();
+        if (valA < valB) return STATE.sort.order === 'asc' ? -1 : 1;
+        if (valA > valB) return STATE.sort.order === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    /**
+     * 渲染数据表格
+     */
+    function renderTable() {
+      const filtered = getFilteredTransactions();
+      const total = filtered.length;
+      document.getElementById('grid-meta-count').textContent = `展示 ${total} / ${STATE.transactions.length} 条记录`;
+
+      const pendingCount = STATE.transactions.filter(t => t.decision === 'PENDING').length;
+      document.getElementById('kpi-review-queue').textContent = `${pendingCount} 笔`;
+
+      renderTableRowsOnly();
+    }
+
+    function renderTableRowsOnly() {
+      const filtered = getFilteredTransactions();
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align:center;padding:40px;color:var(--text-dim);">
+              <svg class="icon" style="width:28px;height:28px;margin-bottom:8px;opacity:0.5;" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <div>未检索到符合条件的待核决交易流水</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const tr = document.createElement('tr');
+        const isSelected = STATE.selectedIds.has(item.id);
+        const isCurrent = STATE.currentTx && STATE.currentTx.id === item.id;
+
+        if (isCurrent) tr.classList.add('selected');
+
+        // 风险评分色彩定义
+        let scoreBadgeClass = 'badge-pass';
+        let barColor = 'var(--success)';
+        if (item.score >= 80) {
+          scoreBadgeClass = 'badge-critical';
+          barColor = 'var(--danger)';
+        } else if (item.score >= 50) {
+          scoreBadgeClass = 'badge-warning';
+          barColor = 'var(--warning)';
+        }
+
+        // 决策状态
+        let decisionBadge = `<span class="badge badge-warning">待核决 PENDING</span>`;
+        if (item.decision === 'INTERCEPT') {
+          decisionBadge = `<span class="badge badge-critical">已拦截 INTERCEPT</span>`;
+        } else if (item.decision === 'PASSED') {
+          decisionBadge = `<span class="badge badge-pass">已放行 PASSED</span>`;
+        }
+
+        const topRule = item.rules[0] ? item.rules[0].name : 'NORMAL_BASELINE';
+
+        tr.innerHTML = `
+          <td style="text-align:center;" onclick="event.stopPropagation();">
+            <input type="checkbox" class="row-checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''}>
+          </td>
+          <td>
+            <div style="font-weight:700;font-family:var(--font-mono);color:var(--text-main);">${item.id}</div>
+            <div style="font-size:10px;color:var(--text-dim);">${item.timestamp} · ${item.channel}</div>
+          </td>
+          <td>
+            <div style="font-weight:700;font-family:var(--font-mono);">${item.currency} ${item.amount.toLocaleString(undefined, {minimumFractionDigits:2})}</div>
+            <div style="font-size:10px;color:var(--text-muted);">${item.bin}</div>
+          </td>
+          <td>
+            <div class="score-meter">
+              <span class="badge ${scoreBadgeClass}" style="min-width:32px;justify-content:center;">${item.score}</span>
+              <div class="meter-bar">
+                <div class="meter-fill" style="width:${item.score}%;background:${barColor};"></div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div style="max-width:140px;overflow:hidden;text-overflow:ellipsis;color:var(--text-main);">${item.user}</div>
+          </td>
+          <td>
+            <div style="font-size:11px;font-family:var(--font-mono);">${item.ip}</div>
+          </td>
+          <td>
+            <div style="font-size:10px;font-family:var(--font-mono);color:var(--text-muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;">${topRule}</div>
+          </td>
+          <td>${decisionBadge}</td>
+          <td style="text-align:right;">
+            <button class="btn btn-sm" onclick="selectTxDirectly('${item.id}');">查看证据</button>
+          </td>
+        `;
+
+        // 点击行选中
+        tr.addEventListener('click', () => {
+          STATE.currentTx = item;
+          renderTableRowsOnly();
+          renderDetailPane();
+          renderRadarChart();
+          renderNetworkCanvas();
+        });
+
+        tbody.appendChild(tr);
+      });
+
+      // 绑定多选复选框
+      document.querySelectorAll('.row-checkbox').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+          const id = cb.dataset.id;
+          if (cb.checked) {
+            STATE.selectedIds.add(id);
+          } else {
+            STATE.selectedIds.delete(id);
+          }
+          updateSelectionUI();
+        });
+      });
+    }
+
+    function selectTxDirectly(id) {
+      const found = STATE.transactions.find(t => t.id === id);
+      if (found) {
+        STATE.currentTx = found;
+        renderTableRowsOnly();
+        renderDetailPane();
+        renderRadarChart();
+        renderNetworkCanvas();
+      }
+    }
+
+    function updateSelectionUI() {
+      const count = STATE.selectedIds.size;
+      document.getElementById('selected-count').textContent = count;
+      document.getElementById('footer-selected-num').textContent = count;
+      document.getElementById('btn-batch-intercept').disabled = (count === 0);
+    }
+
+    /**
+     * 渲染右侧证据链面板
+     */
+    function renderDetailPane() {
+      const tx = STATE.currentTx;
+      if (!tx) return;
+
+      document.getElementById('detail-txid').textContent = tx.id;
+      document.getElementById('detail-amount').textContent = `${tx.currency} ${tx.amount.toLocaleString(undefined, {minimumFractionDigits:2})}`;
+      document.getElementById('detail-channel').textContent = `${tx.channel} · ${tx.bin}`;
+      document.getElementById('detail-timestamp').textContent = tx.fullTime;
+      document.getElementById('detail-devid').textContent = tx.devId;
+
+      const badgeScore = document.getElementById('detail-badge-score');
+      badgeScore.textContent = `RISK SCORE: ${tx.score}`;
+      badgeScore.className = `badge ${tx.score >= 80 ? 'badge-critical' : tx.score >= 50 ? 'badge-warning' : 'badge-pass'}`;
+
+      document.getElementById('detail-rule-count').textContent = tx.rules.length;
+      const rulesContainer = document.getElementById('detail-rules-container');
+      rulesContainer.innerHTML = '';
+
+      tx.rules.forEach(rule => {
+        const rItem = document.createElement('div');
+        rItem.className = `rule-hit-item ${rule.level === 'critical' ? 'critical' : ''}`;
+        rItem.innerHTML = `
+          <div>
+            <div style="font-weight:700;font-family:var(--font-mono);color:var(--text-main);">${rule.name}</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${rule.desc}</div>
+          </div>
+          <span class="badge ${rule.level === 'critical' ? 'badge-critical' : 'badge-warning'}" style="font-size:9px;">
+            ${rule.level.toUpperCase()}
+          </span>
+        `;
+        rulesContainer.appendChild(rItem);
+      });
+
+      // 重置表单理由与当前建议
+      const reasonEl = document.getElementById('form-action-reason');
+      const actionSelect = document.getElementById('form-action-select');
+
+      if (tx.decision === 'INTERCEPT') {
+        actionSelect.value = 'INTERCEPT';
+        reasonEl.value = '高危暗网出口节点及高频碰撞，触发强制阻断。';
+      } else if (tx.decision === 'PASSED') {
+        actionSelect.value = 'PASSED';
+        reasonEl.value = '人工审查通过，加入 24 小时可信白名单。';
+      } else {
+        actionSelect.value = tx.score >= 80 ? 'INTERCEPT' : 'STEPUP';
+        reasonEl.value = '';
+      }
+    }
+
+    /**
+     * 处置提交处理
+     */
+    function handleDecisionSubmit() {
+      if (!STATE.currentTx) return;
+      const action = document.getElementById('form-action-select').value;
+      const reason = document.getElementById('form-action-reason').value.trim() || '风控员执行标准裁定';
+
+      STATE.currentTx.decision = action;
+      showToast(`交易 ${STATE.currentTx.id} 状态已更新为 [${action}]！依据: ${reason}`, action === 'INTERCEPT' ? 'danger' : 'success');
+
+      renderTable();
+      renderDetailPane();
+    }
+
+    /**
+     * 图表 1: 原生手写 SVG 双轴时序监控图
+     */
+    function renderTimeSeriesChart() {
+      const container = document.getElementById('timeseries-chart-container');
+      const width = container.clientWidth || 500;
+      const height = 68;
+
+      // 模拟 16 个时序点
+      const points = [
+        { t: '13:00', vol: 320, risk: 18 },
+        { t: '13:10', vol: 410, risk: 22 },
+        { t: '13:20', vol: 380, risk: 25 },
+        { t: '13:30', vol: 590, risk: 65 }, // 攻击峰值
+        { t: '13:40', vol: 820, risk: 94 }, // 攻击峰值
+        { t: '13:50', vol: 740, risk: 88 },
+        { t: '14:00', vol: 490, risk: 45 },
+        { t: '14:10', vol: 520, risk: 50 },
+        { t: '14:20', vol: 610, risk: 78 },
+        { t: '14:30', vol: 430, risk: 32 }
+      ];
+
+      const maxVol = 1000;
+      const stepX = width / (points.length - 1);
+
+      // 生成曲线路径
+      let linePath = '';
+      let areaPath = `M 0 ${height} `;
+
+      points.forEach((p, i) => {
+        const x = i * stepX;
+        const y = height - (p.risk / 100) * (height - 12) - 6;
+        if (i === 0) {
+          linePath += `M ${x} ${y}`;
+          areaPath += `L ${x} ${y}`;
+        } else {
+          const prevX = (i - 1) * stepX;
+          const prevY = height - (points[i - 1].risk / 100) * (height - 12) - 6;
+          const cx1 = prevX + (x - prevX) / 2;
+          const cx2 = prevX + (x - prevX) / 2;
+          linePath += ` C ${cx1} ${prevY}, ${cx2} ${y}, ${x} ${y}`;
+          areaPath += ` C ${cx1} ${prevY}, ${cx2} ${y}, ${x} ${y}`;
+        }
+      });
+
+      areaPath += ` L ${width} ${height} Z`;
+
+      // 柱状图生成 (交易量)
+      let barsHtml = '';
+      points.forEach((p, i) => {
+        const barW = 10;
+        const x = i * stepX - barW / 2;
+        const barH = (p.vol / maxVol) * (height - 10);
+        const y = height - barH;
+        barsHtml += `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" fill="var(--border-strong)" rx="2" opacity="0.6"/>`;
+      });
+
+      container.innerHTML = `
+        <svg width="100%" height="100%" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" style="overflow:visible;">
+          <defs>
+            <linearGradient id="riskGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="var(--danger)" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="var(--danger)" stop-opacity="0.0"/>
+            </linearGradient>
+          </defs>
+          <!-- 背景网格线 -->
+          <line x1="0" y1="${height/2}" x2="${width}" y2="${height/2}" stroke="var(--border-subtle)" stroke-dasharray="3,3"/>
+          <!-- 交易量柱状 -->
+          ${barsHtml}
+          <!-- 风险面积与曲线 -->
+          <path d="${areaPath}" fill="url(#riskGrad)"/>
+          <path d="${linePath}" fill="none" stroke="var(--danger)" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- 异常尖峰标注圈 -->
+          <circle cx="${4 * stepX}" cy="${height - (94 / 100) * (height - 12) - 6}" r="4" fill="var(--danger)" stroke="#fff" stroke-width="1.5"/>
+        </svg>
+      `;
+    }
+
+    /**
+     * 图表 2: 原生手写多维风险特征雷达图 (Radar Chart)
+     */
+    function renderRadarChart() {
+      const box = document.getElementById('radar-chart-box');
+      const tx = STATE.currentTx || STATE.transactions[0];
+      const rf = tx.riskFactors || { velocity: 80, deviceMismatch: 85, ipReputation: 90, geoJump: 75, cardSpin: 88, amountAnomaly: 70 };
+
+      const size = 180;
+      const center = size / 2;
+      const radius = 62;
+
+      const dimensions = [
+        { label: '高频碰撞', val: rf.velocity },
+        { label: '指纹伪造', val: rf.deviceMismatch },
+        { label: 'IP 污点', val: rf.ipReputation },
+        { label: '瞬移跳变', val: rf.geoJump },
+        { label: '卡号刺探', val: rf.cardSpin },
+        { label: '金额偏离', val: rf.amountAnomaly }
+      ];
+
+      const angleStep = (Math.PI * 2) / dimensions.length;
+
+      // 绘制背景蜘蛛网多边形
+      let gridLevelsHtml = '';
+      [0.25, 0.5, 0.75, 1.0].forEach(level => {
+        let path = '';
+        dimensions.forEach((_, i) => {
+          const angle = i * angleStep - Math.PI / 2;
+          const x = center + Math.cos(angle) * (radius * level);
+          const y = center + Math.sin(angle) * (radius * level);
+          path += `${i === 0 ? 'M' : 'L'} ${x} ${y} `;
+        });
+        path += 'Z';
+        gridLevelsHtml += `<path d="${path}" fill="none" stroke="var(--border-subtle)" stroke-width="1"/>`;
+      });
+
+      // 绘制特征多边形
+      let polyPath = '';
+      let pointsHtml = '';
+      let labelsHtml = '';
+
+      dimensions.forEach((dim, i) => {
+        const angle = i * angleStep - Math.PI / 2;
+        const norm = dim.val / 100;
+        const x = center + Math.cos(angle) * (radius * norm);
+        const y = center + Math.sin(angle) * (radius * norm);
+
+        polyPath += `${i === 0 ? 'M' : 'L'} ${x} ${y} `;
+        pointsHtml += `<circle cx="${x}" cy="${y}" r="3" fill="var(--primary)" stroke="#fff" stroke-width="1"/>`;
+
+        // 标签坐标稍偏外
+        const labelX = center + Math.cos(angle) * (radius + 18);
+        const labelY = center + Math.sin(angle) * (radius + 14);
+        labelsHtml += `<text x="${labelX}" y="${labelY}" font-size="9" fill="var(--text-muted)" text-anchor="middle" dominant-baseline="central">${dim.label} (${dim.val})</text>`;
+      });
+
+      polyPath += 'Z';
+
+      box.innerHTML = `
+        <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+          ${gridLevelsHtml}
+          <path d="${polyPath}" fill="var(--primary-glow)" stroke="var(--primary)" stroke-width="2"/>
+          ${pointsHtml}
+          ${labelsHtml}
+        </svg>
+      `;
+    }
+
+    /**
+     * 图表 3: 原生 Canvas 设备与资金拓扑关联图谱 (Force/Radial Graph)
+     */
+    function renderNetworkCanvas() {
+      const canvas = document.getElementById('network-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const tx = STATE.currentTx || STATE.transactions[0];
+
+      // 模拟拓扑节点关系
+      const nodes = [
+        { id: 'TX_CENTER', label: tx.id, type: 'center', x: w / 2, y: h / 2, color: 'var(--primary)', r: 12 },
+        { id: 'N_DEV', label: tx.devId, type: 'device', x: w / 2 - 90, y: h / 2 - 70, color: 'var(--danger)', r: 9 },
+        { id: 'N_IP', label: tx.ip.split(' ')[0], type: 'ip', x: w / 2 + 100, y: h / 2 - 60, color: 'var(--cyan)', r: 9 },
+        { id: 'N_CARD', label: tx.bin.slice(0, 6), type: 'card', x: w / 2 - 100, y: h / 2 + 80, color: 'var(--purple)', r: 8 },
+        { id: 'N_USER2', label: 'TX-984206 (同指纹)', type: 'tx_rel', x: w / 2 - 150, y: h / 2 - 100, color: 'var(--danger)', r: 6 },
+        { id: 'N_USER3', label: 'TX-984200 (洗钱簇)', type: 'tx_rel', x: w / 2 - 130, y: h / 2 + 10, color: 'var(--danger)', r: 6 },
+        { id: 'N_TOR', label: 'Tor Exit Cluster #8', type: 'syndicate', x: w / 2 + 140, y: h / 2 + 60, color: 'var(--warning)', r: 7 }
+      ];
+
+      const links = [
+        { from: 'TX_CENTER', to: 'N_DEV', label: '绑定硬件指纹' },
+        { from: 'TX_CENTER', to: 'N_IP', label: '出站 IP' },
+        { from: 'TX_CENTER', to: 'N_CARD', label: 'BIN 卡段' },
+        { from: 'N_DEV', to: 'N_USER2', label: '指纹命中' },
+        { from: 'N_DEV', to: 'N_USER3', label: '团伙复用' },
+        { from: 'N_IP', to: 'N_TOR', label: '暗网节点' }
+      ];
+
+      // 绘制连线
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#2e3d5b';
+      links.forEach(l => {
+        const n1 = nodes.find(n => n.id === l.from);
+        const n2 = nodes.find(n => n.id === l.to);
+        if (n1 && n2) {
+          ctx.beginPath();
+          ctx.moveTo(n1.x, n1.y);
+          ctx.lineTo(n2.x, n2.y);
+          ctx.stroke();
+        }
+      });
+
+      // 绘制节点
+      nodes.forEach(n => {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+
+        if (n.type === 'center') {
+          ctx.fillStyle = '#3b82f6';
+          ctx.strokeStyle = '#93c5fd';
+        } else if (n.type === 'device' || n.type === 'tx_rel') {
+          ctx.fillStyle = '#ef4444';
+          ctx.strokeStyle = '#fca5a5';
+        } else if (n.type === 'ip') {
+          ctx.fillStyle = '#06b6d4';
+          ctx.strokeStyle = '#a5f3fc';
+        } else {
+          ctx.fillStyle = '#8b5cf6';
+          ctx.strokeStyle = '#ddd6fe';
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        // 绘制文字
+        ctx.fillStyle = '#f3f4f6';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(n.label, n.x, n.y + n.r + 12);
+      });
+    }
+
+    /**
+     * 图表 4: 原生 SVG 策略回测与 ROC 权衡曲线
+     */
+    function renderROCChart() {
+      const container = document.getElementById('roc-chart-container');
+      if (!container) return;
+      const width = container.clientWidth || 400;
+      const height = 170;
+
+      const th = STATE.policySim.threshold;
+      // 模拟根据阈值动态计算的拦截与误伤指标
+      const interceptRate = (100 - th * 0.75).toFixed(1);
+      const falsePosRate = (Math.max(0.02, (100 - th) * 0.015)).toFixed(2);
+      const savedAmount = Math.round(th * 14200);
+
+      document.getElementById('sim-save-amount').textContent = `$${savedAmount.toLocaleString()}`;
+      document.getElementById('sim-fpos-rate').textContent = `${falsePosRate}%`;
+
+      // 绘制 ROC 曲线与当前工作点
+      const points = [
+        { x: 0, y: 0 },
+        { x: 0.05, y: 0.65 },
+        { x: 0.15, y: 0.88 },
+        { x: 0.35, y: 0.96 },
+        { x: 0.70, y: 0.99 },
+        { x: 1.0, y: 1.0 }
+      ];
+
+      let curvePath = '';
+      points.forEach((p, i) => {
+        const px = p.x * (width - 40) + 30;
+        const py = height - (p.y * (height - 40) + 20);
+        if (i === 0) curvePath += `M ${px} ${py} `;
+        else curvePath += `L ${px} ${py} `;
+      });
+
+      // 当前阈值点
+      const currentX = (falsePosRate * 2) * (width - 40) + 30;
+      const currentY = height - ((interceptRate / 100) * (height - 40) + 20);
+
+      container.innerHTML = `
+        <svg width="100%" height="100%" viewBox="0 0 ${width} ${height}">
+          <!-- 坐标轴 -->
+          <line x1="30" y1="${height - 20}" x2="${width - 10}" y2="${height - 20}" stroke="var(--border-strong)"/>
+          <line x1="30" y1="10" x2="30" y2="${height - 20}" stroke="var(--border-strong)"/>
+
+          <text x="${width - 10}" y="${height - 6}" font-size="9" fill="var(--text-dim)" text-anchor="end">误伤率 (FPR)</text>
+          <text x="35" y="18" font-size="9" fill="var(--text-dim)">拦截召回 (TPR)</text>
+
+          <!-- 对角基准线 -->
+          <line x1="30" y1="${height - 20}" x2="${width - 10}" y2="20" stroke="var(--border-subtle)" stroke-dasharray="4,4"/>
+
+          <!-- ROC 曲线 -->
+          <path d="${curvePath}" fill="none" stroke="var(--primary)" stroke-width="2.5"/>
+
+          <!-- 当前操作点 -->
+          <circle cx="${currentX}" cy="${currentY}" r="6" fill="var(--danger)" stroke="#fff" stroke-width="2"/>
+          <text x="${currentX + 10}" y="${currentY - 6}" font-size="10" font-family="var(--font-mono)" fill="var(--danger)" font-weight="bold">
+            Threshold: ${th} (TPR: ${interceptRate}%)
+          </text>
+        </svg>
+      `;
+    }
+
+    /**
+     * 实时遥测指标动态微抖动模拟 (增强生产系统真实感)
+     */
+    function startLiveTelemetrySimulation() {
+      setInterval(() => {
+        const latency = (13.5 + Math.random() * 3).toFixed(1);
+        const qps = Math.floor(3350 + Math.random() * 200);
+        document.getElementById('tele-latency').textContent = `${latency} ms`;
+        document.getElementById('tele-qps').textContent = `${qps.toLocaleString()} /s`;
+      }, 3000);
+    }
+
+    /**
+     * 优雅轻量 Toast 通知机制
+     */
+    function showToast(msg, type = 'primary') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast-msg';
+      if (type === 'danger') toast.style.borderLeftColor = 'var(--danger)';
+      if (type === 'warning') toast.style.borderLeftColor = 'var(--warning)';
+      if (type === 'success') toast.style.borderLeftColor = 'var(--success)';
+
+      toast.innerHTML = `
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>${msg}</span>
+      `;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // 初始化启动
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAKU 寂 — Architecture of Silence</title>
+    <style>
+        :root {
+            --font-serif: "Big Caslon", "Book Antiqua", "Palatino Linotype", "Times New Roman", Georgia, serif;
+            --font-sans: "Helvetica Neue", "Inter", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            
+            --color-bg-light: #eceadc;
+            --color-text-dark: #121211;
+            --color-bg-dark: #121211;
+            --color-text-light: #f5f4ef;
+            --color-accent: #a33b20; /* Cinnabar Red */
+        }
+
+        @media (pointer: fine) {
+            body { cursor: none; }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            width: 100%;
+            overflow-x: hidden;
+            background-color: var(--color-bg-light);
+            color: var(--color-text-dark);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* --- Typography --- */
+        .font-serif { font-family: var(--font-serif); font-weight: normal; }
+        .font-sans { font-family: var(--font-sans); font-weight: 400; }
+
+        .text-huge {
+            font-size: clamp(3rem, 10vw, 12rem);
+            line-height: 0.95;
+            letter-spacing: -0.02em;
+        }
+        .text-large {
+            font-size: clamp(2rem, 5vw, 5rem);
+            line-height: 1.1;
+            letter-spacing: -0.01em;
+        }
+        .text-medium {
+            font-size: clamp(1.2rem, 2vw, 2.5rem);
+            line-height: 1.4;
+        }
+        .text-small {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* --- Advanced Textures & Particles --- */
+        .grain-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.35;
+            background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+            mix-blend-mode: multiply;
+        }
+
+        /* --- Custom Cursor with Difference Mode --- */
+        #cursor {
+            position: fixed;
+            top: 0; left: 0;
+            width: 12px; height: 12px;
+            margin: -6px 0 0 -6px;
+            background-color: #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            mix-blend-mode: difference;
+            transition: width 0.4s cubic-bezier(0.19, 1, 0.22, 1), height 0.4s cubic-bezier(0.19, 1, 0.22, 1), margin 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+            will-change: transform;
+        }
+        #cursor.active {
+            width: 80px; height: 80px;
+            margin: -40px 0 0 -40px;
+        }
+        @media (pointer: coarse) {
+            #cursor { display: none !important; }
+        }
+
+        /* --- Nav --- */
+        .nav {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            padding: 2vw;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            color: #fff; /* White against difference blend makes it flip */
+            mix-blend-mode: difference;
+        }
+        .nav .brand {
+            font-size: 1.5rem;
+            letter-spacing: 0.1em;
+        }
+
+        /* --- Animations --- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 1.2s cubic-bezier(0.19, 1, 0.22, 1), transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+            will-change: opacity, transform;
+        }
+        .reveal.in-view {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- Section 1: Void --- */
+        .sec-void {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .jaku-kanji {
+            font-size: clamp(8rem, 30vw, 35rem);
+            line-height: 1;
+            color: #fff;
+            mix-blend-mode: exclusion;
+            position: relative;
+            z-index: 2;
+        }
+        .void-orb {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 50vw; height: 50vw;
+            margin: -25vw 0 0 -25vw;
+            background: radial-gradient(circle, var(--color-accent) 0%, transparent 60%);
+            filter: blur(4vw);
+            z-index: 1;
+            animation: breathe 12s ease-in-out infinite alternate;
+        }
+        @keyframes breathe {
+            0% { transform: translate(5vw, -2vw) scale(0.9) rotate(0deg); opacity: 0.6; }
+            100% { transform: translate(-5vw, 4vw) scale(1.1) rotate(15deg); opacity: 0.9; }
+        }
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2vw;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+            mix-blend-mode: difference;
+        }
+        .scroll-line {
+            width: 1px;
+            height: 60px;
+            background: currentColor;
+            transform-origin: top;
+            animation: stretch 2s cubic-bezier(0.19, 1, 0.22, 1) infinite alternate;
+        }
+        @keyframes stretch {
+            0% { transform: scaleY(0.2); }
+            100% { transform: scaleY(1); }
+        }
+
+        /* --- Section 2: Manifesto (Flashlight Mask) --- */
+        .sec-manifesto {
+            position: relative;
+            height: 100vh;
+            background: var(--color-bg-light);
+            cursor: pointer;
+        }
+        .manifesto-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 15vw;
+        }
+        .layer-dark {
+            background: var(--color-bg-dark);
+            color: var(--color-text-light);
+            /* Soft gradient hole trailing the mouse */
+            -webkit-mask-image: radial-gradient(circle 22vw at var(--lx, 50%) var(--ly, 50%), rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%);
+            mask-image: radial-gradient(circle 22vw at var(--lx, 50%) var(--ly, 50%), rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%);
+            -webkit-mask-repeat: no-repeat;
+            z-index: 2;
+        }
+        .manifesto-layer p {
+            max-width: 600px;
+            margin-top: 3rem;
+            opacity: 0.8;
+        }
+
+        /* --- Section 3: Material Synthesis --- */
+        .sec-material {
+            display: flex;
+            padding: 15vw 10vw;
+            gap: 10vw;
+            min-height: 150vh;
+        }
+        .mat-left {
+            width: 40%;
+            position: sticky;
+            top: 20vh;
+            align-self: flex-start;
+        }
+        .mat-right {
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+            gap: 25vh;
+        }
+        .svg-container {
+            width: 100%;
+            height: 250px;
+            margin-top: 3rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        .svg-wave path {
+            stroke-dasharray: 1500;
+            stroke-dashoffset: 1500;
+            transition: stroke-dashoffset 2.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .in-view .svg-wave path {
+            stroke-dashoffset: 0;
+        }
+        .svg-wave path:nth-child(1) { transition-delay: 0.0s; opacity: 0.15; }
+        .svg-wave path:nth-child(2) { transition-delay: 0.1s; opacity: 0.3; }
+        .svg-wave path:nth-child(3) { transition-delay: 0.2s; opacity: 0.5; }
+        .svg-wave path:nth-child(4) { transition-delay: 0.3s; opacity: 0.7; }
+        .svg-wave path:nth-child(5) { transition-delay: 0.4s; opacity: 1.0; }
+
+        .svg-washi {
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+        .in-view .svg-washi {
+            opacity: 1;
+        }
+
+        /* --- Section 4: Collection (Difference Hover Rows) --- */
+        .sec-collection {
+            background: #fff; /* Crucial for strict difference blending */
+            padding: 15vh 0;
+        }
+        .col-header {
+            padding: 0 10vw 10vh 10vw;
+        }
+        .row {
+            position: relative;
+            padding: 5vw 10vw;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .row:last-child {
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        .row-bg {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 0%;
+            background: var(--color-bg-dark);
+            transition: height 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            z-index: 1;
+        }
+        .row:hover .row-bg {
+            height: 100%;
+        }
+        .row-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            color: #fff;
+            mix-blend-mode: difference;
+            pointer-events: none; /* Let hover hit the row */
+        }
+        .row-desc {
+            opacity: 0.6;
+        }
+
+        /* --- Section 5: Footer --- */
+        .sec-footer {
+            height: 100vh;
+            background: var(--color-bg-dark);
+            color: var(--color-bg-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 10vw;
+        }
+        .footer-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 15vh;
+            border-top: 1px solid rgba(255,255,255,0.15);
+            padding-top: 2rem;
+        }
+        .footer-line a {
+            color: inherit;
+            text-decoration: none;
+            position: relative;
+        }
+        .footer-line a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px; left: 0; width: 0%; height: 1px;
+            background: currentColor;
+            transition: width 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .footer-line a:hover::after { width: 100%; }
+
+        @media (max-width: 768px) {
+            .sec-material { flex-direction: column; gap: 10vh; }
+            .mat-left { width: 100%; position: relative; top: 0; }
+            .mat-right { width: 100%; }
+            .row-content { flex-direction: column; gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Native System Cursor Replacement -->
+    <div id="cursor"></div>
+    
+    <!-- Film/Paper Grain Overlay -->
+    <div class="grain-overlay"></div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="brand font-serif">JAKU <span>寂</span></div>
+        <div class="font-sans text-small">Acoustic Architecture</div>
+    </nav>
+
+    <main>
+        <!-- SECTION 1: THE VOID -->
+        <section class="sec-void">
+            <div class="void-orb"></div>
+            <div class="parallax" data-speed="-0.3">
+                <h1 class="jaku-kanji font-serif reveal">寂</h1>
+            </div>
+            
+            <div class="scroll-indicator font-sans text-small reveal" style="transition-delay: 0.5s">
+                <span>LISTEN</span>
+                <div class="scroll-line"></div>
+            </div>
+
+            <!-- Inkan Accent -->
+            <div class="reveal" style="position:absolute; bottom: 5vw; right: 5vw; width: 40px; height: 40px; border: 1.5px solid var(--color-accent); color: var(--color-accent); display:flex; align-items:center; justify-content:center; font-family: var(--font-serif); font-size: 14px; transform: rotate(8deg); opacity: 0.7; z-index: 10;">
+                雅
+            </div>
+        </section>
+
+        <!-- SECTION 2: THE PHILOSOPHY (Bifurcated Narrative via Masks) -->
+        <section class="sec-manifesto hover-target track-mouse" id="manifesto">
+            <!-- Light Reality: What they do -->
+            <div class="manifesto-layer layer-light">
+                <h2 class="font-serif text-large reveal">We do not cancel noise.<br>We cultivate stillness.</h2>
+                <p class="font-sans text-medium reveal" style="transition-delay: 0.15s">A room is an instrument. Current acoustic solutions suffocate sound, rendering spaces flat and dead. Jaku introduces a material philosophy where excess energy is captured, but natural architectural resonance remains.</p>
+            </div>
+            
+            <!-- Dark Reality: What it means -->
+            <div class="manifesto-layer layer-dark">
+                <h2 class="font-serif text-large">Silence is not empty.<br>It is the presence of space.</h2>
+                <p class="font-sans text-medium">Below the threshold of hearing lies profound warmth. Our geometric structures dissipate sonic chaos into thermal whispers, leaving only the purest articulation of the environment and the self.</p>
+            </div>
+        </section>
+
+        <!-- SECTION 3: THE MATERIAL -->
+        <section class="sec-material">
+            <div class="mat-left">
+                <div class="parallax" data-speed="0.1">
+                    <h2 class="font-serif text-large reveal">MATERIAL<br>SYNTHESIS</h2>
+                    <p class="font-sans text-small reveal" style="margin-top: 2rem; color: #666;">A collision of heritage & physics</p>
+                </div>
+            </div>
+            
+            <div class="mat-right">
+                <!-- Physics: Metamaterial Wave -->
+                <div class="mat-block parallax" data-speed="0.05">
+                    <h3 class="font-sans text-small reveal">01 // The Physics</h3>
+                    <p class="font-serif text-medium reveal" style="margin: 2rem 0;">Our metamaterial cores are synthetically mapped to destructively interfere with human-range frequency bands. Pushing sound into a sub-millimeter labyrinth, eliminating echo without asphyxiating the room.</p>
+                    <div class="svg-container reveal">
+                        <svg viewBox="0 0 500 200" stroke="var(--color-text-dark)" fill="none" stroke-width="1.5" class="svg-wave" preserveAspectRatio="xMidYMid meet">
+                            <path vector-effect="non-scaling-stroke" d="M0,100 Q62.5,0 125,100 T250,100 T375,100 T500,100" />
+                            <path vector-effect="non-scaling-stroke" d="M0,100 Q62.5,25 125,100 T250,100 T375,100 T500,100" />
+                            <path vector-effect="non-scaling-stroke" d="M0,100 Q62.5,50 125,100 T250,100 T375,100 T500,100" />
+                            <path vector-effect="non-scaling-stroke" d="M0,100 Q62.5,75 125,100 T250,100 T375,100 T500,100" />
+                            <path vector-effect="non-scaling-stroke" d="M0,100 Q62.5,100 125,100 T250,100 T375,100 T500,100" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Craft: Washi Texture generation -->
+                <div class="mat-block parallax" data-speed="0.05">
+                    <h3 class="font-sans text-small reveal">02 // The Craft</h3>
+                    <p class="font-serif text-medium reveal" style="margin: 2rem 0;">Industrial sound-baffling is inert and visually parasitic. We conceal our arrays behind pristine Kurotani Washi—a 100-year-old paper-making tradition. Its organic irregularities act as an analog diffuser.</p>
+                    <div class="svg-container reveal">
+                        <svg viewBox="0 0 500 200" class="svg-washi" preserveAspectRatio="none">
+                            <defs>
+                                <filter id="washiDust" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="4" result="noise" />
+                                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="35" xChannelSelector="R" yChannelSelector="G" />
+                                </filter>
+                            </defs>
+                            <g filter="url(#washiDust)" stroke="var(--color-text-dark)" stroke-width="0.5" fill="none" opacity="0.4">
+                                <!-- Generated fibers -->
+                                <path d="M-50,20 L550,40 M-50,60 L550,30 M-50,100 L550,150 M-50,200 L550,180" vector-effect="non-scaling-stroke" />
+                                <path d="M20,-50 L40,250 M100,-50 L80,250 M250,-50 L270,250 M400,-50 L380,250" vector-effect="non-scaling-stroke" />
+                                <path d="M-50,-50 L550,250 M550,-50 L-50,250" vector-effect="non-scaling-stroke" />
+                                <path d="M10,10 L490,190 M10,190 L490,10 M250,0 L240,200" vector-effect="non-scaling-stroke" opacity="0.6"/>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: THE ARCHIVES -->
+        <section class="sec-collection">
+            <div class="col-header reveal">
+                <h2 class="font-serif text-huge" style="color: #000;">THE<br>ARCHIVES.</h2>
+            </div>
+            
+            <div class="row hover-target">
+                <div class="row-bg"></div>
+                <div class="row-content">
+                    <span class="row-num font-sans text-small">01</span>
+                    <span class="row-name font-serif text-medium">ORA Series</span>
+                    <span class="row-desc font-sans text-small">Communal spaces and broad spectrum diffusion.</span>
+                </div>
+            </div>
+            
+            <div class="row hover-target">
+                <div class="row-bg"></div>
+                <div class="row-content">
+                    <span class="row-num font-sans text-small">02</span>
+                    <span class="row-name font-serif text-medium">KURA Series</span>
+                    <span class="row-desc font-sans text-small">Intimate isolation and deep frequency absorption.</span>
+                </div>
+            </div>
+
+            <div class="row hover-target">
+                <div class="row-bg"></div>
+                <div class="row-content">
+                    <span class="row-num font-sans text-small">03</span>
+                    <span class="row-name font-serif text-medium">SHIN Series</span>
+                    <span class="row-desc font-sans text-small">Passageways, corridors, and kinetic sound trapping.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: FOOTER -->
+        <section class="sec-footer">
+            <div class="parallax" data-speed="0.1">
+                <h2 class="font-serif text-huge reveal">RETURN TO<br>THE SOURCE.</h2>
+            </div>
+            
+            <div class="footer-line reveal" style="transition-delay: 0.2s">
+                <a href="#" class="font-sans text-small hover-target">STUDIO@JAKU.KYOTO</a>
+                <p class="font-sans text-small" style="text-align: right; opacity: 0.6;">KATSURA, KYOTO<br>© 2026. ALL RIGHTS RESERVED.</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // --- 1. Custom Cursor Matrix ---
+        const cursor = document.getElementById('cursor');
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        let cursorX = mouseX;
+        let cursorY = mouseY;
+        
+        // Fluid interpolation for cursor
+        function renderCursor() {
+            cursorX += (mouseX - cursorX) * 0.2;
+            cursorY += (mouseY - cursorY) * 0.2;
+            if (cursor) {
+                cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0)`;
+            }
+            requestAnimationFrame(renderCursor);
+        }
+        renderCursor();
+
+        // Hover expansions
+        document.querySelectorAll('.hover-target, a').forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('active'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('active'));
+        });
+
+        // --- 2. Global Mouse Tracking for Interactions ---
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            // Flashlight local coordinates mapping
+            document.querySelectorAll('.track-mouse').forEach(el => {
+                const rect = el.getBoundingClientRect();
+                // Extract local coordinates within the block
+                const localX = mouseX - rect.left;
+                const localY = mouseY - rect.top;
+                el.style.setProperty('--lx', `${localX}px`);
+                el.style.setProperty('--ly', `${localY}px`);
+            });
+        });
+
+        // --- 3. Scroll Reveal via Intersection Observer ---
+        const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                    observer.unobserve(entry.target); 
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal').forEach(el => {
+            observer.observe(el);
+        });
+
+        // --- 4. Sub-pixel Parallax Scroll ---
+        window.addEventListener('scroll', () => {
+            const scrolled = window.scrollY;
+            document.querySelectorAll('.parallax').forEach(el => {
+                const speed = el.dataset.speed || 0.1;
+                // Opt out of off-screen calculations
+                const rect = el.parentElement.getBoundingClientRect();
+                if(rect.top < window.innerHeight && rect.bottom > 0) {
+                    el.style.transform = `translate3d(0, ${scrolled * speed}px, 0)`;
+                }
+            });
+        }, { passive: true });
+    </script>
+</body>
+</html>

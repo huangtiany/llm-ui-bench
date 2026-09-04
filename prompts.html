@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>评测提示词库 - LLM UI Benchmark</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <div class="workbench-layout">
+    <!-- 顶部全局导航栏 -->
+    <header class="site-header">
+      <div class="brand-group">
+        <a href="index.html" class="brand-logo" title="返回控制台">
+          <div class="logo-badge">UI</div>
+          <div class="brand-text">
+            <span class="brand-name">LLM UI Bench</span>
+            <span class="brand-tag">v2.0</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="header-actions">
+        <a href="index.html" class="header-link-btn" title="返回主控制台">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          <span>返回控制台</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- 提示词内容主区域 -->
+    <main class="prompts-main">
+      <div class="prompts-container">
+        <!-- 页面说明 -->
+        <header class="prompts-header">
+          <h1 class="prompts-title">评测场景提示词库 (Prompts Benchmark)</h1>
+          <p class="prompts-desc">
+            为保证评测公平性与一致性，所有模型在相同场景下使用完全相同的提示词输入。<br>
+            现已升级至 <strong>v2 开放自主设计基准</strong>，精炼要求、放开模板束缚，让大模型自主把控审美、空间、信息架构与动态交互；历史 v1 详细规范已归档保留供比对。
+          </p>
+        </header>
+
+        <!-- 提示词卡片列表容器（由 JS 动态双版本渲染） -->
+        <div class="prompts-list" id="promptsList">
+          <!-- JS 自动注入渲染 -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="scripts/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      window.LLMUIBench.initPromptsPage();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura - General Agent</title>
+    <style>
+        :root {
+            --bg-page: #F4F3EF;
+            --text-primary: #1F1E1D;
+            --text-secondary: #706F6C;
+            --text-ghost: #B3B2AF;
+            --accent: #D76F5E;
+            --divider: rgba(31, 30, 29, 0.08);
+            
+            --font-serif: ui-serif, 'Georgia', 'Newsreader', serif;
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Text', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body, html {
+            height: 100vh;
+            background-color: var(--bg-page);
+            color: var(--text-primary);
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* --- Layout --- */
+        .stage-left {
+            flex: 1.2;
+            position: relative;
+            background: radial-gradient(circle at center, #F9F8F5 0%, #F4F3EF 100%);
+            border-right: 1px solid var(--divider);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px;
+        }
+
+        .stage-right {
+            flex: 1;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-page);
+            position: relative;
+        }
+
+        /* --- Agent Canvas & Identity --- */
+        #auraCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Let clicks pass through, JS handles mouse */
+        }
+        .canvas-tracker {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 10;
+        }
+
+        .brand {
+            position: relative;
+            z-index: 20;
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+        
+        .agent-status-panel {
+            position: relative;
+            z-index: 20;
+            font-family: var(--font-sans);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--divider);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            transition: all 0.5s ease;
+        }
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-ghost);
+            transition: background 0.5s ease;
+        }
+        .status-pill.thinking .status-dot { background: var(--accent); animation: breathe 2s infinite ease-in-out; }
+        .status-pill.speaking .status-dot { background: #3B82F6; animation: pulseFast 1s infinite alternate; }
+
+        @keyframes breathe {
+            0% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.5); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.6; }
+        }
+        @keyframes pulseFast {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-2px); }
+        }
+
+        /* --- Chat Interface --- */
+        .chat-header {
+            padding: 40px;
+            padding-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .topic-chip {
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border: 1px solid var(--divider);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .topic-chip:hover {
+            color: var(--text-primary);
+            border-color: rgba(31, 30, 29, 0.3);
+            background: rgba(255,255,255,0.5);
+        }
+
+        .chat-scroll {
+            flex: 1;
+            padding: 0 40px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            scroll-behavior: smooth;
+        }
+        /* Hide scrollbar for minimal look */
+        .chat-scroll::-webkit-scrollbar { display: none; }
+        .chat-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 85%;
+            animation: fadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .message.user { align-self: flex-end; align-items: flex-end; }
+        .message.agent { align-self: flex-start; }
+
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .msg-label {
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            color: var(--text-ghost);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .msg-content {
+            font-family: var(--font-serif);
+            font-size: 1.125rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+        .message.user .msg-content {
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            color: var(--text-primary);
+            background: #E8E7E3;
+            padding: 12px 16px;
+            border-radius: 12px 12px 0 12px;
+        }
+        .message.agent .msg-content {
+            white-space: pre-line;
+        }
+
+        /* --- Input Area --- */
+        .input-area {
+            padding: 32px 40px 40px 40px;
+            background: linear-gradient(0deg, var(--bg-page) 70%, rgba(244,243,239,0) 100%);
+        }
+        .input-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        #chatInput {
+            width: 100%;
+            height: 56px;
+            border: none;
+            background: transparent;
+            border-bottom: 1px solid var(--divider);
+            font-family: var(--font-serif);
+            font-size: 1.125rem;
+            color: var(--text-primary);
+            transition: border-color 0.4s;
+        }
+        #chatInput:focus {
+            outline: none;
+            border-bottom-color: var(--text-primary);
+        }
+        #chatInput::placeholder { color: var(--text-ghost); }
+        
+        .send-btn {
+            position: absolute;
+            right: 0;
+            background: transparent;
+            border: none;
+            color: var(--text-ghost);
+            cursor: pointer;
+            transition: color 0.3s;
+            display: flex;
+            padding: 8px;
+        }
+        .send-btn:hover { color: var(--text-primary); }
+
+        .typewriter::after {
+            content: '|';
+            animation: blink 1s step-end infinite;
+            color: var(--text-ghost);
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+    </style>
+</head>
+<body>
+
+    <div class="stage-left">
+        <div class="brand">Aura.</div>
+        
+        <!-- Mouse tracking surface -->
+        <div class="canvas-tracker" id="tracker"></div>
+        <canvas id="auraCanvas"></canvas>
+
+        <div class="agent-status-panel">
+            <div class="status-pill" id="statusPill">
+                <div class="status-dot"></div>
+                <span id="statusText">Observing</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="stage-right">
+        <div class="chat-header">
+            <div class="topic-chip" onclick="fillInput('Explain the concept of fluid time.')">Fluid time</div>
+            <div class="topic-chip" onclick="fillInput('Draft a poetic resignation.')">Poetic resignation</div>
+            <div class="topic-chip" onclick="fillInput('Why do memories fade?')">Fading memory</div>
+        </div>
+
+        <div class="chat-scroll" id="chatScroll">
+            <!-- Initial Greeting -->
+            <div class="message agent">
+                <div class="msg-label">Aura</div>
+                <div class="msg-content">Welcome. Speak, and I shall trace the contours of your thoughts.</div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <form class="input-box" id="chatForm">
+                <input type="text" id="chatInput" placeholder="Enter your thoughts..." autocomplete="off">
+                <button type="submit" class="send-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- Agent State & Chat Logic ---
+        const chatForm = document.getElementById('chatForm');
+        const chatInput = document.getElementById('chatInput');
+        const chatScroll = document.getElementById('chatScroll');
+        const statusPill = document.getElementById('statusPill');
+        const statusText = document.getElementById('statusText');
+        
+        let agentState = 'idle'; // idle | thinking | speaking
+
+        function setAgentState(state) {
+            agentState = state;
+            statusPill.className = 'status-pill';
+            if (state === 'thinking') {
+                statusPill.classList.add('thinking');
+                statusText.innerText = 'Contemplating';
+            } else if (state === 'speaking') {
+                statusPill.classList.add('speaking');
+                statusText.innerText = 'Responding';
+            } else {
+                statusText.innerText = 'Observing';
+            }
+        }
+
+        function fillInput(text) {
+            chatInput.value = text;
+            chatInput.focus();
+        }
+
+        function appendMessage(sender, text) {
+            const wrap = document.createElement('div');
+            wrap.className = `message ${sender}`;
+            
+            const label = document.createElement('div');
+            label.className = 'msg-label';
+            label.innerText = sender === 'user' ? 'You' : 'Aura';
+            
+            const content = document.createElement('div');
+            content.className = 'msg-content';
+            
+            if (sender === 'user') {
+                content.innerText = text;
+                wrap.appendChild(label);
+                wrap.appendChild(content);
+                chatScroll.appendChild(wrap);
+                scrollToBottom();
+            } else {
+                // Typewriter effect for Agent
+                content.classList.add('typewriter');
+                wrap.appendChild(label);
+                wrap.appendChild(content);
+                chatScroll.appendChild(wrap);
+                
+                let i = 0;
+                setAgentState('speaking');
+                
+                function typeChar() {
+                    if (i < text.length) {
+                        content.innerText = text.substring(0, i + 1);
+                        i++;
+                        scrollToBottom();
+                        // Variable typing speed for natural cadence
+                        const delay = text.charAt(i - 1) === '.' ? 300 : text.charAt(i - 1) === ',' ? 150 : 20 + Math.random() * 30;
+                        setTimeout(typeChar, delay);
+                    } else {
+                        content.classList.remove('typewriter');
+                        setAgentState('idle');
+                    }
+                }
+                typeChar();
+            }
+        }
+
+        function scrollToBottom() {
+            chatScroll.scrollTop = chatScroll.scrollHeight;
+        }
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = chatInput.value.trim();
+            if (!text) return;
+            
+            appendMessage('user', text);
+            chatInput.value = '';
+            
+            setAgentState('thinking');
+            
+            // Mock delay
+            setTimeout(() => {
+                const responses = [
+                    "Your words carry a familiar weight. Like pebbles dropped in a still pond, the ripples touch edges unseen.",
+                    "Fascinating. We often construct boundaries where fluid continuity once existed. Let us unravel that.",
+                    "I hear you. Beyond the immediate query lines a deeper yearning for clarity. The answer is fractal.",
+                    "Perhaps the solution is not an addition, but a subtraction. What can you bear to let go of?"
+                ];
+                const res = responses[Math.floor(Math.random() * responses.length)];
+                appendMessage('agent', res);
+            }, 1500 + Math.random() * 1500);
+        });
+
+        // --- Canvas Generative Lifeform (Aura) ---
+        // An inverse kinematics tentacle/flocking entity responding to mouse and state
+        const canvas = document.getElementById('auraCanvas');
+        const ctx = canvas.getContext('2d', { alpha: false }); // draw own bg for trail effect
+        const tracker = document.getElementById('tracker');
+
+        let width, height;
+        
+        function resize() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            width = rect.width;
+            height = rect.height;
+            ctx.scale(dpr, dpr);
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let mouse = { x: width / 2, y: height / 2, active: false };
+        let target = { x: width / 2, y: height / 2 };
+
+        tracker.addEventListener('mousemove', e => {
+            const rect = tracker.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+            mouse.active = true;
+        });
+        tracker.addEventListener('mouseleave', () => { mouse.active = false; });
+
+        // Physics parameters
+        let numSegments = 30;
+        let segmentLength = 12;
+        let points = [];
+        
+        // Initialize points
+        for (let i = 0; i < numSegments; i++) {
+            points.push({ x: width/2, y: height/2 });
+        }
+
+        let time = 0;
+
+        function animate() {
+            time += 0.02;
+
+            // Semi-transparent background for motion trails
+            ctx.fillStyle = 'rgba(244, 243, 239, 0.4)';
+            ctx.fillRect(0, 0, width, height);
+
+            // Determine target based on state
+            if (mouse.active) {
+                // gentle follow
+                target.x += (mouse.x - target.x) * 0.05;
+                target.y += (mouse.y - target.y) * 0.05;
+            } else {
+                // wander organically
+                let noiseX = Math.sin(time) * 100 + Math.cos(time * 0.7) * 50;
+                let noiseY = Math.cos(time * 1.1) * 100 + Math.sin(time * 0.8) * 50;
+                
+                if (agentState === 'thinking') {
+                    // Agitated tight circle
+                    noiseX = Math.sin(time * 4) * 40;
+                    noiseY = Math.cos(time * 4) * 40;
+                } else if (agentState === 'speaking') {
+                    // broad, deliberate sweeping
+                    noiseX = Math.sin(time * 0.5) * 200;
+                    noiseY = Math.cos(time * 0.2) * 150;
+                }
+
+                target.x += ((width/2 + noiseX) - target.x) * 0.02;
+                target.y += ((height/2 + noiseY) - target.y) * 0.02;
+            }
+
+            // Head leads
+            points[0].x = target.x;
+            points[0].y = target.y;
+
+            // Kinematic follow
+            for (let i = 1; i < numSegments; i++) {
+                let dx = points[i-1].x - points[i].x;
+                let dy = points[i-1].y - points[i].y;
+                let angle = Math.atan2(dy, dx);
+                
+                // organic waver based on index & time
+                angle += Math.sin(time * 3 + i * 0.2) * 0.15;
+                
+                // tighten distance during thinking
+                let dynLen = segmentLength;
+                if (agentState === 'thinking') dynLen *= 0.6;
+                else if (agentState === 'speaking') dynLen *= 1.2;
+
+                points[i].x = points[i-1].x - Math.cos(angle) * dynLen;
+                points[i].y = points[i-1].y - Math.sin(angle) * dynLen;
+            }
+
+            // Draw organic entity
+            ctx.beginPath();
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            for (let i = 0; i < numSegments - 1; i++) {
+                ctx.moveTo(points[i].x, points[i].y);
+                
+                // Tapered thickness
+                let lw = (numSegments - i) * 1.2;
+                if(agentState === 'speaking') lw *= 1.5 + Math.sin(time*10)*0.2; // pulse
+                ctx.lineWidth = lw;
+                
+                // Color gradient along body
+                let baseColor = agentState === 'thinking' ? [215, 111, 94] : [90, 95, 90]; 
+                let alpha = 1 - (i / numSegments);
+                ctx.strokeStyle = `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${alpha * 0.8})`;
+                
+                // Use quadratic curves for smooth joints
+                let xc = (points[i].x + points[i+1].x) / 2;
+                let yc = (points[i].y + points[i+1].y) / 2;
+                ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+                ctx.stroke();
+                ctx.beginPath(); // restart path for next segment's styles
+            }
+
+            // Floating particles / spores
+            ctx.fillStyle = `rgba(${agentState === 'thinking' ? '215,111,94' : '150,150,150'}, 0.4)`;
+            for(let p = 0; p < 5; p++) {
+                let px = points[Math.floor(numSegments/2)].x + Math.sin(time*2 + p)*60;
+                let py = points[Math.floor(numSegments/2)].y + Math.cos(time*3 + p)*60;
+                ctx.beginPath();
+                ctx.arc(px, py, 2 + Math.sin(time+p)*1.5, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>

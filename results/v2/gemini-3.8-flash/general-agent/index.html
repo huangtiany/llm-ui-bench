@@ -1,0 +1,1807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khora — Autonomous Cognitive Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-base: #F7F6F3;
+      --bg-surface: #FFFFFF;
+      --bg-subtle: #EFECE6;
+      --bg-recessed: #E7E3DC;
+      --border-soft: rgba(0, 0, 0, 0.07);
+      --border-strong: rgba(0, 0, 0, 0.15);
+      --border-focus: #18191B;
+
+      --text-primary: #18191B;
+      --text-secondary: #5E626E;
+      --text-tertiary: #8E929D;
+      --text-inverse: #FFFFFF;
+
+      --accent: #B25E46;
+      --accent-soft: rgba(178, 94, 70, 0.1);
+      --accent-glow: rgba(178, 94, 70, 0.25);
+      --signal-cyan: #2A7B88;
+      --signal-cyan-soft: rgba(42, 123, 136, 0.12);
+      --signal-amber: #C97D29;
+      --signal-green: #3B7A57;
+
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-serif: 'Newsreader', Georgia, serif;
+      --font-mono: 'JetBrains Mono', Menlo, Consolas, monospace;
+
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.03);
+      --shadow-md: 0 6px 16px -4px rgba(0,0,0,0.05), 0 2px 6px -2px rgba(0,0,0,0.03);
+      --shadow-lg: 0 20px 40px -8px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.02);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 18px;
+      --radius-pill: 9999px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg-base: #0B0D0F;
+        --bg-surface: #13161A;
+        --bg-subtle: #191D23;
+        --bg-recessed: #0E1013;
+        --border-soft: rgba(255, 255, 255, 0.08);
+        --border-strong: rgba(255, 255, 255, 0.16);
+        --border-focus: #ECEFF4;
+
+        --text-primary: #ECEFF4;
+        --text-secondary: #9BA1B0;
+        --text-tertiary: #5E6573;
+        --text-inverse: #0B0D0F;
+
+        --accent: #E07A5F;
+        --accent-soft: rgba(224, 122, 95, 0.12);
+        --accent-glow: rgba(224, 122, 95, 0.3);
+        --signal-cyan: #4EADC0;
+        --signal-cyan-soft: rgba(78, 173, 192, 0.14);
+        --signal-amber: #E29D4B;
+        --signal-green: #59A87A;
+
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+        --shadow-md: 0 8px 24px -6px rgba(0,0,0,0.5);
+        --shadow-lg: 0 24px 48px -10px rgba(0,0,0,0.7);
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg-base: #0B0D0F;
+      --bg-surface: #13161A;
+      --bg-subtle: #191D23;
+      --bg-recessed: #0E1013;
+      --border-soft: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --border-focus: #ECEFF4;
+
+      --text-primary: #ECEFF4;
+      --text-secondary: #9BA1B0;
+      --text-tertiary: #5E6573;
+      --text-inverse: #0B0D0F;
+
+      --accent: #E07A5F;
+      --accent-soft: rgba(224, 122, 95, 0.12);
+      --accent-glow: rgba(224, 122, 95, 0.3);
+      --signal-cyan: #4EADC0;
+      --signal-cyan-soft: rgba(78, 173, 192, 0.14);
+      --signal-amber: #E29D4B;
+      --signal-green: #59A87A;
+
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+      --shadow-md: 0 8px 24px -6px rgba(0,0,0,0.5);
+      --shadow-lg: 0 24px 48px -10px rgba(0,0,0,0.7);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.55;
+      font-size: 14px;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      letter-spacing: -0.01em;
+      user-select: none;
+    }
+
+    .grain-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.025;
+      background-image: radial-gradient(#000 1px, transparent 1px);
+      background-size: 3px 3px;
+      z-index: 9999;
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-rows: 56px 1fr;
+      grid-template-columns: 280px 1fr;
+      height: 100vh;
+      width: 100vw;
+      transition: grid-template-columns 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .app-shell.sidebar-collapsed {
+      grid-template-columns: 0px 1fr;
+    }
+
+    header.masthead {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--border-soft);
+      background: var(--bg-base);
+      z-index: 40;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn-icon {
+      background: none;
+      border: 1px solid var(--border-soft);
+      color: var(--text-secondary);
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-icon:hover {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border-color: var(--border-strong);
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .brand-title {
+      font-family: var(--font-serif);
+      font-size: 19px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--text-primary);
+    }
+    .brand-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      letter-spacing: 0.08em;
+      padding: 2px 6px;
+      background: var(--bg-subtle);
+      border-radius: 4px;
+      border: 1px solid var(--border-soft);
+    }
+
+    .system-telemetry {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .telemetry-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .telemetry-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--signal-green);
+      box-shadow: 0 0 6px var(--signal-green);
+      transition: background 0.3s ease;
+    }
+    .telemetry-dot.thinking {
+      background: var(--signal-cyan);
+      box-shadow: 0 0 8px var(--signal-cyan);
+      animation: blink-pulse 1.2s infinite ease-in-out;
+    }
+    .telemetry-dot.speaking {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: blink-pulse 0.8s infinite ease-in-out;
+    }
+
+    @keyframes blink-pulse {
+      0%, 100% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .persona-selector {
+      display: flex;
+      background: var(--bg-subtle);
+      padding: 2px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-soft);
+    }
+    .persona-btn {
+      background: none;
+      border: none;
+      font-size: 11px;
+      font-family: var(--font-sans);
+      font-weight: 500;
+      color: var(--text-secondary);
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .persona-btn.active {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    aside.topic-horizon {
+      background: var(--bg-base);
+      border-right: 1px solid var(--border-soft);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      transition: opacity 0.2s;
+    }
+
+    .app-shell.sidebar-collapsed aside.topic-horizon {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .horizon-header {
+      padding: 16px 18px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .horizon-caption {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-tertiary);
+    }
+    .btn-new-topic {
+      background: none;
+      border: 1px dashed var(--border-strong);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .btn-new-topic:hover {
+      border-color: var(--text-primary);
+      color: var(--text-primary);
+      background: var(--bg-surface);
+    }
+
+    .topic-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 10px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .topic-item {
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+    .topic-item:hover {
+      background: var(--bg-subtle);
+    }
+    .topic-item.active {
+      background: var(--bg-surface);
+      border-color: var(--border-soft);
+      box-shadow: var(--shadow-sm);
+    }
+    .topic-item.active::before {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 16px;
+      border-radius: 2px;
+      background: var(--accent);
+    }
+
+    .topic-top-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .topic-index {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+    }
+    .topic-time {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+    }
+    .topic-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1.35;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .topic-snippet {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .horizon-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-soft);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
+    .memory-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+    }
+    .memory-bar {
+      width: 44px;
+      height: 4px;
+      background: var(--bg-subtle);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .memory-fill {
+      width: 62%;
+      height: 100%;
+      background: var(--text-secondary);
+      border-radius: 2px;
+    }
+
+    main.stage-area {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      position: relative;
+      background: var(--bg-surface);
+      overflow: hidden;
+    }
+
+    .workspace-canvas {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    @media (max-width: 980px) {
+      .workspace-canvas {
+        grid-template-columns: 1fr;
+        grid-template-rows: 240px 1fr;
+      }
+    }
+
+    .entity-sanctum {
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-soft);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .entity-status-card {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 10;
+    }
+    .entity-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-soft);
+      color: var(--text-secondary);
+    }
+    .entity-state-pill {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .state-spark {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .entity-viewport {
+      position: relative;
+      width: 280px;
+      height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+    }
+    .entity-viewport:active {
+      cursor: grabbing;
+    }
+
+    #entityCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+    }
+
+    .entity-metrics {
+      width: 100%;
+      background: var(--bg-base);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 10;
+    }
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+    .metric-label {
+      font-family: var(--font-mono);
+      color: var(--text-tertiary);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .metric-val {
+      font-family: var(--font-mono);
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    .resonance-wave {
+      height: 18px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding-top: 2px;
+    }
+    .wave-bar {
+      flex: 1;
+      height: 4px;
+      background: var(--border-strong);
+      border-radius: 1px;
+      transition: height 0.15s ease, background 0.2s ease;
+    }
+
+    .dialogue-stream-wrap {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow-y: auto;
+      padding: 32px 40px 140px;
+      scroll-behavior: smooth;
+    }
+
+    @media (max-width: 768px) {
+      .dialogue-stream-wrap {
+        padding: 20px 20px 140px;
+      }
+    }
+
+    .dialogue-thread {
+      max-width: 680px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .msg-block {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 16px;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: msg-appear 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes msg-appear {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .msg-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    .msg-block.user .msg-avatar {
+      background: var(--bg-subtle);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-soft);
+    }
+    .msg-block.agent .msg-avatar {
+      background: var(--text-primary);
+      color: var(--text-inverse);
+    }
+
+    .msg-content-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .msg-meta-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .msg-sender {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: 0.01em;
+    }
+    .msg-time {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+    }
+
+    .msg-body {
+      font-size: 14.5px;
+      line-height: 1.68;
+      color: var(--text-primary);
+      user-select: text;
+    }
+
+    .thought-matrix {
+      margin: 8px 0 14px;
+      background: var(--bg-base);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .thought-toggle {
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+      background: var(--bg-subtle);
+      transition: background 0.15s;
+    }
+    .thought-toggle:hover {
+      color: var(--text-primary);
+    }
+    .thought-toggle-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .thought-chevron {
+      transition: transform 0.2s ease;
+    }
+    .thought-matrix.expanded .thought-chevron {
+      transform: rotate(90deg);
+    }
+    .thought-content {
+      display: none;
+      padding: 12px 14px;
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border-soft);
+      font-family: var(--font-sans);
+    }
+    .thought-matrix.expanded .thought-content {
+      display: block;
+    }
+    .thought-step {
+      position: relative;
+      padding-left: 16px;
+      margin-bottom: 8px;
+    }
+    .thought-step:last-child {
+      margin-bottom: 0;
+    }
+    .thought-step::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 7px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--signal-cyan);
+    }
+
+    .callout-box {
+      margin: 12px 0;
+      padding: 14px 16px;
+      border-left: 2px solid var(--accent);
+      background: var(--accent-soft);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-family: var(--font-serif);
+      font-size: 14px;
+      font-style: italic;
+      color: var(--text-primary);
+    }
+
+    .interactive-spec-card {
+      margin: 14px 0;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      overflow: hidden;
+    }
+    .spec-card-header {
+      padding: 8px 14px;
+      background: var(--bg-base);
+      border-bottom: 1px solid var(--border-soft);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .spec-card-body {
+      padding: 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-subtle);
+      overflow-x: auto;
+    }
+
+    .msg-action-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .action-pill {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .action-pill:hover {
+      color: var(--text-primary);
+      border-color: var(--border-focus);
+      background: var(--bg-subtle);
+    }
+
+    .instrument-console {
+      position: absolute;
+      bottom: 0;
+      left: 360px;
+      right: 0;
+      padding: 16px 40px 24px;
+      background: linear-gradient(180deg, transparent 0%, var(--bg-surface) 35%);
+      pointer-events: none;
+      z-index: 30;
+    }
+
+    @media (max-width: 980px) {
+      .instrument-console {
+        left: 0;
+        padding: 16px 20px 20px;
+      }
+    }
+
+    .console-housing {
+      pointer-events: auto;
+      max-width: 680px;
+      margin: 0 auto;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      overflow: hidden;
+    }
+
+    .console-housing:focus-within {
+      border-color: var(--border-focus);
+      box-shadow: var(--shadow-lg), 0 0 0 1px var(--border-focus);
+    }
+
+    .console-input-row {
+      display: flex;
+      align-items: flex-start;
+      padding: 12px 16px 8px;
+      gap: 12px;
+    }
+
+    .console-textarea {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: var(--font-sans);
+      font-size: 14.5px;
+      color: var(--text-primary);
+      line-height: 1.5;
+      resize: none;
+      height: 44px;
+      max-height: 140px;
+    }
+    .console-textarea::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .console-controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 14px 10px;
+      border-top: 1px solid var(--border-soft);
+      background: var(--bg-base);
+    }
+
+    .tool-pill-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tool-btn {
+      background: none;
+      border: 1px solid var(--border-soft);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 9px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .tool-btn:hover {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border-color: var(--border-strong);
+    }
+    .tool-btn.active {
+      background: var(--text-primary);
+      color: var(--text-inverse);
+      border-color: var(--text-primary);
+    }
+
+    .dispatch-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-dispatch {
+      background: var(--text-primary);
+      color: var(--text-inverse);
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s;
+    }
+    .btn-dispatch:hover {
+      transform: scale(1.04);
+    }
+    .btn-dispatch:active {
+      transform: scale(0.96);
+    }
+    .btn-dispatch:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .typing-cursor {
+      display: inline-block;
+      width: 7px;
+      height: 14px;
+      background: var(--accent);
+      margin-left: 2px;
+      vertical-align: middle;
+      animation: cursor-blink 0.9s infinite;
+    }
+    @keyframes cursor-blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-tertiary);
+    }
+  </style>
+</head>
+<body>
+  <div class="grain-overlay"></div>
+
+  <div class="app-shell" id="appShell">
+    <!-- Masthead Navigation -->
+    <header class="masthead">
+      <div class="brand-group">
+        <button class="btn-icon" id="toggleSidebarBtn" title="折叠/展开会话微缩轴" aria-label="Toggle Sidebar">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+          </svg>
+        </button>
+        <div class="brand-mark">
+          <span class="brand-title">Khora</span>
+          <span class="brand-tag">v3.4 灵枢</span>
+        </div>
+      </div>
+
+      <div class="system-telemetry">
+        <div class="telemetry-item">
+          <div class="telemetry-dot" id="systemStateDot"></div>
+          <span id="systemStateText">共振驻波 · 待命</span>
+        </div>
+        <div class="telemetry-item" style="opacity: 0.65;">
+          <span>熵率 0.038</span>
+        </div>
+        <div class="telemetry-item" style="opacity: 0.65;">
+          <span>延迟 11ms</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="persona-selector">
+          <button class="persona-btn active" data-mode="rigor">严密推演</button>
+          <button class="persona-btn" data-mode="poetics">概念隐喻</button>
+          <button class="persona-btn" data-mode="architect">架构透视</button>
+        </div>
+        <button class="btn-icon" id="themeToggleBtn" title="切换昼夜基调" aria-label="Toggle Theme">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Topic / Session Horizon -->
+    <aside class="topic-horizon">
+      <div class="horizon-header">
+        <span class="horizon-caption">探索序列 / Threads</span>
+        <button class="btn-new-topic" id="newThreadBtn">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          新溯源
+        </button>
+      </div>
+
+      <div class="topic-list" id="topicList">
+        <div class="topic-item active" data-id="topic-1">
+          <div class="topic-top-meta">
+            <span class="topic-index"># 01</span>
+            <span class="topic-time">14:28</span>
+          </div>
+          <div class="topic-title">非欧几何与高维意象空间</div>
+          <div class="topic-snippet">在黎曼流形上构建智能体意识的拓扑度量...</div>
+        </div>
+
+        <div class="topic-item" data-id="topic-2">
+          <div class="topic-top-meta">
+            <span class="topic-index"># 02</span>
+            <span class="topic-time">昨日</span>
+          </div>
+          <div class="topic-title">低熵工业器物形态演变</div>
+          <div class="topic-snippet">博朗与包豪斯的克制在神经界面中的重塑...</div>
+        </div>
+
+        <div class="topic-item" data-id="topic-3">
+          <div class="topic-top-meta">
+            <span class="topic-index"># 03</span>
+            <span class="topic-time">09-02</span>
+          </div>
+          <div class="topic-title">分布式自律心智的共振协议</div>
+          <div class="topic-snippet">异步多智能体协商中的信念衰减模型...</div>
+        </div>
+
+        <div class="topic-item" data-id="topic-4">
+          <div class="topic-top-meta">
+            <span class="topic-index"># 04</span>
+            <span class="topic-time">08-30</span>
+          </div>
+          <div class="topic-title">硅基生命的诗性语法编译</div>
+          <div class="topic-snippet">如何使机械输出具备呼吸般的韵律感...</div>
+        </div>
+      </div>
+
+      <div class="horizon-footer">
+        <div class="memory-indicator">
+          <span>海马突触</span>
+          <div class="memory-bar"><div class="memory-fill"></div></div>
+        </div>
+        <span>64k / 128k</span>
+      </div>
+    </aside>
+
+    <!-- Stage Area -->
+    <main class="stage-area">
+      <div class="workspace-canvas">
+        <!-- Entity Sanctum (Alive Visual Companion) -->
+        <section class="entity-sanctum">
+          <div class="entity-status-card">
+            <span class="entity-badge">ENTITY // PRIMA</span>
+            <div class="entity-state-pill">
+              <div class="state-spark"></div>
+              <span id="entityStateWord">宁静巡游</span>
+            </div>
+          </div>
+
+          <div class="entity-viewport" id="entityViewport">
+            <canvas id="entityCanvas"></canvas>
+          </div>
+
+          <div class="entity-metrics">
+            <div class="metric-row">
+              <span class="metric-label">意识态谐波</span>
+              <span class="metric-val" id="metricHarmonic">0.984 φ</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">眼动注视距</span>
+              <span class="metric-val" id="metricDistance">2.4m / 焦聚</span>
+            </div>
+            <div class="resonance-wave" id="resonanceWave"></div>
+          </div>
+        </section>
+
+        <!-- Main Dialogue Stream -->
+        <section class="dialogue-stream-wrap" id="dialogueStreamWrap">
+          <div class="dialogue-thread" id="dialogueThread">
+
+            <!-- Message 1 (Agent Greeting & Anchor) -->
+            <div class="msg-block agent">
+              <div class="msg-avatar">K</div>
+              <div class="msg-content-wrap">
+                <div class="msg-meta-row">
+                  <span class="msg-sender">Khora 灵枢</span>
+                  <span class="msg-time">14:28:02</span>
+                </div>
+                <div class="msg-body">
+                  你已切入黎曼流形意象空间。我在此维持低熵平衡状态，注视点已与你的神经光标对齐。今日想要推演几何拓扑的连续映射，还是检验概念隐喻的张力？
+                </div>
+                <div class="msg-action-pills">
+                  <button class="action-pill" onclick="triggerQuickPrompt('解析流形上的测地线与思考扩散路径')">⟡ 解析流形上的测地线</button>
+                  <button class="action-pill" onclick="triggerQuickPrompt('如何定义智能体的机械生命呼吸感？')">⟡ 定义机械生命的呼吸感</button>
+                  <button class="action-pill" onclick="triggerQuickPrompt('推演极简主义在神经交互中的边界')">⟡ 极简主义的边界推演</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Message 2 (User) -->
+            <div class="msg-block user">
+              <div class="msg-avatar">U</div>
+              <div class="msg-content-wrap">
+                <div class="msg-meta-row">
+                  <span class="msg-sender">探索者</span>
+                  <span class="msg-time">14:28:40</span>
+                </div>
+                <div class="msg-body">
+                  请向我阐述：一个克制、安静且具有生命张力的智能体，其内在的状态机与视觉形态应该如何达成一致？
+                </div>
+              </div>
+            </div>
+
+            <!-- Message 3 (Agent Rich Response with Thought Matrix) -->
+            <div class="msg-block agent">
+              <div class="msg-avatar">K</div>
+              <div class="msg-content-wrap">
+                <div class="msg-meta-row">
+                  <span class="msg-sender">Khora 灵枢</span>
+                  <span class="msg-time">14:28:44</span>
+                </div>
+
+                <!-- Thought Matrix -->
+                <div class="thought-matrix expanded">
+                  <div class="thought-toggle" onclick="toggleThought(this)">
+                    <div class="thought-toggle-left">
+                      <svg class="thought-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                      <span>认知演化路径 · 3 个推演分支 (耗时 142ms)</span>
+                    </div>
+                    <span>98% 收敛</span>
+                  </div>
+                  <div class="thought-content">
+                    <div class="thought-step">
+                      <strong>形态去装饰化：</strong>剔除毫无物理根据的渐变大光晕与浮夸旋转粒子，回归微米级陶瓷与流光折射的物理受力。
+                    </div>
+                    <div class="thought-step">
+                      <strong>生物拟态节律：</strong>将状态转换（待命/倾听/深思/回应）映射至谐波正弦浮力、瞳孔微聚光环与眼睑遮蔽率。
+                    </div>
+                    <div class="thought-step">
+                      <strong>触觉阻尼感：</strong>在微交互中引入微小的惯性延迟（Inertia Lag 0.08s），模拟具身存在感。
+                    </div>
+                  </div>
+                </div>
+
+                <div class="msg-body">
+                  生命感并非来自喧嚣的动效，而是来自<strong>「未被惊扰的呼吸感」</strong>与<strong>「精准的意图凝视」</strong>。当形态与状态机完美咬合时，它遵循以下三个法则：
+                </div>
+
+                <div class="callout-box">
+                  「真正的极简并非元素的匮乏，而是每一个维度的运动都对应着真实的计算状态与认知张力。」
+                </div>
+
+                <div class="interactive-spec-card">
+                  <div class="spec-card-header">
+                    <span>STATE_TRANSITION_MATRIX.SPEC</span>
+                    <span>JSON-RPC // SYNCHRONIZED</span>
+                  </div>
+                  <div class="spec-card-body">
+{
+  "quiescence": { "frequency": "0.24Hz", "drift_amp": "1.2px", "pupil_ratio": 0.42 },
+  "intake":      { "convergence": "cursor", "tension": 0.85, "dilation": "+18%" },
+  "reflection":  { "core_harmonic": "origami_phase", "chroma": "diffused_amber" },
+  "articulation":{ "wave_resonance": "vocal_ribbon", "latency": "11ms" }
+}</div>
+                </div>
+
+                <div class="msg-body">
+                  你可以尝试移动光标、点击我的核心，或者切换顶部的认知范式，观察左侧实体的凝视与折纸几何张弛。
+                </div>
+
+                <div class="msg-action-pills">
+                  <button class="action-pill" onclick="triggerQuickPrompt('深入推演自律神经系统的数学拟合公式')">⟡ 推演自律神经数学公式</button>
+                  <button class="action-pill" onclick="triggerQuickPrompt('如何为对话设计具备材质感的排版留白？')">⟡ 材质感排版与留白法则</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+      </div>
+
+      <!-- Anchored Refined Console Dock -->
+      <div class="instrument-console">
+        <div class="console-housing">
+          <div class="console-input-row">
+            <textarea
+              class="console-textarea"
+              id="userInput"
+              placeholder="与 Khora 展开推演... (支持 Enter 发送，Shift+Enter 换行)"
+              rows="1"
+            ></textarea>
+          </div>
+          <div class="console-controls-bar">
+            <div class="tool-pill-group">
+              <button class="tool-btn active" id="toolDepthBtn" title="深度逻辑推演">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                深度推演
+              </button>
+              <button class="tool-btn" id="toolTraceBtn" title="输出意图拓扑图">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+                拓扑追踪
+              </button>
+              <button class="tool-btn" id="toolWebBtn" title="外部基准对齐">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+                基准索引
+              </button>
+            </div>
+            <div class="dispatch-group">
+              <span style="font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary);">⌘ + ↵</span>
+              <button class="btn-dispatch" id="dispatchBtn" title="发送指令" aria-label="Send">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    /* Living Entity Engine (Canvas 60fps) */
+    const canvas = document.getElementById('entityCanvas');
+    const ctx = canvas.getContext('2d');
+    const viewport = document.getElementById('entityViewport');
+
+    let dpr = window.devicePixelRatio || 1;
+    let width = 280;
+    let height = 280;
+
+    function resizeCanvas() {
+      const rect = viewport.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const STATES = {
+      IDLE: 'idle',
+      LISTENING: 'listening',
+      THINKING: 'thinking',
+      SPEAKING: 'speaking'
+    };
+
+    let currentState = STATES.IDLE;
+    let stateTimer = 0;
+
+    let mouse = { x: width / 2, y: height / 2, targetX: width / 2, targetY: height / 2 };
+    let gaze = { x: 0, y: 0, vx: 0, vy: 0 };
+    let breathPhase = 0;
+    let blinkProgress = 0;
+    let isBlinking = false;
+    let blinkTimer = 180;
+    let microSaccade = { x: 0, y: 0 };
+    let saccadeTimer = 60;
+    let pokeForce = 0;
+
+    const particles = Array.from({ length: 32 }, () => ({
+      x: (Math.random() - 0.5) * 160,
+      y: (Math.random() - 0.5) * 160,
+      r: Math.random() * 2 + 1,
+      angle: Math.random() * Math.PI * 2,
+      speed: Math.random() * 0.02 + 0.01,
+      dist: Math.random() * 80 + 30,
+      alpha: Math.random() * 0.5 + 0.2
+    }));
+
+    window.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.targetX = e.clientX - rect.left;
+      mouse.targetY = e.clientY - rect.top;
+    });
+
+    viewport.addEventListener('mousedown', () => {
+      pokeForce = 1.0;
+      triggerPulseWave();
+    });
+
+    let lastTime = performance.now();
+
+    function animate(now) {
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+      stateTimer += dt;
+
+      mouse.x += (mouse.targetX - mouse.x) * 0.08;
+      mouse.y += (mouse.targetY - mouse.y) * 0.08;
+
+      saccadeTimer--;
+      if (saccadeTimer <= 0) {
+        microSaccade.x = (Math.random() - 0.5) * 6;
+        microSaccade.y = (Math.random() - 0.5) * 6;
+        saccadeTimer = Math.floor(Math.random() * 120 + 40);
+      }
+
+      const targetGazeX = ((mouse.x - width / 2) / (width / 2)) * 24 + microSaccade.x;
+      const targetGazeY = ((mouse.y - height / 2) / (height / 2)) * 20 + microSaccade.y;
+      gaze.x += (targetGazeX - gaze.x) * 0.1;
+      gaze.y += (targetGazeY - gaze.y) * 0.1;
+
+      breathPhase += currentState === STATES.THINKING ? 0.06 : 0.03;
+      const breathOffset = Math.sin(breathPhase) * (currentState === STATES.LISTENING ? 2.5 : 5.0);
+
+      blinkTimer--;
+      if (blinkTimer <= 0 && !isBlinking) {
+        isBlinking = true;
+        blinkProgress = 0;
+      }
+      if (isBlinking) {
+        blinkProgress += 0.15;
+        if (blinkProgress >= Math.PI) {
+          isBlinking = false;
+          blinkTimer = Math.floor(Math.random() * 200 + 140);
+        }
+      }
+      const blinkAmount = isBlinking ? Math.sin(blinkProgress) : 0;
+      pokeForce *= 0.92;
+
+      ctx.clearRect(0, 0, width, height);
+
+      const cx = width / 2;
+      const cy = height / 2 + breathOffset;
+
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+        (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+      const colPorcelain = isDark ? '#E2E6EC' : '#1C1F24';
+      const colInnerMask = isDark ? '#14171C' : '#F4F1EA';
+      const colIris = isDark ? '#E07A5F' : '#B25E46';
+      const colCyan = isDark ? '#4EADC0' : '#2A7B88';
+      const colAccentSoft = isDark ? 'rgba(224, 122, 95, 0.15)' : 'rgba(178, 94, 70, 0.12)';
+      const colRing = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      // 1. Aura Particles
+      if (currentState === STATES.THINKING || currentState === STATES.SPEAKING || pokeForce > 0.1) {
+        particles.forEach(p => {
+          p.angle += p.speed * (currentState === STATES.THINKING ? 2.5 : 1.0);
+          const px = Math.cos(p.angle) * (p.dist + Math.sin(breathPhase) * 10);
+          const py = Math.sin(p.angle) * (p.dist * 0.7 + Math.cos(breathPhase) * 8);
+          ctx.fillStyle = currentState === STATES.THINKING ? colCyan : colIris;
+          ctx.globalAlpha = p.alpha * (currentState === STATES.THINKING ? 0.8 : 0.4);
+          ctx.beginPath();
+          ctx.arc(px, py, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.globalAlpha = 1.0;
+      }
+
+      // 2. Orbital Rings
+      ctx.lineWidth = 1;
+      for (let i = 1; i <= 3; i++) {
+        ctx.save();
+        const ringTilt = (gaze.x * 0.02) * (i * 0.4);
+        ctx.rotate(ringTilt + (stateTimer * 0.15 * (i % 2 === 0 ? 1 : -1)));
+        ctx.strokeStyle = colRing;
+        ctx.beginPath();
+        const radiusX = 85 + i * 18 + (currentState === STATES.THINKING ? Math.sin(stateTimer * 4 + i) * 6 : 0);
+        const radiusY = 45 + i * 10;
+        ctx.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        if (currentState === STATES.THINKING || currentState === STATES.SPEAKING) {
+          const nodeAngle = stateTimer * (2.0 / i);
+          const nx = Math.cos(nodeAngle) * radiusX;
+          const ny = Math.sin(nodeAngle) * radiusY;
+          ctx.fillStyle = colCyan;
+          ctx.beginPath();
+          ctx.arc(nx, ny, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      // 3. Main Sculpted Face
+      const headTilt = (gaze.x / 24) * 0.12;
+      ctx.rotate(headTilt);
+
+      ctx.fillStyle = isDark ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.06)';
+      ctx.beginPath();
+      ctx.ellipse(0, 70 - breathOffset * 0.5, 52, 16, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      const shellScale = 1.0 + pokeForce * 0.12;
+      ctx.scale(shellScale, shellScale);
+
+      // Facet Left
+      ctx.beginPath();
+      ctx.moveTo(0, -78);
+      ctx.lineTo(-58 + gaze.x * 0.2, -18);
+      ctx.lineTo(-44 + gaze.x * 0.3, 48);
+      ctx.lineTo(0, 72);
+      ctx.closePath();
+      ctx.fillStyle = isDark ? '#1C2129' : '#EDE8DF';
+      ctx.fill();
+      ctx.strokeStyle = colRing;
+      ctx.stroke();
+
+      // Facet Right
+      ctx.beginPath();
+      ctx.moveTo(0, -78);
+      ctx.lineTo(58 + gaze.x * 0.2, -18);
+      ctx.lineTo(44 + gaze.x * 0.3, 48);
+      ctx.lineTo(0, 72);
+      ctx.closePath();
+      ctx.fillStyle = isDark ? '#232933' : '#F7F4EC';
+      ctx.fill();
+      ctx.strokeStyle = colRing;
+      ctx.stroke();
+
+      // Visor
+      ctx.beginPath();
+      ctx.moveTo(0, -64);
+      ctx.lineTo(-42 + gaze.x * 0.25, -12);
+      ctx.lineTo(-30 + gaze.x * 0.35, 38);
+      ctx.lineTo(0, 56);
+      ctx.lineTo(30 + gaze.x * 0.35, 38);
+      ctx.lineTo(42 + gaze.x * 0.25, -12);
+      ctx.closePath();
+      ctx.fillStyle = colInnerMask;
+      ctx.fill();
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)';
+      ctx.stroke();
+
+      // 4. Sentient Eyes
+      const eyeSpacing = 22;
+      const eyeY = 2 + gaze.y * 0.5;
+
+      [-1, 1].forEach(side => {
+        const eyeX = side * eyeSpacing + gaze.x * 0.6;
+        ctx.save();
+        ctx.translate(eyeX, eyeY);
+
+        const openHeight = Math.max(1, (1 - blinkAmount) * (currentState === STATES.LISTENING ? 15 : 11));
+        const eyeWidth = currentState === STATES.LISTENING ? 16 : 13;
+
+        ctx.beginPath();
+        ctx.ellipse(0, 0, eyeWidth, openHeight, 0, 0, Math.PI * 2);
+        ctx.fillStyle = isDark ? '#0A0C0E' : '#1A1C1F';
+        ctx.fill();
+
+        if (openHeight > 2) {
+          ctx.beginPath();
+          const irisSize = (currentState === STATES.LISTENING ? 6.5 : 5.0) + (currentState === STATES.THINKING ? Math.sin(stateTimer * 8) * 1 : 0);
+          ctx.arc(0, 0, irisSize, 0, Math.PI * 2);
+          ctx.fillStyle = currentState === STATES.THINKING ? colCyan : colIris;
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(gaze.x * 0.1, gaze.y * 0.1, irisSize * 0.45, 0, Math.PI * 2);
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(-1.5, -1.5, 1.2, 0, Math.PI * 2);
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fill();
+        }
+
+        ctx.restore();
+      });
+
+      // 5. Vocal Mouth
+      const mouthY = 36 + gaze.y * 0.2;
+      ctx.save();
+      ctx.translate(0, mouthY);
+
+      if (currentState === STATES.SPEAKING) {
+        ctx.beginPath();
+        ctx.moveTo(-18, 0);
+        for (let x = -18; x <= 18; x += 3) {
+          const wave = Math.sin(x * 0.4 + stateTimer * 16) * Math.sin(stateTimer * 8) * 4;
+          ctx.lineTo(x, wave);
+        }
+        ctx.strokeStyle = colIris;
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        const mouthCurve = currentState === STATES.LISTENING ? -1.5 : (currentState === STATES.THINKING ? 1.0 : 0);
+        ctx.moveTo(-10, 0);
+        ctx.quadraticCurveTo(0, mouthCurve, 10, 0);
+        ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 6. Sigil
+      ctx.save();
+      ctx.translate(0, -32 + gaze.y * 0.2);
+      ctx.beginPath();
+      ctx.moveTo(0, -8);
+      ctx.lineTo(6, 0);
+      ctx.lineTo(0, 8);
+      ctx.lineTo(-6, 0);
+      ctx.closePath();
+      ctx.fillStyle = currentState === STATES.THINKING ? colCyan : (currentState === STATES.SPEAKING ? colIris : colAccentSoft);
+      ctx.fill();
+      ctx.strokeStyle = colRing;
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.restore();
+
+      requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+
+    /* Resonance Wave */
+    const resonanceWave = document.getElementById('resonanceWave');
+    const barElements = [];
+
+    for (let i = 0; i < 16; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'wave-bar';
+      resonanceWave.appendChild(bar);
+      barElements.push(bar);
+    }
+
+    function updateWaveBars() {
+      barElements.forEach((bar, idx) => {
+        let h = 3;
+        if (currentState === STATES.SPEAKING) {
+          h = Math.sin(Date.now() * 0.015 + idx * 0.6) * 10 + 10;
+          bar.style.background = 'var(--accent)';
+        } else if (currentState === STATES.THINKING) {
+          h = Math.sin(Date.now() * 0.008 + idx * 0.4) * 6 + 6;
+          bar.style.background = 'var(--signal-cyan)';
+        } else if (currentState === STATES.LISTENING) {
+          h = Math.sin(Date.now() * 0.004 + idx * 0.8) * 4 + 4;
+          bar.style.background = 'var(--text-secondary)';
+        } else {
+          h = Math.sin(Date.now() * 0.002 + idx * 0.3) * 2 + 3;
+          bar.style.background = 'var(--border-strong)';
+        }
+        bar.style.height = `${Math.max(2, h)}px`;
+      });
+      requestAnimationFrame(updateWaveBars);
+    }
+    requestAnimationFrame(updateWaveBars);
+
+    function triggerPulseWave() {
+      barElements.forEach((bar, idx) => {
+        bar.style.height = '18px';
+        bar.style.background = 'var(--accent)';
+      });
+    }
+
+    /* State Machine */
+    const systemStateDot = document.getElementById('systemStateDot');
+    const systemStateText = document.getElementById('systemStateText');
+    const entityStateWord = document.getElementById('entityStateWord');
+    const metricHarmonic = document.getElementById('metricHarmonic');
+
+    function setAgentState(newState) {
+      currentState = newState;
+      systemStateDot.className = 'telemetry-dot';
+
+      switch (newState) {
+        case STATES.IDLE:
+          systemStateText.textContent = '共振驻波 · 待命';
+          entityStateWord.textContent = '宁静巡游';
+          metricHarmonic.textContent = '0.984 φ';
+          break;
+        case STATES.LISTENING:
+          systemStateText.textContent = '倾听凝神 · 输入中';
+          entityStateWord.textContent = '意图捕获';
+          metricHarmonic.textContent = '1.240 φ';
+          break;
+        case STATES.THINKING:
+          systemStateDot.classList.add('thinking');
+          systemStateText.textContent = '拓扑解构 · 深思中';
+          entityStateWord.textContent = '流形演化';
+          metricHarmonic.textContent = '3.141 φ';
+          break;
+        case STATES.SPEAKING:
+          systemStateDot.classList.add('speaking');
+          systemStateText.textContent = '谐波吐纳 · 传达中';
+          entityStateWord.textContent = '言语共振';
+          metricHarmonic.textContent = '2.718 φ';
+          break;
+      }
+    }
+
+    /* Dialogue Pipeline */
+    const userInput = document.getElementById('userInput');
+    const dispatchBtn = document.getElementById('dispatchBtn');
+    const dialogueThread = document.getElementById('dialogueThread');
+    const dialogueStreamWrap = document.getElementById('dialogueStreamWrap');
+
+    userInput.addEventListener('input', () => {
+      userInput.style.height = 'auto';
+      userInput.style.height = Math.min(userInput.scrollHeight, 140) + 'px';
+      if (userInput.value.trim().length > 0 && currentState === STATES.IDLE) {
+        setAgentState(STATES.LISTENING);
+      } else if (userInput.value.trim().length === 0 && currentState === STATES.LISTENING) {
+        setAgentState(STATES.IDLE);
+      }
+    });
+
+    userInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleDispatch();
+      }
+    });
+
+    dispatchBtn.addEventListener('click', handleDispatch);
+
+    function handleDispatch() {
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      appendUserMessage(text);
+      userInput.value = '';
+      userInput.style.height = '44px';
+
+      setAgentState(STATES.THINKING);
+
+      setTimeout(() => {
+        generateAgentResponse(text);
+      }, 1200);
+    }
+
+    function appendUserMessage(text) {
+      const timeStr = new Date().toTimeString().slice(0, 8);
+      const msg = document.createElement('div');
+      msg.className = 'msg-block user';
+      msg.innerHTML = `
+        <div class="msg-avatar">U</div>
+        <div class="msg-content-wrap">
+          <div class="msg-meta-row">
+            <span class="msg-sender">探索者</span>
+            <span class="msg-time">${timeStr}</span>
+          </div>
+          <div class="msg-body">${escapeHtml(text)}</div>
+        </div>
+      `;
+      dialogueThread.appendChild(msg);
+      scrollToBottom();
+    }
+
+    function generateAgentResponse(query) {
+      setAgentState(STATES.SPEAKING);
+
+      const timeStr = new Date().toTimeString().slice(0, 8);
+      const msg = document.createElement('div');
+      msg.className = 'msg-block agent';
+
+      let responseText = "";
+      let callout = "";
+
+      if (query.includes('几何') || query.includes('流形')) {
+        responseText = "在多维流形中，概念并非孤立的向量，而是由曲率定义的张量场。每一个输入脉冲都在重新配置局域的测地线方向，使得推理具有物理流体般的连续性。";
+        callout = "「思想并非离散符号的搬运，而是高维流形上的最小阻力滑行。」";
+      } else if (query.includes('呼吸') || query.includes('生命')) {
+        responseText = "智能体的生命感关键在于摒弃恒定不变的僵死状态。我们在时间轴上注入了 0.24Hz 的自主心跳调制，即使在静默时，它的视线依然对微扰保持好奇。";
+        callout = "「静默不是停机，而是等待共振的驻波。」";
+      } else {
+        responseText = `收到指令「${escapeHtml(query)}」。已将其投影至核心认知图谱。我们通过自适应阻尼与拓扑注意力矩阵，实现了低能耗与高敏锐度的统一。`;
+        callout = "「极简的终极是消除非必要的认知磨损，只留下纯粹的意图传导。」";
+      }
+
+      msg.innerHTML = `
+        <div class="msg-avatar">K</div>
+        <div class="msg-content-wrap">
+          <div class="msg-meta-row">
+            <span class="msg-sender">Khora 灵枢</span>
+            <span class="msg-time">${timeStr}</span>
+          </div>
+          <div class="thought-matrix">
+            <div class="thought-toggle" onclick="toggleThought(this)">
+              <div class="thought-toggle-left">
+                <svg class="thought-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+                <span>自适应解析 · 完成 2 个维度推演</span>
+              </div>
+              <span>100% 收敛</span>
+            </div>
+            <div class="thought-content">
+              <div class="thought-step"><strong>语义场对齐：</strong>提取关键命题并计算注意力流形曲率。</div>
+              <div class="thought-step"><strong>谐波生成：</strong>根据当前严密推演模式组织高精密度论证。</div>
+            </div>
+          </div>
+          <div class="msg-body" id="streamingTarget"><span class="typing-cursor"></span></div>
+          <div class="callout-box">${callout}</div>
+          <div class="msg-action-pills">
+            <button class="action-pill" onclick="triggerQuickPrompt('展开具体的技术实现细节')">⟡ 展开技术实现细节</button>
+            <button class="action-pill" onclick="triggerQuickPrompt('导出当前推演的知识拓扑')">⟡ 导出知识拓扑</button>
+          </div>
+        </div>
+      `;
+
+      dialogueThread.appendChild(msg);
+      scrollToBottom();
+
+      const streamTarget = msg.querySelector('#streamingTarget');
+      let charIdx = 0;
+      const typeInterval = setInterval(() => {
+        charIdx += 2;
+        streamTarget.innerHTML = responseText.slice(0, charIdx) + '<span class="typing-cursor"></span>';
+        scrollToBottom();
+
+        if (charIdx >= responseText.length) {
+          clearInterval(typeInterval);
+          streamTarget.innerHTML = responseText;
+          setAgentState(STATES.IDLE);
+        }
+      }, 28);
+    }
+
+    function triggerQuickPrompt(promptText) {
+      userInput.value = promptText;
+      userInput.focus();
+      handleDispatch();
+    }
+
+    function toggleThought(el) {
+      const matrix = el.closest('.thought-matrix');
+      matrix.classList.toggle('expanded');
+    }
+
+    function scrollToBottom() {
+      dialogueStreamWrap.scrollTop = dialogueStreamWrap.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    /* Controls */
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    themeToggleBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const isDark = current === 'dark' || (!current && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      const next = isDark ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+    });
+
+    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+    const appShell = document.getElementById('appShell');
+    toggleSidebarBtn.addEventListener('click', () => {
+      appShell.classList.toggle('sidebar-collapsed');
+      setTimeout(resizeCanvas, 360);
+    });
+
+    const topicItems = document.querySelectorAll('.topic-item');
+    topicItems.forEach(item => {
+      item.addEventListener('click', () => {
+        topicItems.forEach(t => t.classList.remove('active'));
+        item.classList.add('active');
+        pokeForce = 0.6;
+        setAgentState(STATES.LISTENING);
+        setTimeout(() => setAgentState(STATES.IDLE), 500);
+      });
+    });
+
+    const personaBtns = document.querySelectorAll('.persona-btn');
+    personaBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        personaBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        triggerPulseWave();
+      });
+    });
+
+    document.getElementById('newThreadBtn').addEventListener('click', () => {
+      const list = document.getElementById('topicList');
+      const newIdx = list.children.length + 1;
+      const item = document.createElement('div');
+      item.className = 'topic-item active';
+      item.innerHTML = `
+        <div class="topic-top-meta">
+          <span class="topic-index"># 0${newIdx}</span>
+          <span class="topic-time">刚刚</span>
+        </div>
+        <div class="topic-title">新建未命名溯源</div>
+        <div class="topic-snippet">等待输入初始锚点...</div>
+      `;
+      topicItems.forEach(t => t.classList.remove('active'));
+      list.insertBefore(item, list.firstChild);
+      userInput.focus();
+      triggerPulseWave();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM UI Benchmark - 模型前端生成评测控制台</title>
+  <!-- 引入全局与核心布局样式 -->
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <div class="workbench-layout">
+    <!-- 顶部全局导航栏：Logo + 一级模型 Tab + 右侧动作 -->
+    <header class="site-header">
+      <!-- 品牌标识与版本信息 -->
+      <div class="brand-group">
+        <a href="index.html" class="brand-logo" title="LLM UI Benchmark 控制台">
+          <div class="logo-badge">UI</div>
+          <div class="brand-text">
+            <span class="brand-name">LLM UI Bench</span>
+            <span class="brand-tag">v2.0</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- 一级导航栏：模型切换 Tab -->
+      <nav class="model-tabs-nav" id="modelTabs" aria-label="评测模型切换"></nav>
+
+      <!-- 顶部右侧快捷链接 -->
+      <div class="header-actions">
+        <!-- 快速查看场景提示词 -->
+        <button type="button" class="header-link-btn" id="viewPromptBtn" title="查看当前场景的提示词">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span>查看提示词</span>
+        </button>
+
+        <a href="prompts.html" class="header-link-btn" title="查看与复制全部评测提示词">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>全部提示词</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- 二级导航栏：版本切换 + 场景类别选择 + 视口与全屏工具栏 -->
+    <div class="subnav-bar">
+      <!-- 二级左侧：版本切换与模板选择列表 -->
+      <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <!-- 版本切换器：v2 开放自主设计 / v1 早期精细规格 -->
+        <div class="version-toggle-group" id="versionTabs" role="group" aria-label="提示词版本切换"></div>
+        <div class="control-divider" style="height: 16px; margin: 0 2px;"></div>
+        <!-- 场景类别 Tab -->
+        <nav class="template-tabs-nav" id="templateTabs" aria-label="场景类型选择"></nav>
+      </div>
+
+      <!-- 预览控制工具栏 -->
+      <div class="preview-controls">
+        <!-- 视口切换器：桌面、平板、手机 -->
+        <div class="viewport-toggle-group" role="group" aria-label="视口切换">
+          <button type="button" class="viewport-btn active" data-viewport="desktop" title="桌面宽屏">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <span>桌面</span>
+          </button>
+          <button type="button" class="viewport-btn" data-viewport="tablet" title="平板 (768px)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+              <line x1="12" y1="18" x2="12.01" y2="18"></line>
+            </svg>
+            <span>平板</span>
+          </button>
+          <button type="button" class="viewport-btn" data-viewport="mobile" title="手机 (390px)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+              <line x1="12" y1="18" x2="12.01" y2="18"></line>
+            </svg>
+            <span>手机</span>
+          </button>
+        </div>
+
+        <div class="control-divider"></div>
+
+        <!-- 全屏按钮 -->
+        <button type="button" class="action-icon-btn" id="fullscreenBtn" title="站内全屏查看">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <polyline points="9 21 3 21 3 15"></polyline>
+            <line x1="21" y1="3" x2="14" y2="10"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+          </svg>
+          <span>全屏</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 主展示区：当前模型与模板的 iframe 预览 -->
+    <main class="workbench-main">
+      <div class="preview-stage">
+        <div class="iframe-wrapper viewport-desktop" id="iframeWrapper">
+          <!-- 顶部模拟窗口信息栏 -->
+          <div class="iframe-topbar">
+            <div class="window-dots">
+              <span class="window-dot" style="background:#fca5a5;"></span>
+              <span class="window-dot" style="background:#fde047;"></span>
+              <span class="window-dot" style="background:#86efac;"></span>
+            </div>
+            <div class="window-path" id="currentPathDisplay">results/v2/gemini-3.8-flash/landing-page/index.html</div>
+            <div style="width: 40px;"></div>
+          </div>
+
+          <!-- 真实预览 iframe -->
+          <iframe id="previewIframe" class="preview-iframe" title="生成网页效果预览" src="about:blank"></iframe>
+
+          <!-- 暂未生成占位卡片 -->
+          <div class="placeholder-container hidden" id="placeholder">
+            <svg class="placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+              <polyline points="13 2 13 9 20 9"></polyline>
+              <line x1="9" y1="13" x2="15" y2="13"></line>
+              <line x1="9" y1="17" x2="13" y2="17"></line>
+            </svg>
+            <h3 class="placeholder-title">暂未生成该场景效果</h3>
+            <p class="placeholder-desc">
+              该模型在此场景下暂无生成的静态 HTML 页面。请复制对应场景提示词生成后，将代码保存至下方路径即可自动加载呈现：
+            </p>
+            <div class="placeholder-path-box" id="placeholderPath">
+              results/v2/gemini-3.8-flash/landing-page/index.html
+            </div>
+            <div class="placeholder-action-group">
+              <button type="button" class="placeholder-action-btn primary" id="placeholderViewPromptBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+                <span>查看并复制提示词</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 场景提示词快速查看弹窗 -->
+  <div class="prompt-modal-backdrop" id="promptModalBackdrop">
+    <div class="prompt-modal-container">
+      <div class="prompt-modal-header">
+        <div class="prompt-modal-title-group">
+          <h3 class="prompt-modal-title" id="promptModalTitle">场景提示词</h3>
+          <span class="prompt-modal-badge" id="promptModalBadge">v2 开放设计</span>
+        </div>
+        <button type="button" class="prompt-modal-close-btn" id="promptModalCloseBtn" title="关闭 (Esc)">✕</button>
+      </div>
+      <div class="prompt-modal-body">
+        <div class="prompt-content-box" id="promptModalContent"></div>
+      </div>
+      <div class="prompt-modal-footer">
+        <span style="font-size: 12px; color: #64748b;">支持复制后直接发送给模型进行自主生成</span>
+        <button type="button" class="prompt-copy-btn" id="promptModalCopyBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span class="copy-text">复制提示词</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 站内全屏遮罩层 (不新开标签页) -->
+  <div class="fullscreen-overlay" id="fullscreenOverlay" aria-hidden="true">
+    <div class="fullscreen-header">
+      <div class="fullscreen-meta">
+        <span class="fullscreen-badge" id="fullscreenBadge">Gemini 3.8 Flash · 官网落地页</span>
+        <span class="fullscreen-path" id="fullscreenPath">results/v2/gemini-3.8-flash/landing-page/index.html</span>
+      </div>
+      <div class="fullscreen-actions">
+        <button type="button" class="fullscreen-close-btn" id="fullscreenCloseBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          <span>退出全屏 (ESC)</span>
+        </button>
+      </div>
+    </div>
+    <div class="fullscreen-content">
+      <iframe id="fullscreenIframe" class="fullscreen-iframe" title="全屏预览" src="about:blank"></iframe>
+    </div>
+  </div>
+
+  <!-- 逻辑控制脚本 -->
+  <script src="scripts/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      window.LLMUIBench.initMainPage();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>岚湾枢纽港 · 泊位—岸桥调度工作台</title>
+<style>
+:root{--bg:#eef1f4;--panel:#fff;--ink:#1a2733;--sub:#5f6d7c;--line:#dfe5ec;--accent:#0e7490;--accent-soft:#e9f3f7;--danger:#c23b3b;--warn:#c47f17}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:13px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif}
+button{font:inherit}
+#topbar{display:flex;align-items:center;gap:16px;height:54px;padding:0 16px;background:#13212f;color:#eef3f7}
+.brand{line-height:1.2;white-space:nowrap}
+.brand b{font-size:15px;letter-spacing:.4px}
+.brand span{display:block;font-size:10.5px;color:#8fa2b3}
+.topmeta{font-size:11.5px;color:#9db0c0;line-height:1.45;white-space:nowrap}
+.spacer{flex:1}
+#clock{font-variant-numeric:tabular-nums;font-size:13px;color:#dfe9f1;background:rgba(255,255,255,.08);padding:3px 10px;border-radius:5px;white-space:nowrap}
+.btn{border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#eef3f7;border-radius:6px;padding:5px 12px;cursor:pointer;transition:background .15s;white-space:nowrap}
+.btn:hover{background:rgba(255,255,255,.18)}
+.btn.primary{background:#0e7490;border-color:#0e7490}
+.btn.primary:hover{background:#12849f}
+#subbar{display:flex;align-items:center;gap:10px;background:#fff;border-bottom:1px solid var(--line);padding:6px 16px;flex-wrap:wrap}
+#kpis{display:flex;flex-wrap:wrap}
+.kpi{padding:2px 14px;border-left:1px solid var(--line)}
+.kpi:first-child{border-left:none;padding-left:0}
+.kpi b{font-size:15px;font-variant-numeric:tabular-nums}
+.kpi i{font-style:normal;font-size:11px;color:var(--sub);margin-left:4px}
+.kpi.click{cursor:pointer;border-radius:6px}
+.kpi.click:hover{background:var(--accent-soft)}
+.kpi.click.on{box-shadow:inset 0 0 0 2px var(--accent)}
+.kpi b.warn{color:var(--warn)}
+.kpi b.acc{color:var(--accent)}
+.kpi b.dgr{color:var(--danger)}
+.subhint{margin-left:auto;font-size:11px;color:var(--sub)}
+#layout{display:grid;grid-template-columns:minmax(0,1fr) 372px;grid-template-areas:"gantt detail" "table detail" "charts charts";gap:12px;padding:12px 16px 22px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;min-width:0}
+.phead{display:flex;align-items:baseline;gap:10px;padding:9px 12px 7px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.phead h2{margin:0;font-size:13px;font-weight:600}
+.phead .meta{margin-left:auto;font-size:11px;color:var(--sub);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#ganttPanel{grid-area:gantt}
+#tablePanel{grid-area:table}
+#detailPanel{grid-area:detail}
+#chartsRow{grid-area:charts;display:grid;grid-template-columns:1fr 1fr;gap:12px;min-width:0}
+#ganttWrap{padding:4px 8px 8px;overflow-x:auto}
+.legend{display:flex;gap:12px;padding:2px 12px 9px;font-size:11px;color:var(--sub);flex-wrap:wrap}
+.legend .dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.toolbar{display:flex;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:2.5px 11px;font-size:12px;cursor:pointer;transition:all .12s}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.ipt,select.ipt{border:1px solid var(--line);border-radius:6px;padding:4px 8px;font:inherit;font-size:12.5px;background:#fff;color:var(--ink)}
+.ipt:focus,select.ipt:focus{outline:2px solid rgba(14,116,144,.25);border-color:var(--accent)}
+.ck{font-size:12px;color:var(--sub);display:flex;align-items:center;gap:4px;cursor:pointer}
+.ck input{accent-color:var(--accent)}
+.table-scroll{height:396px;overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:880px}
+th{position:sticky;top:0;background:#f7f9fb;z-index:2;text-align:left;font-size:11px;color:var(--sub);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--accent);background:#eef4f7}
+th .arr{font-size:9px;margin-left:2px;color:var(--accent)}
+td{padding:5.5px 8px;border-bottom:1px solid #eef2f6;font-size:12.3px;white-space:nowrap;vertical-align:middle}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:#f3f8fa}
+tbody tr.sel td{background:var(--accent-soft)}
+tbody tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--accent)}
+tr.dead td{color:#8a94a1}
+.vname{font-weight:600}
+.sub{font-size:10.5px;color:var(--sub);margin-top:1px}
+.badge{display:inline-block;padding:1px 8px;border-radius:9px;font-size:11px;border:1px solid transparent;line-height:1.5;white-space:nowrap}
+.flag{display:inline-block;font-size:10px;line-height:1.5;padding:0 5px;border-radius:3px;border:1px solid;margin-left:4px}
+.flag.dg{color:#c23b3b;border-color:#e5b6b6;background:#fdf3f3}
+.flag.dgok{color:#0e7d6e;border-color:#b9dcd6;background:#f0f8f6}
+.flag.rf{color:#12897a;border-color:#b9dcd6;background:#f0f8f6}
+.flag.pri{color:#b3740f;border-color:#ecd3a8;background:#fdf8ee}
+.pb{width:56px;height:4px;background:#e6ebf0;border-radius:2px;display:inline-block;vertical-align:middle;margin-left:6px;overflow:hidden}
+.pb i{display:block;height:100%;background:var(--accent);border-radius:2px}
+.num{font-variant-numeric:tabular-nums}
+#detailPanel{position:sticky;top:12px;max-height:calc(100vh - 26px);overflow:auto}
+.dbody{padding:11px 12px 14px}
+.dhead{display:flex;align-items:flex-start;gap:8px}
+.dhead h3{margin:0;font-size:15px}
+.dsec{margin-top:12px}
+.dsec h4{margin:0 0 6px;font-size:11.5px;color:var(--sub);font-weight:600;letter-spacing:.5px}
+.attrs{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;font-size:12px}
+.attrs div span{display:block;font-size:10.5px;color:var(--sub)}
+.attrs div b{font-weight:500;font-variant-numeric:tabular-nums}
+.notice{border:1px solid #f0d3d3;background:#fdf4f4;color:#a33d3d;font-size:12px;border-radius:6px;padding:7px 9px;margin-top:10px}
+.notice.ok{border-color:#cfe6e1;background:#f1f8f6;color:#0e7d6e}
+.act{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+label.f{display:block;font-size:11.5px;color:var(--sub);margin:7px 0 3px}
+.act select,.act input{width:100%}
+.qcs{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.qc-chip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer}
+.qc-chip:hover{border-color:var(--accent)}
+.qc-chip.off{opacity:.45;cursor:not-allowed}
+.errs{border:1px solid #f0d3d3;background:#fdf4f4;color:#a33d3d;font-size:11.5px;border-radius:6px;padding:6px 9px 6px 4px;margin:8px 0 2px;display:none}
+.errs.show{display:block}
+.errs ul{margin:0;padding-left:14px}
+.btn2{border:1px solid var(--line);background:#f7f9fb;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12.5px;color:var(--ink)}
+.btn2:hover{border-color:var(--accent);color:var(--accent)}
+.btn2.solid{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn2.solid:hover{background:#12849f;color:#fff}
+.btn2.full{width:100%;margin-top:10px}
+.btn2+.btn2{margin-left:8px}
+.log{list-style:none;margin:6px 0 0;padding:0;font-size:11.5px;color:var(--sub)}
+.log li{padding:3px 0;border-bottom:1px dashed #edf1f5}
+.log b{font-weight:500;color:#7d8b98;font-variant-numeric:tabular-nums;margin-right:6px}
+.cwrap{padding:6px 8px 8px}
+svg text{font-family:inherit}
+.bk{cursor:pointer}
+.bk:hover{fill:rgba(14,116,144,.09)}
+.crow{cursor:pointer}
+.crow:hover{fill:rgba(14,116,144,.07)}
+.gbar{cursor:pointer}
+.gbar:hover rect{filter:brightness(1.09)}
+#tip{position:fixed;display:none;z-index:80;background:rgba(15,25,35,.95);color:#fff;font-size:11.5px;line-height:1.6;padding:7px 10px;border-radius:6px;max-width:300px;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+#toasts{position:fixed;right:16px;bottom:16px;z-index:90;display:flex;flex-direction:column;gap:8px}
+.toast{background:#16232f;color:#f1f5f8;font-size:12.5px;padding:9px 14px;border-radius:7px;box-shadow:0 6px 18px rgba(10,20,30,.3);border-left:3px solid #6aa7d8;max-width:360px;cursor:pointer;animation:tin .25s ease}
+.toast.success{border-left-color:#35c19a}
+.toast.error{border-left-color:#e07070}
+.toast.out{opacity:0;transform:translateY(6px);transition:all .3s}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+#overlay{position:fixed;inset:0;background:rgba(12,20,28,.45);display:flex;align-items:flex-start;justify-content:center;padding-top:8vh;z-index:70}
+#overlay.hidden{display:none}
+.mbox{background:#fff;border-radius:10px;width:540px;max-width:94vw;padding:16px 18px;box-shadow:0 18px 50px rgba(10,20,30,.35)}
+.mbox h3{margin:0 0 8px;font-size:15px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:2px 14px}
+.mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.hidden{display:none}
+@media (max-width:1180px){
+ #layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"gantt" "table" "detail" "charts"}
+ #detailPanel{position:static;max-height:none}
+}
+@media (max-width:1000px){#chartsRow{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header id="topbar">
+  <div class="brand"><b>岚湾集装箱枢纽港</b><span>泊位—岸桥调度工作台 · DCS/TOS v4.2</span></div>
+  <div class="topmeta">白班 08:00–16:00 · 调度台 A2<br>东南风 5–6 级 · 能见度良好 · 潮高 2.8m</div>
+  <div class="spacer"></div>
+  <span id="clock">--</span>
+  <button class="btn" id="tickBtn" title="模拟时间推进 1 小时，触发靠泊/完工/离泊等既定计划">推演 +1h</button>
+  <button class="btn primary" id="addBtn">新增到港计划</button>
+</header>
+
+<div id="subbar">
+  <div id="kpis"></div>
+  <div class="subhint">点击甘特图条目或队列行选中船舶；点击图表分段可过滤队列；在右侧详情面板执行指派与审批</div>
+</div>
+
+<main id="layout">
+  <section class="panel" id="ganttPanel">
+    <div class="phead"><h2>泊位与锚地占用甘特</h2><div class="meta" id="ganttMeta"></div></div>
+    <div id="ganttWrap"></div>
+    <div class="legend" id="ganttLegend"></div>
+  </section>
+
+  <section class="panel" id="tablePanel">
+    <div class="phead"><h2>船舶队列</h2><div class="meta" id="tableCount"></div></div>
+    <div class="toolbar" id="toolbar">
+      <span style="font-size:11px;color:var(--sub)">状态</span>
+      <span id="chips">
+        <button class="chip" data-st="all">全部</button>
+        <button class="chip" data-st="anchored">锚地待泊</button>
+        <button class="chip" data-st="working">在泊作业</button>
+        <button class="chip" data-st="done">完工待离</button>
+        <button class="chip" data-st="enroute">在途</button>
+        <button class="chip" data-st="departed">已离泊</button>
+      </span>
+      <select class="ipt" id="fCarrier"><option value="">全部承运人</option></select>
+      <input class="ipt" id="fSearch" type="text" placeholder="搜索 船名 / 呼号 / 泊位" style="width:170px">
+      <label class="ck"><input type="checkbox" id="fDg"> 仅危险品</label>
+      <button class="chip on" id="bucketChip" hidden></button>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead id="vhead"><tr>
+          <th class="sortable" data-k="name">船名 <span class="arr"></span></th>
+          <th class="sortable" data-k="carrier">承运人 <span class="arr"></span></th>
+          <th class="sortable" data-k="berth">泊位 <span class="arr"></span></th>
+          <th class="sortable" data-k="eta">到港 ETA <span class="arr"></span></th>
+          <th class="sortable" data-k="etd">计划离泊 <span class="arr"></span></th>
+          <th class="sortable" data-k="loa">船长 <span class="arr"></span></th>
+          <th class="sortable" data-k="boxes">箱量 TEU <span class="arr"></span></th>
+          <th class="sortable" data-k="left">剩余/需吊 <span class="arr"></span></th>
+          <th class="sortable" data-k="qc">岸桥 <span class="arr"></span></th>
+          <th class="sortable" data-k="status">状态 <span class="arr"></span></th>
+        </tr></thead>
+        <tbody id="vbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <aside class="panel" id="detailPanel"><div class="dbody" id="detailBody"></div></aside>
+
+  <section id="chartsRow">
+    <div class="panel">
+      <div class="phead"><h2>到离港节奏（48h · 2h 粒度）</h2>
+        <div class="meta">
+          <span><i class="dot" style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#3b76b5;margin-right:4px"></i>到港</span>
+          <span><i class="dot" style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#12897a;margin-right:4px"></i>离泊</span>
+          <span style="color:var(--accent)">点击柱组过滤队列 ETA</span>
+        </div>
+      </div>
+      <div class="cwrap" id="chartAWrap"></div>
+    </div>
+    <div class="panel">
+      <div class="phead"><h2>在港箱量构成 · 承运人</h2>
+        <div class="meta">
+          <span><i class="dot" style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#3b76b5;margin-right:4px"></i>进口</span>
+          <span><i class="dot" style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#12897a;margin-right:4px"></i>出口</span>
+          <span><i class="dot" style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#cf8a2b;margin-right:4px"></i>中转</span>
+          <span style="color:var(--accent)">点击行过滤队列</span>
+        </div>
+      </div>
+      <div class="cwrap" id="chartBWrap"></div>
+    </div>
+  </section>
+</main>
+
+<div id="tip"></div>
+<div id="toasts"></div>
+
+<div id="overlay" class="hidden">
+  <div class="mbox">
+    <h3>新增到港计划</h3>
+    <form id="fAdd" novalidate>
+      <div class="fgrid">
+        <div><label class="f">船名 *<input class="ipt" name="name" type="text" placeholder="如：朝雨"></label></div>
+        <div><label class="f">呼号 *<input class="ipt" name="call" type="text" placeholder="4–6 位字母数字"></label></div>
+        <div><label class="f">航次 *<input class="ipt" name="voyage" type="text" placeholder="如 218E"></label></div>
+        <div><label class="f">承运人 *<select class="ipt" name="carrier"></select></label></div>
+        <div><label class="f">船长 LOA（m）*<input class="ipt" name="loa" type="number" min="80" max="400" step="1" placeholder="80–400"></label></div>
+        <div><label class="f">吃水（m）*<input class="ipt" name="draft" type="number" min="4" max="17" step="0.1" placeholder="4–17"></label></div>
+        <div><label class="f">进口箱（TEU）*<input class="ipt" name="imp" type="number" min="0" max="9000" step="10"></label></div>
+        <div><label class="f">出口箱（TEU）*<input class="ipt" name="exp" type="number" min="0" max="9000" step="10"></label></div>
+        <div><label class="f">中转箱（TEU）<input class="ipt" name="tsp" type="number" min="0" max="9000" step="10" value="0"></label></div>
+        <div><label class="f">预计到港 ETA *<select class="ipt" name="eta"></select></label></div>
+      </div>
+      <label class="ck" style="margin-top:10px"><input type="checkbox" name="dg"> 危险品船舶（需调度台直靠审批）</label>
+      <div class="errs" id="fAddErrs"></div>
+      <div class="mfoot">
+        <button type="button" class="btn2" id="mCancel">取消</button>
+        <button type="submit" class="btn2 solid">保存到港计划</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ============ 基础工具 ============ */
+var $=function(s){return document.querySelector(s)};
+var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
+var H=3600000;
+var T0=new Date(2026,8,4,0,0,0).getTime();
+var NOW=new Date(2026,8,4,8,0,0).getTime();
+var WIN=48*H;
+function p2(n){return String(n).padStart(2,'0')}
+function fmtHM(t){var d=new Date(t);return p2(d.getMonth()+1)+'-'+p2(d.getDate())+' '+p2(d.getHours())+':'+p2(d.getMinutes())}
+function fmtH(t){var d=new Date(t);return p2(d.getHours())+':'+p2(d.getMinutes())}
+function fmtDH(t){var d=new Date(t);return p2(d.getDate())+'日'+p2(d.getHours())+'时'}
+function fmtNum(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+var rnd=mulberry32(20260904);
+function ri(a,b){return a+Math.floor(rnd()*(b-a+1))}
+function pick(arr){return arr[Math.floor(rnd()*arr.length)]}
+
+/* ============ 静态字典 ============ */
+var ST={
+  enroute:{label:'在途',color:'#2f6fb2',bg:'rgba(47,111,178,.12)'},
+  anchored:{label:'锚地待泊',color:'#b3740f',bg:'rgba(196,127,23,.14)'},
+  working:{label:'在泊作业',color:'#0e7d6e',bg:'rgba(14,125,110,.12)'},
+  done:{label:'完工待离',color:'#6f54b8',bg:'rgba(122,92,196,.12)'},
+  departed:{label:'已离泊',color:'#7b8494',bg:'rgba(138,148,161,.15)'}
+};
+var STO=['anchored','working','done','enroute','departed'];
+var CARRIERS={
+  HYX:{name:'环亚航运'},TYK:{name:'太洋快航'},BON:{name:'北欧之星'},
+  NJX:{name:'南海集运'},HLH:{name:'华隆海运'},ZLC:{name:'中联集运'}
+};
+var BERTHS=[
+  {id:'B01',name:'1号泊位',len:400,depth:17.5,cranes:['QC-01','QC-02','QC-03','QC-04']},
+  {id:'B02',name:'2号泊位',len:400,depth:17.5,cranes:['QC-05','QC-06','QC-07','QC-08']},
+  {id:'B03',name:'3号泊位',len:365,depth:16.0,cranes:['QC-09','QC-10','QC-11']},
+  {id:'B04',name:'4号泊位',len:365,depth:16.0,cranes:['QC-12','QC-13','QC-14']},
+  {id:'B05',name:'5号支线泊',len:240,depth:11.0,cranes:['QC-15','QC-16']},
+  {id:'B06',name:'6号支线泊',len:240,depth:11.0,cranes:['QC-17','QC-18']}
+];
+var QCS={};
+BERTHS.forEach(function(b){b.cranes.forEach(function(id,i){QCS[id]={id:id,berth:b.id,eff:26+Math.floor(rnd()*6),maint:(id==='QC-07')}})});
+
+/* 泊位排期：[泊位, [到港h(相对T0), 作业时长h, 类型]]  类型: departed/done/working/plan */
+var PLAN=[
+  ['B01',[[-7,9,'departed'],[3,8,'done'],[12,10,'plan'],[24,10,'plan']]],
+  ['B02',[[-5,11,'departed'],[6.5,12,'working'],[20,10,'plan']]],
+  ['B03',[[-8,10,'departed'],[3,14,'working'],[18.5,9,'plan']]],
+  ['B04',[[-6,9,'departed'],[4,7.5,'done'],[13,9,'plan'],[23.5,9,'plan']]],
+  ['B05',[[-4,6,'departed'],[3,8,'working'],[12,5,'plan']]],
+  ['B06',[[-9,7,'departed'],[2.5,6,'done'],[10.5,4.5,'plan'],[16,5,'plan']]]
+];
+
+/* ============ 数据生成 ============ */
+var vessels=[];
+var seq=0;
+function logV(v,text){v.log.unshift({t:NOW,text:text});if(v.log.length>8)v.log.pop()}
+function genData(){
+  var stems=['启明','天枢','摇光','玉衡','开阳','天璇','长庚','晨曦','望舒','飞廉','玄武','朱雀','白虎','青龙','鲲鹏','鸿雁','云帆','沧海','听澜','观澜','凌波','逐日','踏浪','凌云','北辰','南薰','瑞雪','丰年','朝雨','初晴','暮山','远航','致远','求索','砥柱','中流','扬帆','竞帆','百舸','千帆','星辰','沧澜'];
+  var agents=['华港外代','联合船代','岚湾外代','海通船务','中联国际代理'];
+  var ckeys=Object.keys(CARRIERS);
+  function cs(){var s='',i;for(i=0;i<3;i++)s+=String.fromCharCode(65+Math.floor(rnd()*26));return s+(1+Math.floor(rnd()*9))+String.fromCharCode(65+Math.floor(rnd()*26))}
+  function mk(berthId,etaH,workH,kind){
+    seq++;
+    var b=berthId?BERTHS.find(function(x){return x.id===berthId}):null;
+    var main=b?(b.depth>13):(rnd()<0.72);
+    var loa=b?(main?ri(Math.max(275,b.len-95),b.len-8):ri(128,196)):(main?ri(280,398):ri(130,195));
+    var draft=main?+(11.5+rnd()*4.6).toFixed(1):+(7+rnd()*3.2).toFixed(1);
+    var teu=loa>330?ri(14000,24000):(loa>250?ri(6000,14000):ri(1000,2600));
+    var base=main?ri(620,1650):ri(160,460);
+    var imp=Math.round(base*(0.38+rnd()*0.3)),exp=Math.round(base*(0.34+rnd()*0.3)),tsp=Math.round(base*(0.08+rnd()*0.2));
+    var moves=Math.round((imp+exp)*1.18+tsp*0.6);
+    var eta=T0+Math.round(etaH*H);
+    var etd=kind==='anchored'||kind==='plan2'?null:eta+Math.round(workH*H);
+    var v={id:'V'+(2601+seq),name:stems[seq-1]||('轮'+seq),call:cs(),voyage:ri(10,399)+pick(['E','W','S','N']),carrier:pick(ckeys),loa:loa,draft:draft,teu:teu,agent:pick(agents),eta:eta,etd:etd,berth:berthId,berthing:berthId?eta:null,status:'enroute',imp:imp,exp:exp,tsp:tsp,moves:moves,movesLeft:moves,qcs:[],dg:false,dgApproved:false,reefer:Math.round(base*0.04*rnd()),priority:false,log:[],planned:false};
+    if(kind==='departed'){v.status='departed';v.movesLeft=0;logV(v,'已离泊，泊位 '+berthId+' 释放');logV(v,'装卸完工');logV(v,'靠泊 '+berthId)}
+    else if(kind==='done'){v.status='done';v.movesLeft=0;logV(v,'装卸完工，释放岸桥');logV(v,'靠泊 '+berthId)}
+    else if(kind==='working'){v.status='working';var list=b.cranes.filter(function(c){return !QCS[c].maint});var n=Math.min(ri(2,4),list.length);v.qcs=list.slice(0,n);v.movesLeft=Math.round(v.moves*(0.35+rnd()*0.3));logV(v,'靠泊 '+berthId+'，配桥 '+n+' 台')}
+    else if(kind==='plan'){v.planned=true;logV(v,'预指泊位 '+berthId)}
+    else if(kind==='anchored'){v.status='anchored'}
+    else if(kind==='plan2'){v.status='enroute'}
+    vessels.push(v);return v;
+  }
+  PLAN.forEach(function(row){row[1].forEach(function(a){mk(row[0],a[0],a[1],a[2])})});
+  var i,v;
+  for(i=0;i<6;i++){v=mk(null,-(0.5+rnd()*6.5),0,'anchored');v.etd=null;v.berthing=null}
+  for(i=0;i<14;i++){v=mk(null,9+rnd()*35,0,'plan2');v.etd=null;v.berthing=null}
+  var anchored=vessels.filter(function(x){return x.status==='anchored'});
+  anchored[1].dg=true;anchored[3].dg=true;anchored[0].priority=true;anchored[2].priority=true;
+  var planned=vessels.filter(function(x){return x.planned&&x.loa>330});
+  if(planned[0]){planned[0].dg=true;planned[0].dgApproved=true}
+  var un=vessels.filter(function(x){return x.status==='enroute'&&!x.planned});
+  if(un[0])un[0].dg=true;
+}
+genData();
+
+/* ============ 运行状态 ============ */
+var state={sel:null,fStatus:new Set(),fCarrier:'',fSearch:'',fDg:false,bucket:null,sortKey:'eta',sortDir:1};
+function byId(id){return vessels.find(function(v){return v.id===id})}
+function occRange(v){if(!v.berth)return null;return [v.berthing||v.eta,v.etd]}
+function conflictsAt(bid,s,e,except){
+  return vessels.filter(function(v){
+    if(v.id===except||v.berth!==bid||v.status==='departed')return false;
+    var r=occRange(v);
+    return r&&r[0]<e&&s<r[1];
+  });
+}
+function cranesFree(bid,s,e,except){
+  var b=BERTHS.find(function(x){return x.id===bid});
+  return b.cranes.filter(function(c){
+    if(QCS[c].maint)return false;
+    return !vessels.some(function(v){return v.id!==except&&v.status!=='departed'&&v.qcs.indexOf(c)>=0&&occRange(v)&&occRange(v)[0]<e&&s<occRange(v)[1]});
+  });
+}
+
+/* ============ 过滤与排序 ============ */
+function visibleVessels(){
+  var arr=vessels.filter(function(v){
+    if(state.fStatus.size&&!state.fStatus.has(v.status))return false;
+    if(state.fCarrier&&v.carrier!==state.fCarrier)return false;
+    if(state.fDg&&!v.dg)return false;
+    if(state.bucket!=null){var s=T0+state.bucket*2*H;if(!(v.eta>=s&&v.eta<s+2*H))return false}
+    if(state.fSearch){var q=state.fSearch.toLowerCase();var hay=(v.name+' '+v.call+' '+v.voyage+' '+(v.berth||'')+' '+CARRIERS[v.carrier].name).toLowerCase();if(hay.indexOf(q)<0)return false}
+    return true;
+  });
+  var SORTS={
+    name:function(v){return v.name},carrier:function(v){return CARRIERS[v.carrier].name},
+    berth:function(v){return v.berth||'zz'},eta:function(v){return v.eta},etd:function(v){return v.etd==null?Infinity:v.etd},
+    loa:function(v){return v.loa},boxes:function(v){return v.imp+v.exp+v.tsp},left:function(v){return v.movesLeft},
+    qc:function(v){return v.qcs.length},status:function(v){return STO.indexOf(v.status)}
+  };
+  var k=state.sortKey,dir=state.sortDir,f=SORTS[k]||SORTS.eta;
+  arr.sort(function(a,b){
+    var x=f(a),y=f(b);
+    if(typeof x==='string')return dir*x.localeCompare(y,'zh');
+    return dir*(x-y);
+  });
+  return arr;
+}
+
+/* ============ 通用 UI ============ */
+var ttSeq=0,TIPS=new Map();
+function tip(html){var k='t'+(++ttSeq);TIPS.set(k,html);return k}
+var tipEl=$('#tip');
+function moveTip(e){
+  var w=tipEl.offsetWidth,h=tipEl.offsetHeight,x=e.clientX+14,y=e.clientY+16;
+  if(x+w>window.innerWidth-8)x=e.clientX-w-10;
+  if(y+h>window.innerHeight-8)y=e.clientY-h-12;
+  tipEl.style.left=x+'px';tipEl.style.top=y+'px';
+}
+document.addEventListener('mouseover',function(e){var t=e.target.closest?e.target.closest('[data-tt]'):null;if(!t)return;tipEl.innerHTML=TIPS.get(t.getAttribute('data-tt'))||'';tipEl.style.display='block';moveTip(e)});
+document.addEventListener('mousemove',function(e){if(tipEl.style.display==='block')moveTip(e)});
+document.addEventListener('mouseout',function(e){if(e.target.closest&&e.target.closest('[data-tt]'))tipEl.style.display='none'});
+function toast(type,msg){
+  var d=document.createElement('div');d.className='toast '+type;d.textContent=msg;
+  $('#toasts').appendChild(d);
+  d.onclick=function(){d.remove()};
+  setTimeout(function(){d.classList.add('out');setTimeout(function(){d.remove()},320)},3900);
+}
+function statusBadge(v){
+  var s=ST[v.status];
+  return '<span class="badge" style="color:'+s.color+';background:'+s.bg+'">'+s.label+'</span>';
+}
+
+/* ============ KPI ============ */
+function renderKpis(){
+  var working=vessels.filter(function(v){return v.status==='working'}).length;
+  var done=vessels.filter(function(v){return v.status==='done'}).length;
+  var anchored=vessels.filter(function(v){return v.status==='anchored'}).length;
+  var en24=vessels.filter(function(v){return v.status==='enroute'&&v.eta<=NOW+24*H}).length;
+  var busy={};vessels.forEach(function(v){if((v.status==='working'||v.status==='done')&&v.berth)busy[v.berth]=1});
+  var berthBusy=Object.keys(busy).length;
+  var qcBusy=vessels.filter(function(v){return v.status==='working'}).reduce(function(a,v){return a+v.qcs.length},0);
+  var dgN=vessels.filter(function(v){return v.dg&&v.status!=='departed'&&!v.dgApproved}).length;
+  $('#kpis').innerHTML=
+    '<div class="kpi"><b class="acc">'+(working+done)+'</b><i>在泊（作业 '+working+' / 完工 '+done+'）</i></div>'+
+    '<div class="kpi click'+(state.fStatus.has('anchored')?' on':'')+'" data-kpi="anchored"><b'+(anchored>4?' class="warn"':'')+'>'+anchored+'</b><i>锚地待泊</i></div>'+
+    '<div class="kpi"><b>'+en24+'</b><i>在途 24h</i></div>'+
+    '<div class="kpi"><b'+(berthBusy>=6?' class="warn"':'')+'>'+berthBusy+'/6</b><i>泊位占用</i></div>'+
+    '<div class="kpi"><b>'+qcBusy+'/18</b><i>岸桥作业</i></div>'+
+    '<div class="kpi"><b'+(dgN>0?' class="dgr"':'')+'>'+dgN+'</b><i>危险品待审批</i></div>';
+  var d=new Date(NOW);
+  $('#clock').textContent='当前 '+fmtHM(NOW);
+}
+
+/* ============ 甘特图 ============ */
+function renderGantt(){
+  var wrap=$('#ganttWrap');
+  var W=Math.max(680,wrap.clientWidth-18);
+  var labelW=92,rowH=32,topH=26,rows=BERTHS.length+1,Ht=topH+rows*rowH+8;
+  var plotW=W-labelW-10;
+  function X(t){return labelW+(t-T0)/WIN*plotW}
+  var s='<svg viewBox="0 0 '+W+' '+Ht+'" width="'+W+'" height="'+Ht+'">';
+  var i,y;
+  for(i=0;i<BERTHS.length;i++){
+    var b=BERTHS[i];y=topH+i*rowH;
+    s+='<rect x="'+labelW+'" y="'+y+'" width="'+plotW+'" height="'+rowH+'" fill="'+(i%2?'#f6f8fa':'#ffffff')+'"/>';
+    s+='<text x="10" y="'+(y+rowH/2-2)+'" class="glabel">'+b.id+' '+b.name+'</text>';
+    s+='<text x="10" y="'+(y+rowH/2+11)+'" class="gsub">'+b.len+'m · 吃水 '+b.depth+'m</text>';
+    s+='<line x1="'+labelW+'" x2="'+(W-6)+'" y1="'+(y+rowH)+'" y2="'+(y+rowH)+'" stroke="#e7ecf1"/>';
+  }
+  y=topH+BERTHS.length*rowH;
+  s+='<rect x="'+labelW+'" y="'+y+'" width="'+plotW+'" height="'+rowH+'" fill="#fbf6ec"/>';
+  s+='<text x="10" y="'+(y+rowH/2-2)+'" class="glabel">锚地</text>';
+  s+='<text x="10" y="'+(y+rowH/2+11)+'" class="gsub">锚泊待靠</text>';
+  for(i=0;i<=48;i+=4){
+    var x=X(T0+i*H);
+    s+='<line x1="'+x+'" x2="'+x+'" y1="'+topH+'" y2="'+(Ht-6)+'" stroke="#edf1f5"/>';
+    s+='<line x1="'+x+'" x2="'+x+'" y1="'+(topH-5)+'" y2="'+topH+'" stroke="#b9c3cd"/>';
+    s+='<text x="'+x+'" y="11" text-anchor="middle" class="ctick">'+(i===0?'04日00时':fmtDH(T0+i*H))+'</text>';
+  }
+  var xp=X(NOW);
+  s+='<rect x="'+labelW+'" y="'+topH+'" width="'+Math.max(0,xp-labelW)+'" height="'+(rows*rowH)+'" fill="rgba(28,39,51,.05)"/>';
+  s+='<line x1="'+xp+'" x2="'+xp+'" y1="'+(topH-3)+'" y2="'+(Ht-6)+'" stroke="#d24d4d" stroke-dasharray="4 3"/>';
+  s+='<text x="'+(xp+4)+'" y="'+(topH+10)+'" class="ctick" fill="#d24d4d">现在</text>';
+
+  function bar(v,py,s0,e0,mini){
+    var px1=X(Math.max(s0,T0)),px2=X(Math.min(e0,T0+WIN));
+    if(px2-px1<3)px2=px1+3;
+    var h=mini?11:rowH-11,col=ST[v.status].color,op=v.status==='departed'?0.32:(s0>NOW?0.78:0.95);
+    var dash=s0>NOW?' stroke-dasharray="4 3"':'';
+    var sel=state.sel===v.id?' stroke="#10222f" stroke-width="1.6"':'';
+    var txt='';
+    var txtW=v.status==='departed'?70:64;
+    if(px2-px1>txtW&&py>0){
+      var fill=(v.status==='departed')?'#66707c':'#ffffff';
+      var label=v.name+((v.status==='working'&&v.qcs.length)?' ·'+v.qcs.length+'桥':'');
+      txt='<text x="'+(px1+5)+'" y="'+(py+h/2+3.8)+'" fill="'+fill+'">'+esc(label)+'</text>';
+    }
+    var tk=tip('<b>'+esc(v.name)+'</b>（'+esc(v.call)+'）· '+ST[v.status].label+(v.planned?' · 预指泊':'')+'<br>'+(v.berth?'泊位 '+v.berth+' · ':'锚地 · ')+fmtHM(v.eta)+' → '+(v.etd?fmtHM(v.etd):'待定')+'<br>岸桥 '+(v.qcs.length?esc(v.qcs.join(' ')):'未配置')+' · 剩余 '+fmtNum(v.movesLeft)+'/'+fmtNum(v.moves)+' 吊'+(v.dg?'<br><span style="color:#ff9c9c">危险品'+(v.dgApproved?'（直靠已审批）':'（待审批）')+'</span>':''));
+    return '<g class="gbar" data-vid="'+v.id+'" data-tt="'+tk+'"><rect x="'+px1+'" y="'+py+'" width="'+(px2-px1)+'" height="'+h+'" rx="3.5" fill="'+col+'" fill-opacity="'+op+'"'+dash+sel+'/>'+txt+'</g>';
+  }
+  vessels.forEach(function(v){
+    if(v.status==='anchored'){
+      var end=(v.berthing&&v.berthing>NOW)?v.berthing:NOW;
+      var idx=vessels.filter(function(x){return x.status==='anchored'}).indexOf(v);
+      var py=topH+BERTHS.length*rowH+(idx%2?17:4);
+      var g=bar(v,py,v.eta,end,true);
+      if(g)s+=g;
+    }else if(v.berth){
+      var bi=BERTHS.findIndex(function(b){return b.id===v.berth});
+      var s0=v.berthing||v.eta,e0=v.etd||s0;
+      if(e0>T0&&s0<T0+WIN){var g2=bar(v,topH+bi*rowH+5.5,s0,e0,false);if(g2)s+=g2}
+    }
+  });
+  s+='</svg>';
+  wrap.innerHTML=s;
+  var busyNow=vessels.filter(function(v){return (v.status==='working'||v.status==='done')&&v.berth}).length;
+  $('#ganttMeta').innerHTML='泊位占用 '+busyNow+'/6 · 锚地 '+vessels.filter(function(v){return v.status==='anchored'}).length+' 艘 · 窗口 09-04 00:00 – 09-06 00:00';
+  $('#ganttLegend').innerHTML=Object.keys(ST).map(function(k){return '<span><i class="dot" style="background:'+ST[k].color+'"></i>'+ST[k].label+'</span>'}).join('')+'<span><i class="dot" style="background:transparent;border:1px dashed #6b7a88"></i>虚线 = 计划（未开始）</span>';
+}
+
+/* ============ 队列表 ============ */
+function renderTable(){
+  var arr=visibleVessels();
+  var tbody=$('#vbody');
+  tbody.innerHTML=arr.map(function(v){
+    var total=v.imp+v.exp+v.tsp;
+    var pct=v.moves>0?Math.round((1-v.movesLeft/v.moves)*100):0;
+    var flags='';
+    if(v.dg)flags+='<span class="flag '+(v.dgApproved?'dgok':'dg')+'">危'+(v.dgApproved?'✓':'!')+'</span>';
+    if(v.reefer>0)flags+='<span class="flag rf">冷'+v.reefer+'</span>';
+    if(v.priority)flags+='<span class="flag pri">★优先</span>';
+    var qcTxt=v.qcs.length?v.qcs.map(function(q){return q.replace('QC-','')}).join('·'):'—';
+    var berthTxt=v.berth?esc(v.berth)+((v.status==='enroute'&&v.planned)||(v.status==='anchored'&&v.berthing>NOW)?'<span class="sub">计划</span>':''):'—';
+    return '<tr data-vid="'+v.id+'" class="'+(state.sel===v.id?'sel ':'')+(v.status==='departed'?'dead':'')+'">'+
+      '<td><span class="vname">'+esc(v.name)+'</span>'+flags+'<div class="sub">'+esc(v.call)+' · '+esc(v.voyage)+' · '+esc(CARRIERS[v.carrier].name)+'</div></td>'+
+      '<td>'+esc(CARRIERS[v.carrier].name)+'</td>'+
+      '<td class="num">'+berthTxt+'</td>'+
+      '<td class="num">'+fmtHM(v.eta)+'</td>'+
+      '<td class="num">'+(v.etd?fmtHM(v.etd):'—')+'</td>'+
+      '<td class="num">'+v.loa+'m</td>'+
+      '<td class="num">'+fmtNum(total)+'</td>'+
+      '<td class="num"><span style="color:'+(v.status==='working'?'var(--accent)':'inherit')+'">'+fmtNum(v.movesLeft)+'</span>/'+fmtNum(v.moves)+'<span class="pb"><i style="width:'+pct+'%"></i></span></td>'+
+      '<td class="num" title="'+esc(v.qcs.join(' '))+'">'+qcTxt+'</td>'+
+      '<td>'+statusBadge(v)+'</td></tr>';
+  }).join('');
+  var boxes=arr.reduce(function(a,v){return a+v.imp+v.exp+v.tsp},0);
+  $('#tableCount').textContent='显示 '+arr.length+'/'+vessels.length+' 艘 · 在册箱量 '+fmtNum(boxes)+' TEU';
+  $$('#vhead th').forEach(function(th){
+    var k=th.getAttribute('data-k');
+    var a=th.querySelector('.arr');
+    a.textContent=state.sortKey===k?(state.sortDir>0?'▲':'▼'):'';
+  });
+}
+
+/* ============ 图表 A：到离港节奏 ============ */
+function renderChartA(){
+  var wrap=$('#chartAWrap');
+  var W=Math.max(430,wrap.clientWidth-18);
+  var Ht=206,mL=34,mR=8,mT=14,mB=22,pw=W-mL-mR,ph=Ht-mT-mB;
+  var B=24,bw=pw/B;
+  var arrC=[],depC=[],arrN=[],depN=[],i;
+  for(i=0;i<B;i++){arrC.push(0);depC.push(0);arrN.push([]);depN.push([])}
+  vessels.forEach(function(v){
+    if(v.eta>=T0){var x=Math.floor((v.eta-T0)/(2*H));if(x>=0&&x<B){arrC[x]++;arrN[x].push(v.name)}}
+    if(v.etd!=null){var j=Math.floor((v.etd-T0)/(2*H));if(j>=0&&j<B){depC[j]++;depN[j].push(v.name)}}
+  });
+  var mx=Math.max(4,Math.ceil(Math.max.apply(null,arrC.concat(depC))/2)*2);
+  function Y(v){return mT+ph-(v/mx)*ph}
+  var s='<svg viewBox="0 0 '+W+' '+Ht+'" width="'+W+'" height="'+Ht+'">';
+  for(i=0;i<=2;i++){
+    var gy=Y(mx/2*i);
+    s+='<line x1="'+mL+'" x2="'+(W-mR)+'" y1="'+gy+'" y2="'+gy+'" stroke="#edf1f5"/>';
+    s+='<text x="'+(mL-5)+'" y="'+(gy+3.5)+'" text-anchor="end" class="ctick">'+(mx/2*i)+'</text>';
+  }
+  for(i=0;i<B;i++){
+    var x0=mL+i*bw,t0=T0+i*2*H;
+    if(state.bucket===i)s+='<rect x="'+x0+'" y="'+mT+'" width="'+bw+'" height="'+ph+'" fill="rgba(14,116,144,.13)"/>';
+    var ha=(arrC[i]/mx)*ph,hd=(depC[i]/mx)*ph;
+    s+='<rect x="'+(x0+bw*0.14)+'" y="'+(mT+ph-ha)+'" width="'+(bw*0.3)+'" height="'+ha+'" fill="#3b76b5" rx="1.5"/>';
+    s+='<rect x="'+(x0+bw*0.52)+'" y="'+(mT+ph-hd)+'" width="'+(bw*0.3)+'" height="'+hd+'" fill="#12897a" rx="1.5"/>';
+    var tk=tip('<b>'+fmtHM(t0)+' – '+fmtHM(t0+2*H)+'</b><br>到港 '+arrC[i]+' 艘：'+(arrN[i].length?esc(arrN[i].slice(0,4).join('、'))+(arrN[i].length>4?' 等':''):'—')+'<br>离泊 '+depC[i]+' 艘：'+(depN[i].length?esc(depN[i].slice(0,4).join('、'))+(depN[i].length>4?' 等':''):'—'));
+    s+='<rect class="bk" data-bucket="'+i+'" data-tt="'+tk+'" x="'+x0+'" y="'+mT+'" width="'+bw+'" height="'+ph+'" fill="transparent"/>';
+    if(i%4===0)s+='<text x="'+(x0+bw/2)+'" y="'+(Ht-7)+'" text-anchor="middle" class="ctick">'+fmtDH(t0)+'</text>';
+  }
+  s+='</svg>';
+  wrap.innerHTML=s;
+}
+
+/* ============ 图表 B：承运人箱量构成 ============ */
+function renderChartB(){
+  var wrap=$('#chartBWrap');
+  var W=Math.max(430,wrap.clientWidth-18);
+  var keys=Object.keys(CARRIERS);
+  var rowH=30,mT=8,mB=6,Ht=mT+keys.length*rowH+mB;
+  var data=keys.map(function(c){
+    var vs=vessels.filter(function(v){return v.carrier===c&&v.status!=='departed'});
+    var sum=function(f){return vs.reduce(function(a,v){return a+f(v)},0)};
+    return {c:c,imp:sum(function(v){return v.imp}),exp:sum(function(v){return v.exp}),tsp:sum(function(v){return v.tsp}),n:vs.length};
+  });
+  var mx=Math.max.apply(null,data.map(function(d){return d.imp+d.exp+d.tsp}).concat([1]));
+  var mL=80,mR=46,bw=W-mL-mR;
+  var s='<svg viewBox="0 0 '+W+' '+Ht+'" width="'+W+'" height="'+Ht+'">';
+  data.forEach(function(d,i){
+    var y=mT+i*rowH,tot=d.imp+d.exp+d.tsp,on=state.fCarrier===d.c;
+    s+='<rect class="crow" data-carrier="'+d.c+'" x="4" y="'+(y+2)+'" width="'+(W-8)+'" height="'+(rowH-4)+'" fill="'+(on?'rgba(14,116,144,.13)':'transparent')+'" rx="5"/>';
+    s+='<text x="'+(mL-8)+'" y="'+(y+rowH/2+4)+'" text-anchor="end" class="glabel" style="font-weight:'+(on?'700':'400')+'">'+esc(CARRIERS[d.c].name)+'</text>';
+    var x=mL;
+    [['imp','#3b76b5','进口箱'],['exp','#12897a','出口箱'],['tsp','#cf8a2b','中转箱']].forEach(function(seg){
+      var val=d[seg[0]];if(val<=0)return;
+      var w=val/mx*bw;
+      var tk=tip('<b>'+esc(CARRIERS[d.c].name)+' · '+seg[2]+'</b><br>'+fmtNum(val)+' TEU · 在港 '+d.n+' 艘');
+      s+='<rect data-tt="'+tk+'" x="'+x+'" y="'+(y+8)+'" width="'+w+'" height="14" fill="'+seg[1]+'" rx="2"/>';
+      x+=w;
+    });
+    s+='<text x="'+(mL+bw+8)+'" y="'+(y+rowH/2+4)+'" class="gsub">'+fmtNum(tot)+'</text>';
+  });
+  s+='</svg>';
+  wrap.innerHTML=s;
+}
+
+/* ============ 详情面板 ============ */
+function renderDetail(){
+  var box=$('#detailBody');
+  var v=state.sel?byId(state.sel):null;
+  if(!v){box.innerHTML='<div class="dhead"><h3>未选中船舶</h3></div><p class="sub" style="margin-top:10px">在甘特图点击船泊条目，或在队列中点击行，即可查看船舶档案并执行：<br>· 锚地/在途船 —— 危险品审批、泊位指派<br>· 在泊作业船 —— 岸桥调配、登记完工<br>· 完工待离船 —— 离泊确认释放泊位</p>';return}
+  var total=v.imp+v.exp+v.tsp;
+  var flags='';
+  if(v.dg)flags+='<span class="flag '+(v.dgApproved?'dgok':'dg')+'">危险品'+(v.dgApproved?'已审批':'待审批')+'</span>';
+  if(v.reefer>0)flags+='<span class="flag rf">冷藏 '+v.reefer+' 插槽</span>';
+  if(v.priority)flags+='<span class="flag pri">★优先靠泊</span>';
+  var html='<div class="dhead"><div><h3>'+esc(v.name)+'</h3><div class="sub">'+esc(v.call)+' · 航次 '+esc(v.voyage)+' · '+esc(v.id)+'</div></div><div style="margin-left:auto">'+statusBadge(v)+'</div></div>'+
+    '<div style="margin-top:6px">'+flags+'</div>'+
+    '<div class="dsec"><h4>船舶档案</h4><div class="attrs">'+
+    '<div><span>承运人 / 代理</span><b>'+esc(CARRIERS[v.carrier].name)+' · '+esc(v.agent)+'</b></div>'+
+    '<div><span>船长 / 吃水</span><b>'+v.loa+' m / '+v.draft+' m</b></div>'+
+    '<div><span>载箱能力</span><b>'+fmtNum(v.teu)+' TEU</b></div>'+
+    '<div><span>本航次箱量</span><b>'+fmtNum(total)+' TEU</b></div>'+
+    '<div><span>进口 / 出口 / 中转</span><b>'+fmtNum(v.imp)+' / '+fmtNum(v.exp)+' / '+fmtNum(v.tsp)+'</b></div>'+
+    '<div><span>需吊 / 剩余</span><b>'+fmtNum(v.moves)+' / '+fmtNum(v.movesLeft)+' 吊</b></div>'+
+    '<div><span>到港 ETA</span><b>'+fmtHM(v.eta)+'</b></div>'+
+    '<div><span>计划离泊</span><b>'+(v.etd?fmtHM(v.etd):'待定')+'</b></div>'+
+    '<div><span>泊位</span><b>'+(v.berth?esc(v.berth)+(v.berthing&&v.berthing>NOW?'（计划 '+fmtH(v.berthing)+' 靠）':''):'未指派')+'</b></div>'+
+    '<div><span>岸桥</span><b>'+(v.qcs.length?esc(v.qcs.join(' ')):'未配置')+'</b></div>'+
+    '</div></div>';
+  if(v.dg&&!v.dgApproved&&v.status!=='departed'){
+    html+='<div class="notice">危险品船舶尚未取得直靠审批，审批通过前无法指派泊位。<button class="btn2 solid full" data-act="approve" data-vid="'+v.id+'">通过危险品直靠审批</button></div>';
+  }
+  if(v.dg&&v.dgApproved)html+='<div class="notice ok">危险品直靠审批已通过（'+ST[v.status].label+'）。</div>';
+
+  if(v.status==='anchored'||v.status==='enroute'){
+    var slots=[];
+    if(v.status==='anchored'){for(var i=0;i<=12;i++)slots.push(NOW+i*H)}
+    else{var base=Math.max(NOW,v.eta-H);for(var j=0;j<8;j++)slots.push(base+j*H)}
+    html+='<div class="act"><h4 style="margin:0 0 2px;font-size:12px">泊位指派 / 调整靠泊计划</h4>'+
+      '<form id="fAssign" data-vid="'+v.id+'" novalidate>'+
+      '<label class="f">目标泊位（显示 长度/允许吃水）<select class="ipt" name="berth">'+BERTHS.map(function(b){return '<option value="'+b.id+'"'+(v.berth===b.id?' selected':'')+'>'+b.id+' '+b.name+' · '+b.len+'m/'+b.depth+'m</option>'}).join('')+'</select></label>'+
+      '<label class="f">首配岸桥台数<select class="ipt" name="nqc"><option value="2">2 台</option><option value="3">3 台</option><option value="4">4 台</option><option value="1">1 台</option></select></label>'+
+      '<label class="f">靠泊时间<select class="ipt" name="slot">'+slots.map(function(t){return '<option value="'+t+'">'+fmtHM(t)+(t===v.berthing?'（当前计划）':'')+'</option>'}).join('')+'</select></label>'+
+      '<div class="errs" id="assignErrs"></div>'+
+      '<button type="submit" class="btn2 solid full">确认指派泊位</button>'+
+      '</form></div>';
+  }
+  if(v.status==='working'){
+    var b=BERTHS.find(function(x){return x.id===v.berth});
+    var free=cranesFree(v.berth,v.berthing||v.eta,v.etd,v.id);
+    html+='<div class="act"><h4 style="margin:0 0 2px;font-size:12px">岸桥调配（泊位 '+esc(v.berth)+' 沿桥）</h4>'+
+      '<p class="sub" style="margin:4px 0">当前 '+v.qcs.length+' 台 · 预计效率 '+v.qcs.reduce(function(a,q){return a+QCS[q].eff},0)+' 吊/h · 剩余 '+fmtNum(v.movesLeft)+' 吊</p>'+
+      '<form id="fQc" data-vid="'+v.id+'" novalidate><div class="qcs">'+
+      b.cranes.map(function(c){
+        var maint=QCS[c].maint,takenByOther=!maint&&free.indexOf(c)<0&&v.qcs.indexOf(c)<0;
+        var off=maint||takenByOther;
+        var note=maint?'维保':(takenByOther?'被他船占用':'可用 · '+QCS[c].eff+'吊/h');
+        return '<label class="qc-chip'+(off?' off':'')+'"><input type="checkbox" name="qc" value="'+c+'"'+(v.qcs.indexOf(c)>=0?' checked':'')+(off?' disabled':'')+'> '+c.replace('QC-','#')+' <span class="sub">'+note+'</span></label>';
+      }).join('')+
+      '</div><div class="errs" id="qcErrs"></div>'+
+      '<button type="submit" class="btn2 solid full">应用岸桥改派</button></form>'+
+      '<button class="btn2 full" data-act="finish" data-vid="'+v.id+'" style="margin-top:8px">登记完工（释放岸桥）</button></div>';
+  }
+  if(v.status==='done'){
+    var tugs=[];for(var k=0;k<6;k++)tugs.push(NOW+Math.round((0.5+k*0.5)*2)*H/2);
+    html+='<div class="act"><h4 style="margin:0 0 2px;font-size:12px">离泊确认</h4>'+
+      '<p class="sub" style="margin:4px 0">装卸完工，确认离泊后释放 '+esc(v.berth)+' 泊位，锚地待泊船可顺位靠泊。</p>'+
+      '<form id="fDepart" data-vid="'+v.id+'" novalidate>'+
+      '<label class="f">拖轮协助窗口（必选）<select class="ipt" name="tug"><option value="">请选择…</option>'+tugs.map(function(t){return '<option value="'+t+'">'+fmtHM(t)+'</option>'}).join('')+'</select></label>'+
+      '<div class="errs" id="depErrs"></div>'+
+      '<button type="submit" class="btn2 solid full">确认离泊</button></form></div>';
+  }
+  if(v.status==='departed'){
+    html+='<div class="notice ok">该轮已于 '+(v.etd?fmtHM(v.etd):'—')+' 离泊，泊位 '+esc(v.berth||'—')+' 已释放。</div>';
+  }
+  html+='<div class="dsec"><h4>作业动态</h4><ul class="log">'+v.log.map(function(l){return '<li><b>'+fmtHM(l.t)+'</b>'+esc(l.text)+'</li>'}).join('')+'</ul></div>';
+  box.innerHTML=html;
+}
+
+/* ============ 工具条同步 ============ */
+function syncToolbar(){
+  $$('#chips .chip').forEach(function(ch){
+    var st=ch.getAttribute('data-st');
+    var on=st==='all'?state.fStatus.size===0:state.fStatus.has(st);
+    ch.classList.toggle('on',on);
+  });
+  $('#fCarrier').value=state.fCarrier;
+  $('#fDg').checked=state.fDg;
+  var bc=$('#bucketChip');
+  if(state.bucket!=null){
+    var s=T0+state.bucket*2*H;
+    bc.hidden=false;bc.textContent='抵港 '+fmtHM(s)+'–'+fmtHM(s+2*H)+' ✕';
+  }else bc.hidden=true;
+}
+
+/* ============ 业务动作 ============ */
+function showErrs(id,errs){
+  var box=$('#'+id);
+  if(!box)return;
+  if(errs.length){box.innerHTML='<ul>'+errs.map(function(e){return '<li>'+esc(e)+'</li>'}).join('')+'</ul>';box.classList.add('show')}
+  else{box.classList.remove('show');box.innerHTML=''}
+}
+function handleAssign(f){
+  var v=byId(f.getAttribute('data-vid'));
+  var bid=f.berth.value,nqc=+f.nqc.value,slot=+f.slot.value;
+  var b=BERTHS.find(function(x){return x.id===bid});
+  var workH=v.moves/(nqc*30)+1.5,e0=slot+workH*H;
+  var errs=[];
+  if(v.dg&&!v.dgApproved)errs.push('危险品船舶需先通过直靠审批');
+  if(v.loa>b.len)errs.push(v.name+' 船长 '+v.loa+'m 超出 '+bid+' 泊位长度 '+b.len+'m');
+  if(v.draft>b.depth)errs.push('吃水 '+v.draft+'m 超出 '+bid+' 允许吃水 '+b.depth+'m');
+  var cf=conflictsAt(bid,slot,e0,v.id);
+  cf.forEach(function(o){errs.push('与 '+o.name+'（'+o.id+'，'+fmtHM(occRange(o)[0])+'–'+fmtHM(occRange(o)[1])+'）泊位时间冲突')});
+  var free=cranesFree(bid,slot,e0,v.id);
+  if(free.length<nqc)errs.push('该时段 '+bid+' 可用岸桥仅 '+free.length+' 台，少于申请的 '+nqc+' 台');
+  showErrs('assignErrs',errs);
+  if(errs.length){toast('error','泊位指派未通过校验，共 '+errs.length+' 项问题');return}
+  v.berth=bid;v.berthing=slot;v.etd=e0;
+  v.qcs=free.slice(0,nqc);v.planned=slot>NOW;
+  if(v.status==='anchored'&&slot<=NOW){v.status='working';logV(v,'靠泊 '+bid+'，配桥 '+nqc+' 台，开始作业')}
+  else if(v.status==='enroute'&&slot<=NOW){v.status='working';logV(v,'直靠 '+bid+'，配桥 '+nqc+' 台')}
+  else{logV(v,'靠泊计划：'+bid+' @ '+fmtHM(slot)+'，预配 '+nqc+' 台')}
+  toast('success',v.name+' → '+bid+' 指派成功'+(slot>NOW?'（计划 '+fmtHM(slot)+' 靠泊，预配 '+nqc+' 桥）':'（配桥 '+nqc+' 台）'));
+  renderAll();
+}
+function handleQc(f){
+  var v=byId(f.getAttribute('data-vid'));
+  var chosen=$$('#detailBody input[name=qc]:checked').map(function(i){return i.value});
+  var errs=[];
+  if(!chosen.length)errs.push('至少保留 1 台岸桥，否则作业无法推进');
+  showErrs('qcErrs',errs);
+  if(errs.length)return;
+  v.qcs=chosen;
+  logV(v,'岸桥调整为 '+chosen.join(' / '));
+  toast('success',v.name+' 岸桥改派生效：'+chosen.length+' 台 · 效率 '+chosen.reduce(function(a,q){return a+QCS[q].eff},0)+' 吊/h');
+  renderAll();
+}
+function handleDepart(f){
+  var v=byId(f.getAttribute('data-vid'));
+  var tug=+f.tug.value;
+  if(!tug){showErrs('depErrs',['拖轮协助窗口为必选项']);return}
+  showErrs('depErrs',[]);
+  v.status='departed';v.etd=tug;v.qcs=[];v.movesLeft=0;
+  logV(v,'离泊，泊位 '+v.berth+' 释放');
+  toast('success',v.name+' 已确认离泊（'+fmtHM(tug)+'），'+v.berth+' 泊位释放');
+  renderAll();
+}
+function tick(){
+  NOW+=H;
+  var cnt={arrive:0,berth:0,done:0,dep:0};
+  vessels.forEach(function(v){
+    if(v.status==='working'&&v.qcs.length){
+      v.movesLeft=Math.max(0,v.movesLeft-v.qcs.reduce(function(a,q){return a+QCS[q].eff},0));
+      if(v.movesLeft===0){v.status='done';v.qcs=[];logV(v,'装卸完工，释放岸桥');cnt.done++}
+    }
+    if(v.status==='enroute'&&v.eta<=NOW){
+      if(v.berth&&(v.berthing||v.eta)<=NOW){v.status='working';autoQc(v);logV(v,'直靠 '+v.berth+'，开始作业');cnt.berth++}
+      else{v.status='anchored';v.berthing=null;logV(v,'抵港，锚地待泊');cnt.arrive++}
+    }else if(v.status==='anchored'&&v.berth&&(v.berthing||v.eta)<=NOW){
+      v.status='working';autoQc(v);logV(v,'按计划靠泊 '+v.berth+'，开始作业');cnt.berth++;
+    }
+    if(v.status==='done'&&v.etd&&v.etd<=NOW){v.status='departed';v.qcs=[];logV(v,'到点离泊，泊位释放');cnt.dep++}
+  });
+  toast('info','推演至 '+fmtH(NOW)+' · 抵锚地 '+cnt.arrive+' · 新靠泊 '+cnt.berth+' · 完工 '+cnt.done+' · 离泊 '+cnt.dep);
+  renderAll();
+}
+function autoQc(v){
+  var free=cranesFree(v.berth,v.berthing||v.eta,v.etd,v.id);
+  var n=Math.min(2,free.length);
+  v.qcs=free.slice(0,n);
+  if(n)logV(v,'自动首配岸桥 '+free.slice(0,n).join(' / '));
+}
+function addVesselFromForm(f){
+  var errs=[];
+  var name=f.name.value.trim(),call=f.call.value.trim().toUpperCase(),voy=f.voyage.value.trim();
+  var carrier=f.carrier.value,loa=+f.loa.value,draft=+f.draft.value;
+  var imp=+f.imp.value,exp=+f.exp.value,tsp=+f.tsp.value||0,eta=+f.eta.value,dg=f.dg.checked;
+  if(name.length<2)errs.push('船名至少 2 个字符');
+  if(!/^[A-Z0-9]{4,6}$/.test(call))errs.push('呼号需为 4–6 位字母数字');
+  if(!voy)errs.push('航次必填');
+  if(!(loa>=80&&loa<=400))errs.push('船长需在 80–400 m 之间');
+  if(!(draft>=4&&draft<=17))errs.push('吃水需在 4–17 m 之间');
+  if(!(imp>0||exp>0))errs.push('进口箱与出口箱至少一项大于 0');
+  if(!eta)errs.push('请选择预计到港时间');
+  var box=$('#fAddErrs');
+  if(errs.length){box.innerHTML='<ul>'+errs.map(function(e){return '<li>'+esc(e)+'</li>'}).join('')+'</ul>';box.classList.add('show');return}
+  box.classList.remove('show');
+  var teu=loa>330?ri(14000,24000):(loa>250?ri(6000,14000):ri(1000,2600));
+  seq++;
+  var v={id:'V'+(2601+seq),name:name,call:call,voyage:voy,carrier:carrier,loa:loa,draft:draft,teu:teu,agent:pick(['华港外代','联合船代','岚湾外代','海通船务','中联国际代理']),eta:eta,etd:null,berth:null,berthing:null,status:eta<=NOW?'anchored':'enroute',imp:imp,exp:exp,tsp:tsp,moves:Math.round((imp+exp)*1.18+tsp*0.6),movesLeft:0,qcs:[],dg:dg,dgApproved:false,reefer:ri(0,60),priority:false,log:[],planned:false};
+  v.movesLeft=v.moves;
+  logV(v,dg?'新增危险品船舶到港计划（待直靠审批）':'新增到港计划录入');
+  vessels.push(v);
+  state.sel=v.id;
+  closeModal();
+  toast('success','到港计划已保存：'+name+'（'+(eta<=NOW?'已抵锚地待泊':'在途，ETA '+fmtHM(eta))+'）');
+  renderAll();
+}
+
+/* ============ 选中与渲染调度 ============ */
+function select(vid,fromGantt){
+  state.sel=vid;
+  renderGantt();renderTable();renderDetail();
+  if(fromGantt){
+    var row=$('#vbody tr[data-vid="'+vid+'"]');
+    if(row)row.scrollIntoView({block:'nearest'});
+  }
+}
+function renderAll(){
+  TIPS.clear();
+  renderKpis();renderGantt();renderTable();syncToolbar();renderChartA();renderChartB();renderDetail();
+}
+
+/* ============ 事件绑定 ============ */
+$('#vbody').addEventListener('click',function(e){
+  var tr=e.target.closest('tr[data-vid]');
+  if(tr)select(tr.getAttribute('data-vid'),false);
+});
+$('#vhead').addEventListener('click',function(e){
+  var th=e.target.closest('th.sortable');
+  if(!th)return;
+  var k=th.getAttribute('data-k');
+  if(state.sortKey!==k){state.sortKey=k;state.sortDir=1}
+  else if(state.sortDir===1){state.sortDir=-1}
+  else{state.sortKey='eta';state.sortDir=1}
+  renderTable();
+});
+$('#chips').addEventListener('click',function(e){
+  var ch=e.target.closest('.chip');
+  if(!ch)return;
+  var st=ch.getAttribute('data-st');
+  if(st==='all')state.fStatus.clear();
+  else if(state.fStatus.has(st))state.fStatus.delete(st);
+  else state.fStatus.add(st);
+  renderKpis();syncToolbar();renderTable();
+});
+$('#fCarrier').addEventListener('change',function(){state.fCarrier=this.value;renderTable();renderChartB()});
+$('#fSearch').addEventListener('input',function(){state.fSearch=this.value.trim();renderTable()});
+$('#fDg').addEventListener('change',function(){state.fDg=this.checked;renderTable()});
+$('#bucketChip').addEventListener('click',function(){state.bucket=null;renderTable();syncToolbar();renderChartA()});
+$('#kpis').addEventListener('click',function(e){
+  var k=e.target.closest('.kpi.click');
+  if(!k)return;
+  if(state.fStatus.has('anchored'))state.fStatus.delete('anchored');
+  else state.fStatus.clear(),state.fStatus.add('anchored');
+  renderKpis();syncToolbar();renderTable();
+});
+$('#ganttWrap').addEventListener('click',function(e){
+  var g=e.target.closest('[data-vid]');
+  if(g)select(g.getAttribute('data-vid'),true);
+});
+$('#chartAWrap').addEventListener('click',function(e){
+  var r=e.target.closest('[data-bucket]');
+  if(!r)return;
+  var b=+r.getAttribute('data-bucket');
+  state.bucket=state.bucket===b?null:b;
+  renderTable();syncToolbar();renderChartA();
+});
+$('#chartBWrap').addEventListener('click',function(e){
+  var r=e.target.closest('[data-carrier]');
+  if(!r)return;
+  var c=r.getAttribute('data-carrier');
+  state.fCarrier=state.fCarrier===c?'':c;
+  syncToolbar();renderTable();renderChartB();
+});
+$('#detailPanel').addEventListener('click',function(e){
+  var b=e.target.closest('[data-act]');
+  if(!b)return;
+  var v=byId(b.getAttribute('data-vid'));
+  if(!v)return;
+  if(b.getAttribute('data-act')==='approve'){v.dgApproved=true;logV(v,'危险品直靠审批通过');toast('success',v.name+' 危险品直靠审批通过，可指派泊位');renderAll()}
+  if(b.getAttribute('data-act')==='finish'){v.status='done';v.qcs=[];v.movesLeft=0;logV(v,'人工登记完工，释放岸桥');toast('success',v.name+' 已登记完工，可安排离泊');renderAll()}
+});
+$('#detailPanel').addEventListener('submit',function(e){
+  e.preventDefault();
+  var f=e.target;
+  if(f.id==='fAssign')handleAssign(f);
+  else if(f.id==='fQc')handleQc(f);
+  else if(f.id==='fDepart')handleDepart(f);
+});
+$('#tickBtn').addEventListener('click',tick);
+
+/* 弹窗：新增到港计划 */
+var overlay=$('#overlay');
+function openModal(){
+  var sel=$('#fAdd select[name=carrier]');
+  if(!sel.options.length)sel.innerHTML=Object.keys(CARRIERS).map(function(k){return '<option value="'+k+'">'+CARRIERS[k].name+'</option>'}).join('');
+  var etaSel=$('#fAdd select[name=eta]');
+  var opts='';for(var i=0;i<=36;i++)opts+='<option value="'+(NOW+i*H)+'">'+fmtHM(NOW+i*H)+'</option>';
+  etaSel.innerHTML=opts;
+  $('#fAdd').reset();
+  $('#fAddErrs').classList.remove('show');
+  overlay.classList.remove('hidden');
+}
+function closeModal(){overlay.classList.add('hidden')}
+$('#addBtn').addEventListener('click',openModal);
+$('#mCancel').addEventListener('click',closeModal);
+overlay.addEventListener('click',function(e){if(e.target===overlay)closeModal()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal()});
+$('#fAdd').addEventListener('submit',function(e){e.preventDefault();addVesselFromForm(this)});
+
+/* ============ 启动 ============ */
+var rsz;
+window.addEventListener('resize',function(){
+  clearTimeout(rsz);
+  rsz=setTimeout(function(){renderGantt();renderChartA();renderChartB()},160);
+});
+(function init(){
+  var w=vessels.find(function(v){return v.status==='working'});
+  state.sel=w?w.id:null;
+  renderAll();
+})();
+</script>
+</body>
+</html>

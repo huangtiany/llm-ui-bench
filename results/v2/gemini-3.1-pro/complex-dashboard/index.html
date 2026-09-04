@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aegis Global Operations - Complex Dashboard</title>
+    <style>
+        :root {
+            --bg-base: #06080F;
+            --bg-panel: #0D111A;
+            --bg-elevated: #161B26;
+            --accent-main: #3B82F6;
+            --accent-glow: rgba(59, 130, 246, 0.2);
+            --status-ok: #10B981;
+            --status-warn: #F59E0B;
+            --status-crit: #EF4444;
+            --text-main: #F3F4F6;
+            --text-muted: #9CA3AF;
+            --border-subtle: #29303D;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 80px 1fr 400px;
+            grid-template-rows: 64px 1fr;
+            grid-template-areas:
+                "nav header header"
+                "nav content sidebar";
+            overflow: hidden;
+        }
+
+        /* --- Scrollbar --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* --- Global Structural Components --- */
+        nav.nav-bar {
+            grid-area: nav;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 0;
+            gap: 32px;
+        }
+        
+        .nav-logo {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-main);
+            mask: radial-gradient(circle at 50% 50%, transparent 20%, #000 21%), radial-gradient(circle at 100% 50%, transparent 20%, #000 21%);
+            -webkit-mask: radial-gradient(circle at 50% 50%, transparent 20%, #000 21%), radial-gradient(circle at 100% 50%, transparent 20%, #000 21%);
+            border-radius: 4px;
+        }
+        
+        .nav-items { display: flex; flex-direction: column; gap: 16px; width: 100%; }
+        .nav-item { width: 100%; aspect-ratio: 1; display: flex; justify-content: center; align-items: center; color: var(--text-muted); cursor: pointer; position: relative; }
+        .nav-item:hover, .nav-item.active { color: var(--accent-main); }
+        .nav-item.active::before {
+            content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3px; background: var(--accent-main); border-radius: 0 4px 4px 0;
+        }
+
+        header.top-bar {
+            grid-area: header;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-base);
+            z-index: 10;
+        }
+
+        .header-title { font-size: 1.25rem; font-weight: 600; letter-spacing: 0.05em; display: flex; align-items: center; gap: 12px;}
+        .system-status { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; color: var(--text-muted); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--status-ok); box-shadow: 0 0 12px var(--status-ok); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* --- Main Content Area --- */
+        main.content-area {
+            grid-area: content;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: 240px 1fr;
+            gap: 24px;
+            overflow-y: auto;
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        
+        .panel-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
+
+        /* Charts */
+        .chart-container { flex: 1; position: relative; width: 100%; height: 100%; }
+        .chart-grid-span-2 { grid-column: span 2; }
+        canvas { width: 100%; height: 100%; }
+        
+        /* Table */
+        .table-panel { grid-column: span 3; display: flex; flex-direction: column;}
+        .table-filter-bar { display: flex; gap: 16px; margin-bottom: 20px; }
+        .filter-btn { background: var(--bg-elevated); border: 1px solid var(--border-subtle); color: var(--text-muted); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.875rem; transition: all 0.2s; }
+        .filter-btn:hover, .filter-btn.active { background: var(--accent-glow); color: var(--accent-main); border-color: var(--accent-main); }
+        
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .data-table th { font-weight: 500; color: var(--text-muted); font-size: 0.875rem; padding: 12px 16px; border-bottom: 1px solid var(--border-subtle); cursor: pointer; user-select: none; }
+        .data-table th:hover { color: var(--text-main); }
+        .data-table td { padding: 16px; border-bottom: 1px solid rgba(41, 48, 61, 0.4); font-size: 0.9rem; }
+        .data-table tr { cursor: pointer; transition: background 0.15s; }
+        .data-table tr:hover { background: rgba(255,255,255,0.02); }
+        .data-table tr.selected { background: var(--bg-elevated); box-shadow: inset 3px 0 0 var(--accent-main); }
+        
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .badge.critical { background: rgba(239, 68, 68, 0.15); color: var(--status-crit); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge.warning { background: rgba(245, 158, 11, 0.15); color: var(--status-warn); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge.healthy { background: rgba(16, 185, 129, 0.15); color: var(--status-ok); border: 1px solid rgba(16, 185, 129, 0.3); }
+
+        /* --- Right Sidebar (Inspector & Actions) --- */
+        aside.sidebar {
+            grid-area: sidebar;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border-subtle);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            overflow-y: auto;
+        }
+        
+        .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); text-align: center; gap: 12px; }
+        
+        .inspector-panel { display: none; flex-direction: column; gap: 24px; animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        
+        .inspector-header { margin-bottom: 8px; }
+        .inspector-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 8px;}
+        .inspector-meta { font-size: 0.875rem; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: var(--bg-elevated); padding: 16px; border-radius: 8px; }
+        .meta-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; color: var(--text-muted); }
+        .meta-value { font-family: ui-monospace, monospace; color: var(--text-main); }
+        
+        /* Action Form */
+        .action-form { background: var(--bg-elevated); padding: 20px; border-radius: 8px; border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-size: 0.875rem; font-weight: 500; }
+        .form-control { background: #000; border: 1px solid var(--border-subtle); color: var(--text-main); padding: 10px 12px; border-radius: 6px; font-size: 0.875rem; transition: border 0.2s; }
+        .form-control:focus { outline: none; border-color: var(--accent-main); }
+        select.form-control { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; }
+        textarea.form-control { resize: vertical; min-height: 80px; }
+        
+        .btn { padding: 10px 16px; border-radius: 6px; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; text-align: center; }
+        .btn-primary { background: var(--accent-main); color: #fff; }
+        .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 0 16px var(--accent-glow); }
+        .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--status-crit); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
+
+        .form-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+
+        .toast-container { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 12px; z-index: 100; pointer-events: none; }
+        .toast { background: var(--bg-elevated); border: 1px solid var(--status-ok); padding: 12px 24px; border-radius: 8px; color: var(--text-main); font-size: 0.875rem; box-shadow: 0 12px 24px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 12px; opacity: 0; transform: translateY(20px); transition: all 0.3s cubic-bezier(0.16,1,0.3,1); }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast svg { width: 16px; height: 16px; color: var(--status-ok); }
+
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <div class="nav-logo"></div>
+        <div class="nav-items">
+            <!-- Icons using simple geometric SVGs -->
+            <div class="nav-item active">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            </div>
+            <div class="nav-item">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+            </div>
+            <div class="nav-item">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+            </div>
+            <div class="nav-item">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </div>
+        </div>
+    </nav>
+
+    <header class="top-bar">
+        <div class="header-title">
+            Global Incident Command <span style="color:var(--text-muted); font-weight:400; font-size:14px;">/ Aegis</span>
+        </div>
+        <div class="system-status">
+            <div class="status-dot"></div>
+            Core Network Stable
+        </div>
+    </header>
+
+    <main class="content-area">
+        <!-- Main Topology / Flow Chart -->
+        <div class="panel chart-grid-span-2">
+            <div class="panel-header">Traffic Load Matrix</div>
+            <div class="chart-container">
+                <canvas id="mainChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Regional Distribution Donut -->
+        <div class="panel">
+            <div class="panel-header">Regional Anomalies</div>
+            <div class="chart-container" style="display:flex; justify-content:center; align-items:center;">
+                <canvas id="donutChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="panel table-panel">
+            <div class="panel-header">Active Incidents</div>
+            <div class="table-filter-bar" id="filterBar">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="critical">Critical Only</button>
+                <button class="filter-btn" data-filter="US-East">US-East</button>
+                <button class="filter-btn" data-filter="EU-West">EU-West</button>
+                <button class="filter-btn" data-filter="AP-South">AP-South</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="data-table" id="incidentTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="id">Incident ID <svg style="display:inline; width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"></path></svg></th>
+                            <th data-sort="severity">Severity <svg style="display:inline; width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"></path></svg></th>
+                            <th data-sort="region">Region <svg style="display:inline; width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"></path></svg></th>
+                            <th data-sort="service">Affected Service <svg style="display:inline; width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"></path></svg></th>
+                            <th data-sort="uptime">Time Impact <svg style="display:inline; width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"></path></svg></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <aside class="sidebar">
+        <!-- Empty State -->
+        <div class="empty-state" id="emptySidebar">
+            <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="color:var(--border-subtle); margin-bottom: 16px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+            <div>Select an incident<br>to view and resolve</div>
+        </div>
+
+        <!-- Inspector (visible on row click) -->
+        <div class="inspector-panel" id="inspectorPanel">
+            <div class="inspector-header">
+                <div class="badge critical" id="insBadge" style="display:inline-block; margin-bottom:12px;">CRITICAL</div>
+                <div class="inspector-title" id="insTitle">Incident #9024A</div>
+            </div>
+            
+            <div class="inspector-meta">
+                <div>
+                    <div class="meta-label">Region</div>
+                    <div class="meta-value" id="insRegion">US-East Node 3</div>
+                </div>
+                <div>
+                    <div class="meta-label">Detection</div>
+                    <div class="meta-value" id="insTime">14:02 UTC</div>
+                </div>
+                <div style="grid-column:span 2;">
+                    <div class="meta-label">Node Fingerprint</div>
+                    <div class="meta-value" style="font-size:0.75rem;">SHA256: 4f1a...c9b2</div>
+                </div>
+            </div>
+
+            <div class="action-form">
+                <div style="font-size:0.875rem; font-weight:600; color:var(--text-main); margin-bottom:4px;">Mitigation Ticket</div>
+                <form id="resolveForm">
+                    <div class="form-group">
+                        <label>Target Action</label>
+                        <select class="form-control" name="action">
+                            <option>Traffic Reroute (Regional)</option>
+                            <option>Isolate Node / Quarantine</option>
+                            <option>Automated Rollback</option>
+                            <option>Escalate to T3 Engineer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Analyst Notes</label>
+                        <textarea class="form-control" name="notes" placeholder="Reason for action..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-danger" id="ignoreBtn">Dismiss Alert</button>
+                        <button type="submit" class="btn btn-primary">Execute Action</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // --- Data Model ---
+        const rawData = [
+            { id: "INC-9343", severity: "critical", region: "EU-West", service: "Auth Gateway", uptime: "14m", date: 1670000000000 },
+            { id: "INC-9344", severity: "warning", region: "AP-South", service: "DB Replica", uptime: "2h 5m", date: 1670003000000 },
+            { id: "INC-9345", severity: "healthy", region: "US-East", service: "Search Index", uptime: "1d 4h", date: 1670005000000 },
+            { id: "INC-9346", severity: "critical", region: "US-East", service: "Payment API", uptime: "2m", date: 1670006000000 },
+            { id: "INC-9347", severity: "warning", region: "EU-West", service: "Cache Layer", uptime: "45m", date: 1670007000000 },
+            { id: "INC-9348", severity: "healthy", region: "AP-South", service: "Object Store", uptime: "3d", date: 1670008000000 },
+            { id: "INC-9349", severity: "warning", region: "US-East", service: "CDN Edge", uptime: "15m", date: 1670009000000 }
+        ];
+
+        let state = {
+            data: [...rawData],
+            sortCol: 'id',
+            sortAsc: true,
+            filter: 'all',
+            selectedId: null
+        };
+
+        // --- DOM Elements ---
+        const tableBody = document.getElementById('tableBody');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const ths = document.querySelectorAll('th[data-sort]');
+        const emptySidebar = document.getElementById('emptySidebar');
+        const inspectorPanel = document.getElementById('inspectorPanel');
+        const resolveForm = document.getElementById('resolveForm');
+        
+        // Inspector elements
+        const insBadge = document.getElementById('insBadge');
+        const insTitle = document.getElementById('insTitle');
+        const insRegion = document.getElementById('insRegion');
+        const insTime = document.getElementById('insTime');
+
+        // --- Utilities ---
+        const severityOrder = { "critical": 3, "warning": 2, "healthy": 1 };
+        function renderTable() {
+            // Apply filter
+            let filtered = state.data;
+            if (state.filter === 'critical') {
+                filtered = state.data.filter(d => d.severity === 'critical');
+            } else if (state.filter !== 'all') {
+                filtered = state.data.filter(d => d.region === state.filter);
+            }
+
+            // Apply sort
+            filtered.sort((a, b) => {
+                let vA = a[state.sortCol]; let vB = b[state.sortCol];
+                if (state.sortCol === 'severity') {
+                    vA = severityOrder[vA]; vB = severityOrder[vB];
+                }
+                if (vA < vB) return state.sortAsc ? -1 : 1;
+                if (vA > vB) return state.sortAsc ? 1 : -1;
+                return 0;
+            });
+
+            // Update UI
+            tableBody.innerHTML = '';
+            filtered.forEach(row => {
+                const tr = document.createElement('tr');
+                if (state.selectedId === row.id) tr.classList.add('selected');
+                
+                tr.innerHTML = `
+                    <td style="font-family:ui-monospace, monospace; color:var(--text-main);">${row.id}</td>
+                    <td><span class="badge ${row.severity}">${row.severity}</span></td>
+                    <td>${row.region}</td>
+                    <td>${row.service}</td>
+                    <td style="color:var(--text-muted);">${row.uptime}</td>
+                `;
+                
+                tr.addEventListener('click', () => selectRow(row));
+                tableBody.appendChild(tr);
+            });
+            drawCharts(); // redraw charts on filter change
+        }
+
+        function selectRow(row) {
+            state.selectedId = row.id;
+            renderTable(); // Update selected style
+            
+            // Switch sidebar view
+            emptySidebar.style.display = 'none';
+            inspectorPanel.style.display = 'flex';
+            
+            // Populate inspector
+            insBadge.className = `badge ${row.severity}`;
+            insBadge.textContent = row.severity.toUpperCase();
+            insTitle.textContent = row.id + ' - ' + row.service;
+            insRegion.textContent = row.region;
+            
+            const date = new Date(row.date);
+            insTime.textContent = date.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute:'2-digit' }) + ' UTC';
+            
+            // Reset form
+            resolveForm.reset();
+        }
+
+        // --- Interaction Listeners ---
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.filter = btn.dataset.filter;
+                state.selectedId = null;
+                emptySidebar.style.display = 'flex';
+                inspectorPanel.style.display = 'none';
+                renderTable();
+            });
+        });
+
+        ths.forEach(th => {
+            th.addEventListener('click', () => {
+                const col = th.dataset.sort;
+                if (state.sortCol === col) {
+                    state.sortAsc = !state.sortAsc;
+                } else {
+                    state.sortCol = col;
+                    state.sortAsc = true;
+                }
+                renderTable();
+            });
+        });
+
+        resolveForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Find and remove the row
+            state.data = state.data.filter(d => d.id !== state.selectedId);
+            state.selectedId = null;
+            emptySidebar.style.display = 'flex';
+            inspectorPanel.style.display = 'none';
+            
+            const actionSel = resolveForm.querySelector('[name="action"]').value;
+            showToast(`Action "${actionSel}" executed gracefully.`);
+            renderTable();
+        });
+
+        document.getElementById('ignoreBtn').addEventListener('click', () => {
+            state.selectedId = null;
+            emptySidebar.style.display = 'flex';
+            inspectorPanel.style.display = 'none';
+            renderTable();
+        });
+
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>${message}`;
+            container.appendChild(toast);
+            
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- Canvas Drawing (Charts) ---
+        function clearCanvas(ctx, canvas) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        function resizeCanvas(canvas) {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            // handle high DPI
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+            return { ctx, width: rect.width, height: rect.height };
+        }
+
+        // Animated noise line chart
+        let chartOffset = 0;
+        function drawMainChart() {
+            const canvas = document.getElementById('mainChart');
+            if(!canvas.parentElement) return;
+            const { ctx, width, height } = resizeCanvas(canvas);
+            
+            function animate() {
+                clearCanvas(ctx, {width, height});
+                
+                // grid
+                ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for(let i=0; i<width; i+=40) { ctx.moveTo(i,0); ctx.lineTo(i,height); }
+                for(let j=0; j<height; j+=40) { ctx.moveTo(0,j); ctx.lineTo(width,j); }
+                ctx.stroke();
+
+                // Base traffic line
+                ctx.beginPath();
+                const points = [];
+                for(let i=0; i<=width; i+=10) {
+                    const normalizedX = (i / width) * 20;
+                    // Math sine composition
+                    const y = height/2 + Math.sin(normalizedX + chartOffset) * 20 + Math.cos(normalizedX*2 + chartOffset*1.5) * 15;
+                    points.push({x: i, y});
+                    if(i===0) ctx.moveTo(i, y);
+                    else ctx.lineTo(i, y);
+                }
+                
+                ctx.strokeStyle = '#3B82F6';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Flow gradient
+                ctx.lineTo(width, height);
+                ctx.lineTo(0, height);
+                const grd = ctx.createLinearGradient(0,0,0,height);
+                grd.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
+                grd.addColorStop(1, 'rgba(59, 130, 246, 0)');
+                ctx.fillStyle = grd;
+                ctx.fill();
+
+                // Overlay specific alerts corresponding to filtered regions
+                const activeRegions = state.data.reduce((acc, curr) => {
+                    const r = state.filter === 'all' || curr.region === state.filter || (state.filter === 'critical' && curr.severity === 'critical');
+                    if(r) acc[curr.severity] = (acc[curr.severity]||0) + 1;
+                    return acc;
+                }, {});
+                
+                if (activeRegions.critical > 0) {
+                     // Draw an alert spike
+                     const cx = width * 0.7;
+                     const cy = height * 0.3 + Math.sin(chartOffset*5)*10;
+                     ctx.beginPath();
+                     ctx.arc(cx, cy, 6, 0, Math.PI*2);
+                     ctx.fillStyle = '#EF4444';
+                     ctx.fill();
+                     
+                     ctx.beginPath();
+                     ctx.arc(cx, cy, 12 + Math.sin(chartOffset*8)*4, 0, Math.PI*2);
+                     ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
+                     ctx.stroke();
+                     
+                     ctx.fillStyle = '#fff';
+                     ctx.font = '10px monospace';
+                     ctx.fillText('CRITICAL SPIKE', cx - 40, cy - 20);
+                }
+
+                chartOffset -= 0.02;
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // Static Donut based on filtered data
+        function drawDonutChart() {
+            const canvas = document.getElementById('donutChart');
+            const { ctx, width, height } = resizeCanvas(canvas);
+            
+            let counts = { healthy:0, warning:0, critical:0 };
+            let currentData = state.data;
+            if (state.filter === 'critical') {
+                currentData = state.data.filter(d => d.severity === 'critical');
+            } else if (state.filter !== 'all') {
+                currentData = state.data.filter(d => d.region === state.filter);
+            }
+            
+            currentData.forEach(d => counts[d.severity]++);
+            const total = currentData.length || 1; // prevent div/0
+            
+            const radius = Math.min(width, height) / 2.5;
+            const cx = width / 2;
+            const cy = height / 2;
+            
+            // Config colors matching CSS
+            const colors = { critical: '#EF4444', warning: '#F59E0B', healthy: '#10B981', empty: '#161B26' };
+            const wedges = [];
+            
+            if (currentData.length === 0) {
+                wedges.push({ pct: 1, color: colors.empty });
+            } else {
+                ['healthy', 'warning', 'critical'].forEach(key => {
+                    const pct = counts[key] / total;
+                    if(pct > 0) wedges.push({ pct, color: colors[key] });
+                });
+            }
+
+            let startAngle = -Math.PI / 2;
+            wedges.forEach(w => {
+                const angle = w.pct * Math.PI * 2;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, radius, startAngle, startAngle + angle);
+                ctx.fillStyle = w.color;
+                ctx.fill();
+                startAngle += angle;
+            });
+            
+            // Inner hollow out
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius * 0.7, 0, Math.PI*2);
+            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg-panel').trim() || '#0D111A';
+            ctx.fill();
+            
+            // Text center
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 24px system-ui';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(currentData.length.toString(), cx, cy - 8);
+            ctx.font = '12px system-ui';
+            ctx.fillStyle = '#9CA3AF';
+            ctx.fillText('Incidents', cx, cy + 12);
+        }
+        
+        function drawCharts() {
+            // Cancel old animation loops if any (simplified here, in reality we'd store rAF IDs)
+            drawDonutChart();
+        }
+
+        // --- Init ---
+        window.addEventListener('resize', () => {
+            drawCharts();
+        });
+        
+        // Initial render
+        renderTable();
+        // Fire Main chart animation once, since it has its own loop
+        setTimeout(drawMainChart, 100); 
+    </script>
+</body>
+</html>

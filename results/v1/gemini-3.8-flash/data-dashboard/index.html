@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniPulse Analytics · 企业级数据分析监控中心</title>
+  <style>
+    :root {
+      --bg-page: #f1f5f9;
+      --bg-card: #ffffff;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --success: #16a34a;
+      --danger: #dc2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-page); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+    /* 侧边栏 */
+    aside {
+      width: 240px; background: var(--bg-card); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0;
+    }
+    .brand-area { padding: 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; font-weight: 700; font-size: 1.05rem; }
+    .nav-menu { list-style: none; padding: 1rem 0.75rem; display: flex; flex-direction: column; gap: 0.25rem; }
+    .nav-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.6rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500;
+      color: var(--text-muted); text-decoration: none; cursor: pointer;
+    }
+    .nav-item:hover { background: var(--bg-page); color: var(--text-main); }
+    .nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+    .badge-num { background: var(--primary); color: #fff; font-size: 0.7rem; padding: 2px 6px; border-radius: 9999px; }
+    .user-footer { padding: 1rem; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; background: #94a3b8; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.8rem; font-weight: 700; }
+
+    /* 主界面 */
+    main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+    header {
+      background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 0.875rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10;
+    }
+    .search-box {
+      background: var(--bg-page); border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.4rem 0.75rem; font-size: 0.85rem; width: 260px; outline: none;
+    }
+    .header-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .btn { padding: 0.45rem 0.85rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--bg-card); }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* 仪表盘内容 */
+    .dashboard-content { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .kpi-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .kpi-title { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); }
+    .kpi-val { font-size: 1.6rem; font-weight: 700; }
+    .kpi-delta { font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 2px; }
+    .delta-up { color: var(--success); }
+    .delta-down { color: var(--danger); }
+
+    /* 图表区域 */
+    .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .card-title { font-size: 0.95rem; font-weight: 600; }
+
+    /* 表格区域 */
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left; }
+    th { background: var(--bg-page); color: var(--text-muted); font-weight: 600; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+    tbody tr:hover { background: #f8fafc; cursor: pointer; }
+    .status-badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+    .status-success { background: #dcfce7; color: #15803d; }
+    .status-pending { background: #fef3c7; color: #b45309; }
+
+    @media (max-width: 900px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .charts-grid { grid-template-columns: 1fr; }
+      aside { width: 70px; }
+      .brand-title, .nav-text, .user-details { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <aside>
+    <div>
+      <div class="brand-area">
+        <span style="font-size: 1.2rem;">📊</span>
+        <span class="brand-title">OmniPulse</span>
+      </div>
+      <ul class="nav-menu">
+        <li><a class="nav-item active"><span>📈</span> <span class="nav-text">仪表总览</span></a></li>
+        <li><a class="nav-item"><span>💳</span> <span class="nav-text">交易订单</span> <span class="badge-num">12</span></a></li>
+        <li><a class="nav-item"><span>👥</span> <span class="nav-text">活跃客户</span></a></li>
+        <li><a class="nav-item"><span>⚙️</span> <span class="nav-text">系统监控</span></a></li>
+      </ul>
+    </div>
+    <div class="user-footer">
+      <div class="avatar">AD</div>
+      <div class="user-details">
+        <div style="font-size:0.85rem; font-weight:600;">Alex Drake</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">系统管理员</div>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <div>
+        <h2 style="font-size: 1.15rem; font-weight: 700;">指标总览与分析</h2>
+        <span style="font-size: 0.8rem; color:var(--text-muted);">实时更新 · 2026年9月4日</span>
+      </div>
+      <div class="header-actions">
+        <input type="text" class="search-box" placeholder="搜索订单编号或客户姓名..." id="searchInput">
+        <button class="btn">导出 CSV</button>
+        <button class="btn btn-primary">刷新数据</button>
+      </div>
+    </header>
+
+    <div class="dashboard-content">
+      <!-- 4 个 KPI 指标 -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-title">月度总营收 (Total Revenue)</span>
+          <div class="kpi-val">¥ 1,842,500</div>
+          <div class="kpi-delta delta-up">▲ 18.4% 环比增长</div>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">活跃企业订阅数 (Active Subscriptions)</span>
+          <div class="kpi-val">4,289</div>
+          <div class="kpi-delta delta-up">▲ 7.2% 持续攀升</div>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">平均转化率 (Conversion Rate)</span>
+          <div class="kpi-val">4.36%</div>
+          <div class="kpi-delta delta-down">▼ 0.3% 略微回调</div>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">平均客单价 (AOV)</span>
+          <div class="kpi-val">¥ 429.50</div>
+          <div class="kpi-delta delta-up">▲ 5.1% 环比增长</div>
+        </div>
+      </div>
+
+      <!-- 图表区 -->
+      <div class="charts-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">月度成交量趋势 (Revenue Trends)</span>
+            <span style="font-size:0.75rem; color:var(--text-muted);">近 7 天分布</span>
+          </div>
+          <!-- 纯原生 SVG 折线面积图 -->
+          <svg viewBox="0 0 500 180" style="width: 100%; height: 180px;">
+            <defs>
+              <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+            <path d="M 0,140 Q 80,100 160,110 T 320,60 T 500,40 L 500,180 L 0,180 Z" fill="url(#grad)" />
+            <path d="M 0,140 Q 80,100 160,110 T 320,60 T 500,40" fill="none" stroke="#2563eb" stroke-width="3" />
+            <circle cx="160" cy="110" r="4" fill="#2563eb" />
+            <circle cx="320" cy="60" r="4" fill="#2563eb" />
+            <circle cx="500" cy="40" r="4" fill="#2563eb" />
+          </svg>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">流量渠道来源占比</span>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:center; height:180px; gap:1.5rem;">
+            <!-- 原生 SVG 环形图 -->
+            <svg viewBox="0 0 100 100" style="width: 120px; height: 120px; transform: rotate(-90deg);">
+              <circle cx="50" cy="50" r="40" stroke="#e2e8f0" stroke-width="12" fill="none"/>
+              <circle cx="50" cy="50" r="40" stroke="#2563eb" stroke-width="12" stroke-dasharray="160 251" fill="none"/>
+              <circle cx="50" cy="50" r="40" stroke="#06b6d4" stroke-width="12" stroke-dasharray="60 251" stroke-dashoffset="-160" fill="none"/>
+            </svg>
+            <div style="font-size:0.8rem; display:flex; flex-direction:column; gap:0.5rem;">
+              <div><span style="color:#2563eb; font-weight:700;">●</span> 搜索引擎 (64%)</div>
+              <div><span style="color:#06b6d4; font-weight:700;">●</span> 直接访问 (24%)</div>
+              <div><span style="color:#94a3b8; font-weight:700;">●</span> 其他渠道 (12%)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据表格 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">实时交易记录流水</span>
+          <span style="font-size:0.8rem; color:var(--text-muted);">共 5 条新记录</span>
+        </div>
+        <div class="table-container">
+          <table id="dataTable">
+            <thead>
+              <tr>
+                <th>交易订单号</th>
+                <th>客户名称</th>
+                <th>套餐分类</th>
+                <th>交易金额</th>
+                <th>状态</th>
+                <th>创建时间</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600; font-family:monospace;">#ORD-90241</td>
+                <td>上海云栖数智网络科技</td>
+                <td>Pro 年付套餐</td>
+                <td>¥ 2,388.00</td>
+                <td><span class="status-badge status-success">已完成</span></td>
+                <td>10 分钟前</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600; font-family:monospace;">#ORD-90240</td>
+                <td>深圳极客引擎创投</td>
+                <td>Enterprise 席位扩容</td>
+                <td>¥ 12,000.00</td>
+                <td><span class="status-badge status-success">已完成</span></td>
+                <td>28 分钟前</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600; font-family:monospace;">#ORD-90239</td>
+                <td>杭州泛微智能工作室</td>
+                <td>Starter 升级包</td>
+                <td>¥ 199.00</td>
+                <td><span class="status-badge status-pending">支付确认中</span></td>
+                <td>45 分钟前</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600; font-family:monospace;">#ORD-90238</td>
+                <td>北京知行合一教育科技</td>
+                <td>Pro 月付套餐</td>
+                <td>¥ 199.00</td>
+                <td><span class="status-badge status-success">已完成</span></td>
+                <td>1 小时前</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // 关键字过滤搜索
+    const searchInput = document.getElementById("searchInput");
+    searchInput.addEventListener("input", (e) => {
+      const q = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll("#dataTable tbody tr");
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(q) ? "" : "none";
+      });
+    });
+  </script>
+</body>
+</html>

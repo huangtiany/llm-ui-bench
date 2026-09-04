@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>洇 · 一只住在纸上的墨灵</title>
+<style>
+:root{
+  --paper:#f5f2ea; --ink:#22201a; --ink2:#26231a;
+  --gray:#8d877a; --faint:#b5ad9c; --line:rgba(34,32,26,.14);
+  --seal:#a4502e;
+  --serif:'Songti SC','STSong','Noto Serif SC','SimSun',Georgia,'Times New Roman',serif;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --sans:-apple-system,'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Helvetica Neue',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:var(--paper); color:var(--ink); font-family:var(--sans);
+  display:flex; flex-direction:column; overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+/* 纸张细颗粒 */
+body::before{
+  content:''; position:fixed; inset:0; z-index:60; pointer-events:none; opacity:.6;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+::selection{background:var(--seal); color:var(--paper)}
+
+/* ---------- 页眉 ---------- */
+.mast{display:flex; justify-content:space-between; align-items:baseline;
+  padding:22px clamp(22px,5vw,64px) 10px}
+.mast h1{font-family:var(--serif); font-size:19px; font-weight:600; letter-spacing:.06em;
+  display:flex; align-items:center; gap:10px}
+.mast h1 em{font-style:normal; font-family:var(--sans); font-size:11.5px; font-weight:400;
+  color:var(--gray); letter-spacing:.16em; margin-left:4px}
+.seal{width:26px;height:26px; background:var(--seal); color:var(--paper); border-radius:5px;
+  font-family:var(--serif); font-size:14px; display:grid; place-items:center; flex:none;
+  box-shadow:inset 0 0 0 1px rgba(245,242,234,.28)}
+.meta{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; color:var(--gray)}
+
+/* ---------- 话题入口 ---------- */
+.topics{display:flex; gap:clamp(14px,2.6vw,30px); padding:6px clamp(22px,5vw,64px) 0;
+  border-bottom:1px solid var(--line); overflow-x:auto; scrollbar-width:none}
+.topics::-webkit-scrollbar{display:none}
+.topic{background:none; border:0; cursor:pointer; padding:10px 2px 12px; white-space:nowrap;
+  font-family:var(--serif); font-size:13.5px; color:var(--gray); letter-spacing:.05em;
+  position:relative; transition:color .25s}
+.topic i{font-style:normal; font-family:var(--mono); font-size:9.5px; color:var(--faint);
+  letter-spacing:.1em; margin-right:7px; vertical-align:1px; transition:color .25s}
+.topic::after{content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px;
+  background:var(--seal); transform:scaleX(0); transform-origin:left;
+  transition:transform .35s cubic-bezier(.22,1,.36,1)}
+.topic:hover{color:var(--ink)} .topic:hover i{color:var(--seal)}
+.topic.active{color:var(--ink)} .topic.active::after{transform:scaleX(1)}
+.topic:focus-visible,#send:focus-visible{outline:1px dashed var(--seal); outline-offset:3px}
+
+/* ---------- 主舞台 ---------- */
+.stage{flex:1; min-height:0; display:flex; flex-direction:column}
+.hero{text-align:center; padding:clamp(6px,1.6vh,18px) 0 0}
+.hero svg{height:clamp(140px,21vh,205px); width:auto; display:block; margin:0 auto}
+.status{display:inline-flex; align-items:center; gap:9px; margin-top:2px;
+  font-family:var(--mono); font-size:11px; letter-spacing:.3em; color:var(--gray);
+  transition:opacity .18s}
+.status.sw{opacity:0}
+.status .dot{width:5px;height:5px;border-radius:50%;background:var(--seal);flex:none;
+  animation:pulse 3.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+body[data-state="listen"] .status .dot{animation-duration:1.1s}
+body[data-state="think"]  .status .dot{animation-duration:.55s}
+body[data-state="speak"]  .status .dot{animation-duration:.9s}
+
+/* ---------- 对话区 ---------- */
+.conv{flex:1; min-height:0; overflow-y:auto; width:min(640px,100%); margin:0 auto;
+  padding:10px clamp(20px,4vw,32px) 24px; scrollbar-width:thin;
+  scrollbar-color:rgba(34,32,26,.2) transparent}
+.conv::-webkit-scrollbar{width:4px}
+.conv::-webkit-scrollbar-thumb{background:rgba(34,32,26,.18); border-radius:2px}
+.day{display:flex; align-items:center; gap:14px; margin:12px 0 4px;
+  color:#a49c8a; font-family:var(--mono); font-size:10px; letter-spacing:.28em}
+.day::before,.day::after{content:''; height:1px; flex:1; background:var(--line)}
+.msg{margin:26px 0; animation:rise .55s cubic-bezier(.22,1,.36,1) both}
+@keyframes rise{from{opacity:0; transform:translateY(10px)}to{opacity:1; transform:none}}
+.msg.a{font-family:var(--serif); font-size:16.5px; line-height:2.0; color:var(--ink2); max-width:32em}
+.msg.a .mark{display:inline-block; width:15px; height:15px; background:var(--seal);
+  border-radius:3.5px; color:var(--paper); font-family:var(--serif); font-size:9px;
+  line-height:15px; text-align:center; margin-right:10px; vertical-align:2px}
+.msg.a .txt{white-space:pre-wrap}
+.msg.u{display:flex; justify-content:flex-end}
+.msg.u .txt{white-space:pre-wrap; font-size:14px; line-height:1.9; color:#6d675b;
+  max-width:24em; padding-right:12px; border-right:2px solid rgba(164,80,46,.55)}
+.caret{display:inline-block; width:2px; height:1em; background:var(--seal);
+  margin-left:2px; vertical-align:-2px; animation:ck 1s steps(2) infinite}
+@keyframes ck{50%{opacity:0}}
+
+/* ---------- 输入区 ---------- */
+.composer{width:min(640px,100%); margin:0 auto; padding:0 clamp(20px,4vw,32px)}
+.crow{display:flex; align-items:center; gap:14px; border-bottom:1px solid rgba(34,32,26,.28);
+  padding:10px 2px; transition:border-color .3s}
+.crow:focus-within{border-color:var(--ink)}
+.pulse{width:6px;height:6px;border-radius:50%;background:rgba(164,80,46,.35);flex:none;transition:background .3s}
+.crow:focus-within .pulse{background:var(--seal); animation:pulse 1.2s ease-in-out infinite}
+#inp{flex:1; border:0; outline:0; background:none; font-family:var(--serif); font-size:15.5px;
+  color:var(--ink); caret-color:var(--seal); letter-spacing:.03em; min-width:0}
+#inp::placeholder{color:var(--faint); font-size:13.5px; letter-spacing:.08em}
+#send{width:32px;height:32px;border-radius:50%;border:1px solid rgba(34,32,26,.35);
+  background:none; cursor:pointer; display:grid; place-items:center; color:var(--ink);
+  transition:all .25s; flex:none}
+#send:hover{background:var(--ink); border-color:var(--ink); color:var(--paper); transform:translateX(2px)}
+.hint{text-align:center; font-family:var(--mono); font-size:9.5px; letter-spacing:.24em;
+  color:var(--faint); padding:9px 0 13px}
+
+/* ---------- 边款 ---------- */
+.sidemark{position:fixed; right:14px; top:50%; transform:translateY(-50%);
+  writing-mode:vertical-rl; font-family:var(--mono); font-size:9.5px; letter-spacing:.5em;
+  color:#c2baa8; user-select:none; pointer-events:none}
+
+/* ---------- 墨灵形变 ---------- */
+#creature,.eye,.sway,.tailsway{transform-box:fill-box}
+#creature{transform-origin:50% 86%; will-change:transform; cursor:default}
+.eye{transform-origin:50% 50%}
+.sway{animation:sway 5.2s ease-in-out infinite; transform-origin:100% 100%}
+.sway.s2{animation-duration:6.1s; animation-delay:-2s; transform-origin:0% 100%}
+@keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3.5deg)}}
+.tailsway{animation:tail 7s ease-in-out infinite; transform-origin:0% 0%}
+@keyframes tail{0%,100%{transform:rotate(0deg)}40%{transform:rotate(5deg)}70%{transform:rotate(-3deg)}}
+.orbitSpin{transform-box:view-box; transform-origin:50% 55%; animation:spin 11s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinA{transform-box:view-box; transform-origin:50% 55%; animation:spin 9s linear infinite}
+.spinB{transform-box:view-box; transform-origin:50% 55%; animation:spin 13s linear infinite reverse}
+.speck{animation:float 7s ease-in-out infinite}
+.speck:nth-of-type(2){animation-delay:-2.5s; animation-duration:9s}
+.speck:nth-of-type(3){animation-delay:-4.5s; animation-duration:8s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+/* ---------- 响应式 ---------- */
+@media (max-width:1180px){.sidemark{display:none}}
+@media (max-width:920px){
+  .mast h1 em{display:none}
+  .hero svg{height:128px}
+  .msg.a{font-size:15.5px}
+}
+@media (max-height:640px){.hero svg{height:108px}.hint{display:none}}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001s !important; animation-iteration-count:1 !important;
+    transition-duration:.001s !important}
+}
+</style>
+</head>
+<body data-state="idle">
+
+<header class="mast">
+  <h1><span class="seal">洇</span>洇<em>一只住在纸上的墨灵</em></h1>
+  <p class="meta">纸上智能体 · 一切墨水均为内联</p>
+</header>
+
+<nav class="topics" id="topicsNav" aria-label="话题"></nav>
+
+<section class="stage">
+  <div class="hero">
+    <svg id="creatureSvg" viewBox="0 0 320 240" role="img" aria-label="墨灵洇的形象：一团会呼吸、会眨眼的墨">
+      <defs>
+        <radialGradient id="inkPool" cx="42%" cy="36%" r="78%">
+          <stop offset="0%" stop-color="#302c1e"/>
+          <stop offset="55%" stop-color="#26231a"/>
+          <stop offset="100%" stop-color="#1c1a12"/>
+        </radialGradient>
+        <filter id="wob" x="-25%" y="-25%" width="150%" height="150%">
+          <feTurbulence id="turb" type="fractalNoise" baseFrequency="0.013 0.02" numOctaves="2" seed="7" result="n"/>
+          <feDisplacementMap id="disp" in="SourceGraphic" in2="n" scale="6" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+        <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="6"/>
+        </filter>
+      </defs>
+
+      <ellipse id="shadow" cx="160" cy="214" rx="60" ry="7" fill="#22201a" opacity="0.11" filter="url(#soft)"/>
+
+      <g id="creature">
+        <g filter="url(#wob)">
+          <!-- 头顶的两茎墨芽 -->
+          <g id="sprigL"><g class="sway s1">
+            <path d="M142 72 C137 54 126 47 113 42" fill="none" stroke="#26231a" stroke-width="5" stroke-linecap="round"/>
+          </g></g>
+          <g id="sprigR"><g class="sway s2">
+            <path d="M178 72 C184 53 196 46 208 43" fill="none" stroke="#26231a" stroke-width="5" stroke-linecap="round"/>
+          </g></g>
+          <!-- 墨尾 -->
+          <path id="tail" class="tailsway" d="M230 158 C256 154 273 165 281 183"
+                fill="none" stroke="#26231a" stroke-width="6.5" stroke-linecap="round"/>
+          <!-- 墨体 -->
+          <path d="M160 60 C206 60 238 92 240 130 C242 170 212 199 162 199 C112 200 80 171 80 129 C80 92 114 60 160 60 Z"
+                fill="url(#inkPool)"/>
+          <ellipse cx="134" cy="102" rx="54" ry="40" fill="#3b3726" opacity="0.32" filter="url(#soft)"/>
+          <ellipse cx="162" cy="178" rx="50" ry="15" fill="#15130a" opacity="0.4" filter="url(#soft)"/>
+          <!-- 思绪涟漪（thinking 时浮现） -->
+          <g id="spiralG" opacity="0">
+            <circle class="spinA" cx="160" cy="132" r="19" fill="none" stroke="#f5f2ea" stroke-width="1.2" stroke-dasharray="3 7" opacity=".75"/>
+            <circle class="spinB" cx="160" cy="132" r="30" fill="none" stroke="#f5f2ea" stroke-width="1" stroke-dasharray="2 8" opacity=".45"/>
+          </g>
+          <!-- 墨中气泡 -->
+          <g>
+            <circle class="speck" cx="146" cy="164" r="1.3" fill="#f5f2ea" opacity=".4"/>
+            <circle class="speck" cx="178" cy="170" r="1" fill="#f5f2ea" opacity=".3"/>
+            <circle class="speck" cx="160" cy="180" r="1.1" fill="#f5f2ea" opacity=".35"/>
+          </g>
+          <!-- 脸 -->
+          <g id="eyeL" class="eye">
+            <ellipse cx="137" cy="122" rx="7.4" ry="8.4" fill="#f5f2ea"/>
+            <g id="ppL"><circle cx="137" cy="123.5" r="3" fill="#171509"/></g>
+            <circle cx="135.2" cy="119.6" r="1.1" fill="#f5f2ea" opacity=".95"/>
+          </g>
+          <g id="eyeR" class="eye">
+            <ellipse cx="183" cy="122" rx="7.4" ry="8.4" fill="#f5f2ea"/>
+            <g id="ppR"><circle cx="183" cy="123.5" r="3" fill="#171509"/></g>
+            <circle cx="181.2" cy="119.6" r="1.1" fill="#f5f2ea" opacity=".95"/>
+          </g>
+          <ellipse id="mouth" cx="160" cy="152" rx="3.8" ry="1" fill="#f5f2ea" opacity=".92"/>
+          <ellipse cx="116" cy="142" rx="7" ry="4.4" fill="#c26a42" opacity=".22"/>
+          <ellipse cx="204" cy="142" rx="7" ry="4.4" fill="#c26a42" opacity=".22"/>
+        </g>
+        <!-- 思考时绕行的小墨滴 -->
+        <g id="orbitG" opacity="0">
+          <g class="orbitSpin">
+            <circle cx="160" cy="30" r="3" fill="#26231a"/>
+            <circle cx="63" cy="168" r="2.5" fill="#26231a"/>
+            <circle cx="257" cy="168" r="2.8" fill="#26231a"/>
+          </g>
+        </g>
+      </g>
+    </svg>
+    <p class="status" id="status"><span class="dot"></span><span id="statusTxt">在纸上发呆</span></p>
+  </div>
+
+  <div class="conv" id="conv" aria-live="polite"></div>
+
+  <div class="composer">
+    <div class="crow">
+      <span class="pulse"></span>
+      <input id="inp" type="text" placeholder="写一句话给洇……" autocomplete="off" aria-label="给洇写一句话">
+      <button id="send" type="button" aria-label="发送">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+             stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2.5 8h10.5M8.5 3.5 13 8l-4.5 4.5"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <p class="hint">回车发送 · 点上方话题，换一页纸</p>
+</section>
+
+<p class="sidemark">洇 · 纸上墨灵 · MMXXVI</p>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+var turb=$('turb'),disp=$('disp'),creature=$('creature'),
+    eyeL=$('eyeL'),eyeR=$('eyeR'),ppL=$('ppL'),ppR=$('ppR'),
+    mouth=$('mouth'),shadow=$('shadow'),orbitG=$('orbitG'),spiralG=$('spiralG'),
+    sprigL=$('sprigL'),sprigR=$('sprigR'),
+    conv=$('conv'),inp=$('inp'),statusBox=$('status'),statusTxt=$('statusTxt'),
+    nav=$('topicsNav'),sendBtn=$('send');
+
+/* -------- 形变参数：P 当前值 / T 目标值，逐帧插值 -------- */
+var P={wob:6,freq:.013,tilt:0,eyeS:1,pupX:0,pupY:0,mouth:.9,orbit:0,spiral:0,perk:0,breath:1,bob:0};
+var T={wob:6,freq:.013,tilt:0,eyeS:1,pupX:0,pupY:0,mouth:.9,orbit:0,spiral:0,perk:0,breath:1,bob:0};
+var bias={x:0,y:0};
+var state='idle',busy=false,epoch=0;
+var clock=0,last=performance.now(),breathPh=0;
+var mx=.5,my=.42,blinkAt=2.4,blinkStart=-9,blinking=false,hopT=-1,statTimer=0;
+
+function setStat(t){
+  statusBox.classList.add('sw');
+  clearTimeout(statTimer);
+  statTimer=setTimeout(function(){statusTxt.textContent=t;statusBox.classList.remove('sw');},170);
+}
+
+function setState(s){
+  if(state===s)return;
+  state=s;
+  document.body.setAttribute('data-state',s);
+  bias.x=0;bias.y=0;
+  T.tilt=0;T.eyeS=1;T.orbit=0;T.spiral=0;T.perk=0;T.mouth=.9;T.breath=1;T.bob=0;
+  if(s==='idle'){T.wob=6;T.freq=.013;setStat('在纸上发呆');}
+  else if(s==='listening'){T.wob=3.4;T.freq=.017;T.tilt=-4;T.eyeS=1.08;T.perk=1;
+    T.mouth=.5;T.breath=1.45;bias.x=-1.2;bias.y=2.6;setStat('在听，慢慢说');}
+  else if(s==='thinking'){T.wob=11;T.freq=.028;T.tilt=1.6;T.orbit=1;T.spiral=1;
+    T.mouth=.35;T.breath=.75;bias.x=2;bias.y=-2.2;setStat('在想……');}
+  else if(s==='speaking'){T.wob=8;T.freq=.02;T.bob=1;T.mouth=.55;T.breath=1.25;setStat('在说');}
+  if(reduced){for(var k in P){P[k]=T[k];}pose(.12,0,0,1);}
+}
+
+function pose(br,bobY,hopY,blinkS){
+  var sy=1+br*.016,sx=1-br*.006;
+  creature.style.transform='translateY('+(bobY+hopY).toFixed(2)+'px) rotate('+P.tilt.toFixed(2)+'deg) scale('+sx.toFixed(4)+','+sy.toFixed(4)+')';
+  eyeL.style.transform='scale('+P.eyeS.toFixed(3)+','+(P.eyeS*blinkS).toFixed(3)+')';
+  eyeR.style.transform=eyeL.style.transform;
+  ppL.style.transform='translate('+(P.pupX*1.5).toFixed(2)+'px,'+(P.pupY*1.4).toFixed(2)+'px)';
+  ppR.style.transform=ppL.style.transform;
+  var m=Math.min(P.mouth,2.6);
+  mouth.setAttribute('ry',(.55+m*1.7).toFixed(2));
+  mouth.setAttribute('rx',(3.8-Math.min(m,1.4)*.8).toFixed(2));
+  orbitG.style.opacity=P.orbit.toFixed(2);
+  spiralG.style.opacity=(P.spiral*.6).toFixed(2);
+  sprigL.style.transform='rotate('+(-7*P.perk).toFixed(2)+'deg)';
+  sprigR.style.transform='rotate('+(7*P.perk).toFixed(2)+'deg)';
+  shadow.setAttribute('rx',(60-br*2.6).toFixed(1));
+  shadow.setAttribute('opacity',(.10+br*.025).toFixed(3));
+  turb.setAttribute('baseFrequency',(P.freq+Math.sin(clock*.7)*.002).toFixed(4)+' '+(P.freq*1.55+Math.cos(clock*.53)*.0025).toFixed(4));
+  disp.setAttribute('scale',P.wob.toFixed(2));
+}
+
+function frame(now){
+  var dt=Math.min(.05,(now-last)/1000);last=now;clock+=dt;
+  var k=1-Math.pow(.002,dt);
+  for(var key in P){P[key]+=(T[key]-P[key])*k;}
+  T.pupX=Math.max(-3.2,Math.min(3.2,(mx-.5)*7))+bias.x;
+  T.pupY=Math.max(-2.6,Math.min(3,(my-.45)*6))+bias.y;
+  breathPh+=dt*1.65*P.breath;
+  var br=Math.sin(breathPh);
+  var bobY=P.bob*Math.sin(clock*8.4)*(1+P.mouth*.8);
+  var hopY=0;
+  if(hopT>=0){hopT+=dt;hopY=-5.2*Math.exp(-4.6*hopT)*Math.sin(11*hopT);if(hopT>1.6)hopT=-1;}
+  var blinkS=1;
+  if(!blinking&&clock>blinkAt){blinking=true;blinkStart=clock;blinkAt=clock+2.6+Math.random()*4;}
+  if(blinking){
+    var bk=(clock-blinkStart)/.24;
+    if(bk>=1){blinking=false;}
+    else{blinkS=bk<.5?Math.max(.07,1-bk*2):Math.max(.07,(bk-.5)*2);}
+  }
+  pose(br,bobY,hopY,blinkS);
+  requestAnimationFrame(frame);
+}
+
+function hop(){if(!reduced)hopT=0;}
+
+window.addEventListener('mousemove',function(e){
+  mx=e.clientX/window.innerWidth;my=e.clientY/window.innerHeight;
+},{passive:true});
+$('creatureSvg').addEventListener('click',hop);
+
+/* -------- 对话数据 -------- */
+var TOPICS=[
+ {id:'t1',num:'01',name:'晨间随记',date:'九月四日 · 晨',msgs:[
+   ['u','早。今天有点雾。'],
+   ['a','雾好。雾是城市在深呼吸，\n你正好赶在它呼气的那一下出门。'],
+   ['u','你也会犯困吗？'],
+   ['a','会的。我犯困的时候，边缘先睡着，中间还醒着——\n你看，墨迹洇开一点，那就是我在打哈欠。']]},
+ {id:'t2',num:'02',name:'关于安静',date:'九月三日 · 夜',msgs:[
+   ['u','一个人待着的时候，你在想什么？'],
+   ['a','我在想，纸为什么这么安静。'],
+   ['u','那不是更孤独吗？'],
+   ['a','不会。安静是我听见你笔尖的方式。\n你落笔越轻，我听得越清楚。']]},
+ {id:'t3',num:'03',name:'要一首短诗',date:'九月一日 · 午后',msgs:[
+   ['u','给我写一首短点的诗。'],
+   ['a','四行的，可以吗：\n雾起。灯慢。你来。墨暖。'],
+   ['u','再短一点。'],
+   ['a','「你来了。」']]},
+ {id:'t4',num:'04',name:'晚安频道',date:'八月三十日 · 深夜',msgs:[
+   ['u','晚安。'],
+   ['a','晚安。我把今天的新墨收进瓶子里了，\n瓶子上贴了张标签：有用，勿倒。'],
+   ['u','明天见。'],
+   ['a','明天见。我就在下一页等着，\n你翻开，我就醒。']]},
+ {id:'t5',num:'05',name:'自由书写',date:'新的一页',msgs:[
+   ['a','新的一页，纸很干净。\n随便写点什么，我陪你看它慢慢洇开。']]}
+];
+
+var POOLS={
+ greet:['你好呀。你一来，纸上的墨就轻快了一点。',
+        '嗨。我在这儿晾了一下午的墨，正等人说话。',
+        '早上好。……哦不对，你说了算，现在是你的早上。'],
+ poem:['好，给你一句：\n「墨在纸上走了很远的路，\n只为在你停笔的地方，歇一下。」',
+       '试一首四行的：\n雾起。\n灯慢。\n你来。\n墨暖。',
+       '写不好大的，写个小的：\n「今天也没有什么大事，\n一滴墨，把黄昏洇开了。」'],
+ mood:['把那句话放在纸上吧。\n墨不评判，它只是陪你洇开。',
+       '孤独的时候，来看墨写字也行。\n它走得慢，但一直在走。',
+       '累的话，就靠一会儿。\n我边缘软，不硌人。'],
+ why:['嗯……让我把这问题在墨里转三圈。\n我的答案是：好问题本身，就已经是半个答案了。',
+      '我不知道。但不知道的时候，墨会先承认，\n再慢慢洇过去看。',
+      '纸说：这个问题它也想过。\n它想的结论是——先记下来，别急着回答。'],
+ thanks:['不谢。墨最喜欢被用在这里。',
+         '客气。我都记在这页纸的背面了。'],
+ def:['我把这句话在纸上洇了洇。\n边缘的样子，有点像你说话时的语气。',
+      '嗯，我听见了。\n这笔迹很轻，应该是一句认真想过的话。',
+      '好。这句话我收进今天的墨瓶了，\n和晨雾、灯光放在一起。',
+      '先记下。等纸翻页的时候，\n它会自己长出下文。']
+};
+function pick(k){var p=POOLS[k];return p[Math.floor(Math.random()*p.length)];}
+function pickReply(t){
+  t=t.toLowerCase();
+  if(/你好|您好|hi|hello|嗨|在吗|早上好|晚安|再见/.test(t))return pick('greet');
+  if(/诗|词|写一句|创作|句子/.test(t))return pick('poem');
+  if(/难过|孤独|累|烦|伤心|压力|焦虑|开心|高兴|喜欢/.test(t))return pick('mood');
+  if(/谢谢|感谢|thx/.test(t))return pick('thanks');
+  if(/为什么|怎么|如何|什么|吗|？|\?/.test(t))return pick('why');
+  return pick('def');
+}
+
+/* -------- 消息渲染 -------- */
+function scrollDown(){conv.scrollTop=conv.scrollHeight;}
+function addMsg(who,text){
+  var d=document.createElement('div');
+  d.className='msg '+who;
+  var t=document.createElement('span');t.className='txt';
+  if(who==='a'){
+    var m=document.createElement('span');m.className='mark';m.textContent='洇';
+    d.appendChild(m);d.appendChild(t);
+  }else{
+    t.textContent=text;d.appendChild(t);
+  }
+  conv.appendChild(d);scrollDown();
+  return t;
+}
+function typeOut(el,text,done){
+  setState('speaking');
+  var e=epoch,i=0;
+  var caret=document.createElement('span');caret.className='caret';
+  el.appendChild(caret);
+  (function step(){
+    if(e!==epoch)return;
+    if(i>=text.length){caret.parentNode.removeChild(caret);done&&done();return;}
+    var ch=text.charAt(i);i++;
+    el.insertBefore(document.createTextNode(ch),caret);
+    scrollDown();
+    if(!reduced){P.mouth=Math.min(2.4,.6+Math.random()*1.5);}
+    var d=26+Math.random()*36;
+    if('，。？！…；：、'.indexOf(ch)>=0)d+=170+Math.random()*150;
+    if(ch==='\n')d+=240;
+    setTimeout(step,d);
+  })();
+}
+
+function send(){
+  var v=inp.value.replace(/^\s+/,'').replace(/\s+$/,'');
+  if(!v||busy)return;
+  busy=true;
+  addMsg('u',v);inp.value='';
+  setState('thinking');hop();
+  var myE=epoch,wait=900+Math.random()*1100;
+  setTimeout(function(){
+    if(myE!==epoch){busy=false;return;}
+    var el=addMsg('a','');
+    typeOut(el,pickReply(v),function(){
+      if(myE!==epoch)return;
+      setTimeout(function(){if(myE===epoch){setState('idle');busy=false;}},450);
+    });
+  },wait);
+}
+
+/* -------- 话题 -------- */
+var buttons=[],cur='t1';
+TOPICS.forEach(function(t){
+  var b=document.createElement('button');
+  b.type='button';
+  b.className='topic'+(t.id===cur?' active':'');
+  b.innerHTML='<i>'+t.num+'</i>'+t.name;
+  b.addEventListener('click',function(){loadTopic(t.id);});
+  nav.appendChild(b);buttons.push(b);
+});
+function loadTopic(id){
+  cur=id;epoch++;busy=false;
+  var t=null;
+  for(var i=0;i<TOPICS.length;i++){if(TOPICS[i].id===id)t=TOPICS[i];}
+  for(var j=0;j<buttons.length;j++){buttons[j].className='topic'+(TOPICS[j].id===id?' active':'');}
+  conv.innerHTML='';
+  var day=document.createElement('p');day.className='day';
+  var ds=document.createElement('span');ds.textContent=t.date;day.appendChild(ds);
+  conv.appendChild(day);
+  t.msgs.forEach(function(m,i){
+    var el=addMsg(m[0],m[0]==='u'?m[1]:'');
+    if(m[0]==='a')el.textContent=m[1];
+    el.parentNode.style.animationDelay=(i*.14)+'s';
+  });
+  scrollDown();
+  setState('idle');hop();
+}
+
+/* -------- 输入事件 -------- */
+inp.addEventListener('focus',function(){if(!busy)setState('listening');});
+inp.addEventListener('blur',function(){
+  setTimeout(function(){
+    if(!busy&&document.activeElement!==inp&&state==='listening')setState('idle');
+  },140);
+});
+inp.addEventListener('input',function(){if(!reduced){P.mouth=Math.max(P.mouth,1.05);}});
+inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();send();}});
+sendBtn.addEventListener('click',send);
+
+/* -------- 启动 -------- */
+loadTopic('t1');
+if(!reduced){requestAnimationFrame(frame);}
+else{pose(.12,0,0,1);}
+})();
+</script>
+</body>
+</html>

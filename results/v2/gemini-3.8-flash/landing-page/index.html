@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拾遗印存 Chrono-Typo Archive</title>
+<style>
+  /* ==========================================================================
+     DESIGN TOKENS & COLOR THEME SYSTEM
+     ========================================================================== */
+  :root {
+    --paper-base: #f4efe6;
+    --paper-card: #ece6da;
+    --paper-deep: #ded6c5;
+    --paper-line: #cfc5b0;
+    --ink-solid: #191815;
+    --ink-body: #3c3933;
+    --ink-muted: #787367;
+    --ink-faint: #aba394;
+    --vermilion: #b63826;
+    --vermilion-soft: #d9533f;
+    --vermilion-tint: rgba(182, 56, 38, 0.08);
+    --copper: #2b473e;
+    --copper-light: #44685c;
+    --copper-tint: rgba(43, 71, 62, 0.08);
+    --gold-leaf: #9e7d3b;
+    --gold-tint: rgba(158, 125, 59, 0.12);
+    --grid-hairline: rgba(60, 57, 51, 0.12);
+    --shadow-deboss: inset 1px 1px 2px rgba(25, 24, 21, 0.25), inset -1px -1px 2px rgba(255, 255, 255, 0.6);
+    --shadow-elevated: 0 16px 36px -8px rgba(35, 30, 20, 0.12), 0 2px 8px rgba(35, 30, 20, 0.04);
+    --grain-opacity: 0.075;
+    --font-serif: "Songti SC", "Source Han Serif SC", "Noto Serif CJK SC", "STSong", "SimSun", "Baskerville", "Georgia", serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    --font-mono: "SF Mono", "Fira Code", "Courier New", monospace;
+    --transition-subtle: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper-base: #131211;
+      --paper-card: #1c1b18;
+      --paper-deep: #252320;
+      --paper-line: #38342f;
+      --ink-solid: #ebe6dc;
+      --ink-body: #c5beaf;
+      --ink-muted: #8c8577;
+      --ink-faint: #575249;
+      --vermilion: #c94634;
+      --vermilion-soft: #e06250;
+      --vermilion-tint: rgba(201, 70, 52, 0.15);
+      --copper: #4f786c;
+      --copper-light: #6ea091;
+      --copper-tint: rgba(79, 120, 108, 0.15);
+      --gold-leaf: #c7a45d;
+      --gold-tint: rgba(199, 164, 93, 0.15);
+      --grid-hairline: rgba(235, 230, 220, 0.08);
+      --shadow-deboss: inset 1px 1px 2px rgba(0, 0, 0, 0.7), inset -1px -1px 2px rgba(255, 255, 255, 0.05);
+      --shadow-elevated: 0 16px 40px -8px rgba(0, 0, 0, 0.6);
+      --grain-opacity: 0.12;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper-base: #131211;
+    --paper-card: #1c1b18;
+    --paper-deep: #252320;
+    --paper-line: #38342f;
+    --ink-solid: #ebe6dc;
+    --ink-body: #c5beaf;
+    --ink-muted: #8c8577;
+    --ink-faint: #575249;
+    --vermilion: #c94634;
+    --vermilion-soft: #e06250;
+    --vermilion-tint: rgba(201, 70, 52, 0.15);
+    --copper: #4f786c;
+    --copper-light: #6ea091;
+    --copper-tint: rgba(79, 120, 108, 0.15);
+    --gold-leaf: #c7a45d;
+    --gold-tint: rgba(199, 164, 93, 0.15);
+    --grid-hairline: rgba(235, 230, 220, 0.08);
+    --shadow-deboss: inset 1px 1px 2px rgba(0, 0, 0, 0.7), inset -1px -1px 2px rgba(255, 255, 255, 0.05);
+    --shadow-elevated: 0 16px 40px -8px rgba(0, 0, 0, 0.6);
+    --grain-opacity: 0.12;
+  }
+
+  :root[data-theme="light"] {
+    --paper-base: #f4efe6;
+    --paper-card: #ece6da;
+    --paper-deep: #ded6c5;
+    --paper-line: #cfc5b0;
+    --ink-solid: #191815;
+    --ink-body: #3c3933;
+    --ink-muted: #787367;
+    --ink-faint: #aba394;
+    --vermilion: #b63826;
+    --vermilion-soft: #d9533f;
+    --vermilion-tint: rgba(182, 56, 38, 0.08);
+    --copper: #2b473e;
+    --copper-light: #44685c;
+    --copper-tint: rgba(43, 71, 62, 0.08);
+    --gold-leaf: #9e7d3b;
+    --gold-tint: rgba(158, 125, 59, 0.12);
+    --grid-hairline: rgba(60, 57, 51, 0.12);
+    --shadow-deboss: inset 1px 1px 2px rgba(25, 24, 21, 0.25), inset -1px -1px 2px rgba(255, 255, 255, 0.6);
+    --shadow-elevated: 0 16px 36px -8px rgba(35, 30, 20, 0.12), 0 2px 8px rgba(35, 30, 20, 0.04);
+    --grain-opacity: 0.075;
+  }
+
+  /* ==========================================================================
+     BASE RESET & TEXTURE CANVAS
+     ========================================================================== */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+    background-color: var(--paper-base);
+  }
+
+  body {
+    background-color: var(--paper-base);
+    color: var(--ink-body);
+    font-family: var(--font-serif);
+    line-height: 1.8;
+    overflow-x: hidden;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Global Ink Texture Overlay */
+  .paper-grain-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: var(--grain-opacity);
+    mix-blend-mode: multiply;
+  }
+
+  /* Fine Architectural Guide Lines */
+  .layout-grid-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+      linear-gradient(to right, var(--grid-hairline) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-hairline) 1px, transparent 1px);
+    background-size: 120px 120px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .content-wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1380px;
+    margin: 0 auto;
+    padding: 0 2.5rem;
+  }
+
+  /* Utility classes */
+  .mono { font-family: var(--font-mono); font-size: 0.82rem; letter-spacing: 0.06em; }
+  .sans { font-family: var(--font-sans); }
+  .vermilion-text { color: var(--vermilion); }
+  .copper-text { color: var(--copper-light); }
+  .gold-text { color: var(--gold-leaf); }
+
+  /* ==========================================================================
+     HEADER / MASTHEAD & COLOPHON BAR
+     ========================================================================== */
+  .masthead {
+    border-bottom: 1px solid var(--paper-line);
+    padding: 1.5rem 0;
+    position: sticky;
+    top: 0;
+    background: rgba(244, 239, 230, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 100;
+    transition: var(--transition-subtle);
+  }
+  :root[data-theme="dark"] .masthead,
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .masthead {
+      background: rgba(19, 18, 17, 0.88);
+    }
+  }
+
+  .masthead-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .brand-stamp {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    text-decoration: none;
+    color: var(--ink-solid);
+  }
+
+  .brand-seal-svg {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .brand-stamp:hover .brand-seal-svg {
+    transform: rotate(90deg) scale(1.05);
+  }
+
+  .brand-titles {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand-name-cn {
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--ink-solid);
+    line-height: 1.2;
+  }
+
+  .brand-name-en {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+  }
+
+  .nav-coordinates {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    text-decoration: none;
+    color: var(--ink-body);
+    position: relative;
+    padding: 0.2rem 0;
+    transition: color 0.2s ease;
+  }
+
+  .nav-links a::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--vermilion);
+    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .nav-links a:hover {
+    color: var(--ink-solid);
+  }
+  .nav-links a:hover::after {
+    width: 100%;
+  }
+
+  .theme-toggle-btn {
+    background: var(--paper-card);
+    border: 1px solid var(--paper-line);
+    color: var(--ink-body);
+    padding: 0.4rem 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition-subtle);
+  }
+  .theme-toggle-btn:hover {
+    background: var(--paper-deep);
+    color: var(--ink-solid);
+    border-color: var(--ink-muted);
+  }
+
+  /* ==========================================================================
+     SECTION 1: THE MANIFESTO & THE MATRIX (EDITORIAL HERO)
+     ========================================================================== */
+  .hero-section {
+    padding: 6rem 0 5rem;
+    position: relative;
+    border-bottom: 1px solid var(--paper-line);
+  }
+
+  .hero-meta-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px dashed var(--paper-line);
+    margin-bottom: 3.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+  }
+
+  .hero-meta-left {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .meta-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .meta-tag::before {
+    content: "■";
+    font-size: 0.5rem;
+    color: var(--vermilion);
+  }
+
+  .hero-editorial-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 4rem;
+    align-items: start;
+  }
+
+  .hero-statement {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .hero-lead-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.25em;
+    color: var(--vermilion);
+    text-transform: uppercase;
+  }
+
+  .hero-main-title {
+    font-size: clamp(2.8rem, 5.5vw, 4.4rem);
+    font-weight: 700;
+    line-height: 1.12;
+    color: var(--ink-solid);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  .hero-title-rubric {
+    font-size: 1.2rem;
+    line-height: 1.9;
+    color: var(--ink-body);
+    border-left: 2px solid var(--paper-line);
+    padding-left: 1.5rem;
+    font-style: italic;
+  }
+
+  .hero-quote-source {
+    display: block;
+    font-size: 0.85rem;
+    font-style: normal;
+    font-family: var(--font-mono);
+    color: var(--ink-muted);
+    margin-top: 0.5rem;
+  }
+
+  /* Physical Type Matrix Diagram Component */
+  .type-matrix-plate {
+    background: var(--paper-card);
+    border: 1px solid var(--paper-line);
+    padding: 2rem;
+    position: relative;
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .plate-corner-ticks {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border: 1px solid var(--ink-solid);
+  }
+  .tick-tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .tick-tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+  .tick-bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+  .tick-br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .matrix-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--paper-line);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .matrix-visualizer {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 1.5rem;
+  }
+
+  .movable-slug {
+    background: var(--paper-deep);
+    border: 1px solid var(--paper-line);
+    aspect-ratio: 1 / 1.15;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0.4rem;
+    position: relative;
+    cursor: pointer;
+    transition: var(--transition-subtle);
+    box-shadow: var(--shadow-deboss);
+  }
+
+  .movable-slug:hover {
+    background: var(--paper-base);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px -4px rgba(0,0,0,0.15);
+    border-color: var(--vermilion);
+  }
+
+  .slug-glyph {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--ink-solid);
+    transform: scaleX(-1); /* Mirror effect representing real lead casting slug */
+    transition: transform 0.3s ease;
+  }
+  .movable-slug:hover .slug-glyph {
+    transform: scaleX(1); /* Reveal printed positive state on hover */
+    color: var(--vermilion);
+  }
+
+  .slug-spec {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--ink-muted);
+  }
+
+  .matrix-status-footer {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+    background: var(--paper-deep);
+    padding: 0.6rem 1rem;
+    border-left: 2px solid var(--vermilion);
+  }
+
+  /* ==========================================================================
+     SECTION 2: THE INK SQUISH & IMPRESSION LAB (INTERACTIVE PROTOTYPE)
+     ========================================================================== */
+  .lab-section {
+    padding: 6rem 0;
+    border-bottom: 1px solid var(--paper-line);
+  }
+
+  .section-intro-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 3rem;
+    margin-bottom: 3.5rem;
+  }
+
+  .section-legend {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--vermilion);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .section-num {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--ink-solid);
+  }
+
+  .section-heading-block {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .section-title {
+    font-size: clamp(2rem, 3.2vw, 2.8rem);
+    font-weight: 700;
+    color: var(--ink-solid);
+    line-height: 1.25;
+  }
+
+  .section-desc {
+    font-size: 1.1rem;
+    color: var(--ink-body);
+    max-width: 780px;
+    line-height: 1.85;
+  }
+
+  /* Interactive Lab Bench */
+  .microscope-bench {
+    display: grid;
+    grid-template-columns: 1.3fr 0.9fr;
+    gap: 2.5rem;
+    background: var(--paper-card);
+    border: 1px solid var(--paper-line);
+    padding: 2.5rem;
+    position: relative;
+  }
+
+  .specimen-stage {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .stage-viewport-frame {
+    position: relative;
+    background: var(--paper-base);
+    border: 1px solid var(--paper-line);
+    height: 380px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    box-shadow: var(--shadow-deboss);
+  }
+
+  /* Canvas-driven Ink Simulation Stage */
+  #inkCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .reticle-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    border: 1px solid var(--grid-hairline);
+    background:
+      radial-gradient(circle at center, transparent 40%, rgba(244, 239, 230, 0.4) 100%);
+  }
+  :root[data-theme="dark"] .reticle-overlay {
+    background: radial-gradient(circle at center, transparent 40%, rgba(19, 18, 17, 0.6) 100%);
+  }
+
+  .reticle-crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 140px;
+    height: 140px;
+    transform: translate(-50%, -50%);
+    border: 1px dashed var(--vermilion);
+    border-radius: 50%;
+    opacity: 0.6;
+  }
+
+  .reticle-crosshair::before,
+  .reticle-crosshair::after {
+    content: "";
+    position: absolute;
+    background: var(--vermilion);
+  }
+  .reticle-crosshair::before {
+    top: 50%; left: -20px; right: -20px; height: 1px;
+  }
+  .reticle-crosshair::after {
+    left: 50%; top: -20px; bottom: -20px; width: 1px;
+  }
+
+  .stage-calibrators {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    justify-content: center;
+  }
+
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .control-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--ink-solid);
+  }
+
+  .range-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: var(--paper-deep);
+    outline: none;
+    border: 1px solid var(--paper-line);
+    border-radius: 0;
+  }
+
+  .range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--vermilion);
+    cursor: pointer;
+    border: 2px solid var(--paper-base);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: transform 0.1s;
+  }
+  .range-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  .glyph-selector-strip {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .glyph-btn {
+    flex: 1;
+    background: var(--paper-deep);
+    border: 1px solid var(--paper-line);
+    color: var(--ink-solid);
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: var(--transition-subtle);
+  }
+  .glyph-btn.active, .glyph-btn:hover {
+    background: var(--ink-solid);
+    color: var(--paper-base);
+    border-color: var(--ink-solid);
+  }
+
+  .lab-diagnostic-readout {
+    background: var(--paper-base);
+    border: 1px solid var(--paper-line);
+    padding: 1.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-body);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .readout-row {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dotted var(--paper-line);
+    padding-bottom: 0.2rem;
+  }
+
+  /* ==========================================================================
+     SECTION 3: THE CHRONO-CATALOGUE (SPECIMEN BROADSHEET)
+     ========================================================================== */
+  .catalogue-section {
+    padding: 6rem 0;
+    border-bottom: 1px solid var(--paper-line);
+  }
+
+  .specimen-broadsheet-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+    margin-top: 2rem;
+  }
+
+  .specimen-entry {
+    background: var(--paper-card);
+    border: 1px solid var(--paper-line);
+    padding: 3.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 4rem;
+    position: relative;
+    transition: var(--transition-subtle);
+  }
+
+  .specimen-entry:hover {
+    box-shadow: var(--shadow-elevated);
+    border-color: var(--ink-muted);
+  }
+
+  .specimen-meta-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid var(--paper-line);
+    padding-right: 3rem;
+  }
+
+  .specimen-header-top {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .specimen-era-badge {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    color: var(--gold-leaf);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .specimen-era-badge::before {
+    content: "◈";
+    font-size: 0.8rem;
+  }
+
+  .specimen-name {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--ink-solid);
+    line-height: 1.15;
+  }
+
+  .specimen-name-sub {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+  }
+
+  .specimen-provenance {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: var(--ink-body);
+    margin: 1.5rem 0;
+  }
+
+  .specimen-parameters {
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    border-top: 1px solid var(--paper-line);
+    padding-top: 1.2rem;
+  }
+
+  .specimen-parameters li {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .specimen-display-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    justify-content: center;
+  }
+
+  .specimen-large-rendering {
+    font-size: clamp(3.5rem, 6vw, 5.5rem);
+    line-height: 1.1;
+    color: var(--ink-solid);
+    letter-spacing: 0.08em;
+    position: relative;
+    user-select: none;
+  }
+
+  .specimen-stroke-guide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 24px,
+      var(--grid-hairline) 24px,
+      var(--grid-hairline) 25px
+    );
+  }
+
+  .specimen-body-paragraph {
+    font-size: 1.15rem;
+    line-height: 2;
+    color: var(--ink-body);
+    text-align: justify;
+    border-left: 2px solid var(--vermilion-tint);
+    padding-left: 1.5rem;
+  }
+
+  .specimen-action-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .btn-hollow {
+    background: transparent;
+    border: 1px solid var(--ink-solid);
+    color: var(--ink-solid);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    padding: 0.7rem 1.4rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: var(--transition-subtle);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .btn-hollow:hover {
+    background: var(--ink-solid);
+    color: var(--paper-base);
+  }
+
+  .btn-vermilion {
+    background: var(--vermilion);
+    border: 1px solid var(--vermilion);
+    color: #ffffff;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    padding: 0.7rem 1.4rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: var(--transition-subtle);
+  }
+  .btn-vermilion:hover {
+    background: var(--vermilion-soft);
+    box-shadow: 0 4px 14px rgba(182, 56, 38, 0.35);
+  }
+
+  /* ==========================================================================
+     SECTION 4: THE ALCHEMY OF CARRIER & ALLOY (MATERIAL ARCHIVE)
+     ========================================================================== */
+  .alchemy-section {
+    padding: 6rem 0;
+    border-bottom: 1px solid var(--paper-line);
+  }
+
+  .materials-triptych {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 3.5rem;
+  }
+
+  .material-card {
+    background: var(--paper-card);
+    border: 1px solid var(--paper-line);
+    padding: 2.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .material-symbol-watermark {
+    position: absolute;
+    right: -10px;
+    bottom: -20px;
+    font-size: 7rem;
+    font-weight: 900;
+    color: var(--paper-deep);
+    opacity: 0.5;
+    pointer-events: none;
+    line-height: 1;
+    font-family: var(--font-serif);
+  }
+
+  .material-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    color: var(--copper-light);
+  }
+
+  .material-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink-solid);
+    line-height: 1.3;
+  }
+
+  .material-desc {
+    font-size: 0.95rem;
+    line-height: 1.85;
+    color: var(--ink-body);
+    position: relative;
+    z-index: 1;
+  }
+
+  .material-formula-box {
+    background: var(--paper-base);
+    border: 1px solid var(--paper-line);
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ==========================================================================
+     SECTION 5: COLOPHON, IMPRINT SEAL & SUBSCRIPTION
+     ========================================================================== */
+  .colophon-section {
+    padding: 6rem 0 8rem;
+    position: relative;
+  }
+
+  .colophon-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 5rem;
+    background: var(--paper-card);
+    border: 1px solid var(--paper-line);
+    padding: 4rem;
+    position: relative;
+  }
+
+  .seal-interactive-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    border-right: 1px solid var(--paper-line);
+    padding-right: 4rem;
+  }
+
+  .seal-stamp-box {
+    width: 200px;
+    height: 200px;
+    border: 2px dashed var(--vermilion);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    background: var(--paper-base);
+    transition: var(--transition-subtle);
+    user-select: none;
+  }
+
+  .seal-stamp-box:hover {
+    background: var(--vermilion-tint);
+    transform: scale(1.02);
+  }
+
+  .seal-stamp-box:active {
+    transform: scale(0.96);
+  }
+
+  .seal-ink-graphic {
+    width: 140px;
+    height: 140px;
+    opacity: 0.15;
+    transition: opacity 0.4s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    filter: drop-shadow(0 2px 4px rgba(182, 56, 38, 0.2));
+  }
+
+  .seal-stamp-box.stamped .seal-ink-graphic {
+    opacity: 1;
+    transform: scale(1);
+    animation: stampThud 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  @keyframes stampThud {
+    0% { transform: scale(1.4) rotate(-8deg); opacity: 0; }
+    70% { transform: scale(0.9) rotate(2deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+  }
+
+  .seal-hint {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--vermilion);
+    letter-spacing: 0.1em;
+  }
+
+  .colophon-form-side {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2rem;
+  }
+
+  .colophon-lead-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--ink-solid);
+    line-height: 1.2;
+  }
+
+  .colophon-lead-text {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--ink-body);
+  }
+
+  .archive-input-group {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .archive-input {
+    flex: 1;
+    background: var(--paper-base);
+    border: 1px solid var(--paper-line);
+    padding: 0.8rem 1.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--ink-solid);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .archive-input:focus {
+    border-color: var(--vermilion);
+  }
+
+  /* Footer metadata bar */
+  .site-footer {
+    border-top: 1px solid var(--paper-line);
+    padding: 2.5rem 0;
+    margin-top: 4rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+  }
+
+  .footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* ==========================================================================
+     RESPONSIVE BREAKPOINTS
+     ========================================================================== */
+  @media (max-width: 1024px) {
+    .hero-editorial-grid,
+    .microscope-bench,
+    .specimen-entry,
+    .colophon-grid {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+    .specimen-meta-col {
+      border-right: none;
+      border-bottom: 1px solid var(--paper-line);
+      padding-right: 0;
+      padding-bottom: 2rem;
+    }
+    .seal-interactive-stage {
+      border-right: none;
+      border-bottom: 1px solid var(--paper-line);
+      padding-right: 0;
+      padding-bottom: 3rem;
+    }
+    .materials-triptych {
+      grid-template-columns: 1fr;
+    }
+    .section-intro-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .content-wrapper {
+      padding: 0 1.25rem;
+    }
+    .hero-meta-bar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .nav-coordinates .nav-links {
+      display: none;
+    }
+    .specimen-entry {
+      padding: 1.8rem;
+    }
+    .archive-input-group {
+      flex-direction: column;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- SVG Grain Filter & Inline Assets -->
+<svg class="paper-grain-overlay" xmlns="http://www.w3.org/2000/svg">
+  <filter id="paperNoise">
+    <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch" />
+    <feColorMatrix type="matrix" values="0 0 0 0 0.1   0 0 0 0 0.1   0 0 0 0 0.1   0 0 0 0.7 0" />
+  </filter>
+  <rect width="100%" height="100%" filter="url(#paperNoise)" />
+</svg>
+
+<div class="layout-grid-bg"></div>
+
+<!-- MASTHEAD NAVIGATION -->
+<header class="masthead">
+  <div class="content-wrapper">
+    <div class="masthead-inner">
+      <a href="#" class="brand-stamp">
+        <!-- Seal Monogram SVG -->
+        <svg class="brand-seal-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="4" width="92" height="92" rx="4" stroke="var(--vermilion)" stroke-width="4" fill="var(--vermilion-tint)"/>
+          <path d="M24 24H76V32H54V76H46V32H24V24Z" fill="var(--vermilion)"/>
+          <circle cx="50" cy="54" r="6" fill="var(--vermilion)"/>
+          <path d="M30 68L70 68" stroke="var(--vermilion)" stroke-width="3" stroke-dasharray="2 2"/>
+        </svg>
+        <div class="brand-titles">
+          <span class="brand-name-cn">拾遗印存</span>
+          <span class="brand-name-en">Chrono-Typo Archive</span>
+        </div>
+      </a>
+
+      <div class="nav-coordinates">
+        <ul class="nav-links">
+          <li><a href="#matrix">活字构架</a></li>
+          <li><a href="#squish-lab">墨晕标定</a></li>
+          <li><a href="#catalogue">复刻字志</a></li>
+          <li><a href="#materials">铅汞纸髓</a></li>
+          <li><a href="#colophon">藏书印定</a></li>
+        </ul>
+
+        <button class="theme-toggle-btn" id="themeToggle" aria-label="切换纸张明暗质感">
+          <span id="themeLabel">松烟墨色</span>
+          <span style="color: var(--vermilion)">◑</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- =========================================================================
+       HERO: THE MANIFESTO & THE MATRIX
+       ========================================================================= -->
+  <section class="hero-section" id="matrix">
+    <div class="content-wrapper">
+      <div class="hero-meta-bar">
+        <div class="hero-meta-left">
+          <span class="meta-tag">卷宗编号: CTA-1628-M</span>
+          <span class="meta-tag">版心规格: 九行十八字 · 双鱼尾</span>
+        </div>
+        <div class="hero-meta-right">
+          <span>活字铅合金配比: Pb82 / Sb15 / Sn3</span>
+        </div>
+      </div>
+
+      <div class="hero-editorial-grid">
+        <div class="hero-statement">
+          <span class="hero-lead-kicker">Letterfoundry &amp; Micro-Typography Lab</span>
+          <h1 class="hero-main-title">重拾铅墨入纸的<br>物质性深度与时间微晕</h1>
+          <div class="hero-title-rubric">
+            “当像素消弭了刀痕的顿挫与铜模受压的微溢，字体便沦为冰冷的几何轮廓。我们在纸浆纤维的起伏与桐油烟墨的浸润中，重构汉字活字的物理灵魂。”
+            <span class="hero-quote-source">—《拾遗印存·发刊辞》庚子修撰</span>
+          </div>
+        </div>
+
+        <!-- Movable Type Matrix Component -->
+        <div class="type-matrix-plate">
+          <div class="plate-corner-ticks tick-tl"></div>
+          <div class="plate-corner-ticks tick-tr"></div>
+          <div class="plate-corner-ticks tick-bl"></div>
+          <div class="plate-corner-ticks tick-br"></div>
+
+          <div class="matrix-header">
+            <span class="mono" style="color: var(--ink-solid);">活字盘实时印模检字架 [EM-MATRIX]</span>
+            <span class="mono vermilion-text">4×2 铜模铸字</span>
+          </div>
+
+          <div class="matrix-visualizer">
+            <div class="movable-slug" data-name="明万历·金陵本" data-pt="初号 36pt">
+              <span class="slug-spec">万历</span>
+              <span class="slug-glyph">拾</span>
+              <span class="slug-spec">36pt</span>
+            </div>
+            <div class="movable-slug" data-name="江户·活版初印" data-pt="二号 21pt">
+              <span class="slug-spec">秀英</span>
+              <span class="slug-glyph">遺</span>
+              <span class="slug-spec">21pt</span>
+            </div>
+            <div class="movable-slug" data-name="美华书馆·上海字模" data-pt="一号 28pt">
+              <span class="slug-spec">美华</span>
+              <span class="slug-glyph">印</span>
+              <span class="slug-spec">28pt</span>
+            </div>
+            <div class="movable-slug" data-name="武英殿·聚珍仿宋" data-pt="三号 16pt">
+              <span class="slug-spec">聚珍</span>
+              <span class="slug-glyph">存</span>
+              <span class="slug-spec">16pt</span>
+            </div>
+            <div class="movable-slug" data-name="宋蜀刻·大字本" data-pt="特号 42pt">
+              <span class="slug-spec">蜀刻</span>
+              <span class="slug-glyph">墨</span>
+              <span class="slug-spec">42pt</span>
+            </div>
+            <div class="movable-slug" data-name="汲古阁·毛氏正楷" data-pt="四号 14pt">
+              <span class="slug-spec">汲古</span>
+              <span class="slug-glyph">韻</span>
+              <span class="slug-spec">14pt</span>
+            </div>
+            <div class="movable-slug" data-name="清开成石经·拓印" data-pt="五号 10.5pt">
+              <span class="slug-spec">石经</span>
+              <span class="slug-glyph">髓</span>
+              <span class="slug-spec">10.5pt</span>
+            </div>
+            <div class="movable-slug" data-name="铅字压印标尺" data-pt="定制 48pt">
+              <span class="slug-spec">规矩</span>
+              <span class="slug-glyph">象</span>
+              <span class="slug-spec">48pt</span>
+            </div>
+          </div>
+
+          <div class="matrix-status-footer" id="matrixSlugStatus">
+            <span>选定字模: 悬停检视铅活字镜像与印痕</span>
+            <span>状态: 待调版</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       SECTION 2: THE INK SQUISH & IMPRESSION LAB (INTERACTIVE SIMULATION)
+       ========================================================================= -->
+  <section class="lab-section" id="squish-lab">
+    <div class="content-wrapper">
+      <div class="section-intro-grid">
+        <div class="section-legend">
+          <span class="section-num">01</span>
+          <span>Microscopic Physics</span>
+          <span>油墨挤压与微墨晕显微标定</span>
+        </div>
+        <div class="section-heading-block">
+          <h2 class="section-title">在微米级尺度，再现压力与墨油渗析</h2>
+          <p class="section-desc">
+            活字印刷的魅力在于“墨晕（Ink Squish）”——重压之下，金属笔锋边缘的油墨被挤向两侧，形成深色外缘与饱满的中腹；手工纸张纤维更会引发细微毛细吸附。调节下方参数，观察物理压印算法的实时演算。
+          </p>
+        </div>
+      </div>
+
+      <div class="microscope-bench">
+        <div class="specimen-stage">
+          <div class="stage-viewport-frame">
+            <canvas id="inkCanvas" width="700" height="420"></canvas>
+            <div class="reticle-overlay">
+              <div class="reticle-crosshair"></div>
+            </div>
+          </div>
+          <div class="mono" style="display:flex; justify-content:space-between; color:var(--ink-muted); font-size:0.75rem;">
+            <span>显微视场: 100x 偏光透射</span>
+            <span id="canvasFps">渲染引擎: 2D Fluid-Impression Core</span>
+          </div>
+        </div>
+
+        <div class="stage-calibrators">
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>压印力道 (Impression Pressure)</span>
+              <span id="pressureVal" class="vermilion-text">2.8 Bar</span>
+            </div>
+            <input type="range" class="range-slider" id="sliderPressure" min="1" max="5" step="0.1" value="2.8">
+          </div>
+
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>油墨黏度 (Ink Viscosity)</span>
+              <span id="viscosityVal" class="vermilion-text">64%</span>
+            </div>
+            <input type="range" class="range-slider" id="sliderViscosity" min="20" max="95" step="1" value="64">
+          </div>
+
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>构树皮纤维吸收率 (Paper Absorbency)</span>
+              <span id="absorbVal" class="vermilion-text">42%</span>
+            </div>
+            <input type="range" class="range-slider" id="sliderAbsorb" min="5" max="85" step="1" value="42">
+          </div>
+
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>刻蚀母字选择 (Matrix Specimen)</span>
+            </div>
+            <div class="glyph-selector-strip">
+              <button class="glyph-btn active" data-char="永">永</button>
+              <button class="glyph-btn" data-char="墨">墨</button>
+              <button class="glyph-btn" data-char="骨">骨</button>
+              <button class="glyph-btn" data-char="鑄">鑄</button>
+              <button class="glyph-btn" data-char="氣">氣</button>
+            </div>
+          </div>
+
+          <div class="lab-diagnostic-readout">
+            <div class="readout-row">
+              <span>边缘外溢宽度 (Squish Rim):</span>
+              <span id="readoutRim" class="mono vermilion-text">0.14 mm</span>
+            </div>
+            <div class="readout-row">
+              <span>纸浆纤维渗透深度 (Penetration):</span>
+              <span id="readoutDepth" class="mono">28.4 μm</span>
+            </div>
+            <div class="readout-row">
+              <span>墨色光学密度 (Optical Density):</span>
+              <span id="readoutDensity" class="mono">1.82 D</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       SECTION 3: THE CHRONO-CATALOGUE (SPECIMEN BROADSHEET)
+       ========================================================================= -->
+  <section class="catalogue-section" id="catalogue">
+    <div class="content-wrapper">
+      <div class="section-intro-grid">
+        <div class="section-legend">
+          <span class="section-num">02</span>
+          <span>Digital Type Foundry</span>
+          <span>拾遗四种·数字化复刻活字谱</span>
+        </div>
+        <div class="section-heading-block">
+          <h2 class="section-title">非平滑轮廓，保留刻工运刀与铜模磨损</h2>
+          <p class="section-desc">
+            每款字体均基于原版善本的超高解析度断层扫描，提取千百次压印所积淀的“墨肉”与骨力，重构为适用于现代高精屏显与高品质印刷的 OpenType 数字化资产。
+          </p>
+        </div>
+      </div>
+
+      <div class="specimen-broadsheet-container">
+        <!-- Specimen 1 -->
+        <article class="specimen-entry">
+          <div class="specimen-meta-col">
+            <div class="specimen-header-top">
+              <span class="specimen-era-badge">明万历 · 金陵铜活字</span>
+              <h3 class="specimen-name">万历聚珍体</h3>
+              <span class="specimen-name-sub">Wanli Movable Copper Serif</span>
+              <p class="specimen-provenance">
+                底本源自万历二十八年金陵刻工吴氏铜版活字本。横细竖粗，转折处呈锐利菱角，保留了铜模雕凿时特有的利落金属切面。
+              </p>
+            </div>
+
+            <ul class="specimen-parameters">
+              <li><span>字符集容量:</span> <span>9,860 汉字 + 全标点</span></li>
+              <li><span>光学校准字重:</span> <span>Headline / Text / Fine</span></li>
+              <li><span>OpenType 特性:</span> <span>墨晕伪随机置换 (calt)</span></li>
+            </ul>
+          </div>
+
+          <div class="specimen-display-col">
+            <div class="specimen-large-rendering">
+              <div class="specimen-stroke-guide"></div>
+              天地玄黃 宇宙洪荒
+            </div>
+            <p class="specimen-body-paragraph">
+              日月盈昃，辰宿列張。寒來暑往，秋收冬藏。閏餘成歲，律呂調陽。雲騰致雨，露結為霜。金生麗水，玉出崑岡。劍號巨闕，珠稱夜光。果珍李柰，菜重芥薑。海鹹河淡，鱗潛羽翔。
+            </p>
+            <div class="specimen-action-row">
+              <a href="#colophon" class="btn-vermilion">获取字体授权试用卷</a>
+              <a href="#squish-lab" class="btn-hollow">检视笔画切片</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Specimen 2 -->
+        <article class="specimen-entry">
+          <div class="specimen-meta-col">
+            <div class="specimen-header-top">
+              <span class="specimen-era-badge">清同治 · 美华馆铅印</span>
+              <h3 class="specimen-name">上海美华五号字</h3>
+              <span class="specimen-name-sub">Presbyterian Press No.5 Lead</span>
+              <p class="specimen-provenance">
+                复刻自1860年代上海美华书馆所制电镀字模铅活字。中西合璧的排版骨架，字形端庄稳健，中宫收紧，具有极高的小字号正文辨识度。
+              </p>
+            </div>
+
+            <ul class="specimen-parameters">
+              <li><span>字符集容量:</span> <span>12,400 汉字 + 拉丁扩展</span></li>
+              <li><span>光学校准字重:</span> <span>Regular / Medium / Bold</span></li>
+              <li><span>微排版特性:</span> <span>连字 (liga) · 铅字间距锁定</span></li>
+            </ul>
+          </div>
+
+          <div class="specimen-display-col">
+            <div class="specimen-large-rendering">
+              <div class="specimen-stroke-guide"></div>
+              格物致知 溫故知新
+            </div>
+            <p class="specimen-body-paragraph">
+              古之欲明明德於天下者，先治其國；欲治其國者，先齊其家；欲齊其家者，先修其身；欲修其身者，先正其心；欲正其心者，先誠其意；欲誠其意者，先致其知；致知在格物。物格而后知至。
+            </p>
+            <div class="specimen-action-row">
+              <a href="#colophon" class="btn-vermilion">获取字体授权试用卷</a>
+              <a href="#squish-lab" class="btn-hollow">检视笔画切片</a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       SECTION 4: THE ALCHEMY OF CARRIER & ALLOY
+       ========================================================================= -->
+  <section class="alchemy-section" id="materials">
+    <div class="content-wrapper">
+      <div class="section-intro-grid">
+        <div class="section-legend">
+          <span class="section-num">03</span>
+          <span>Material Alchemy</span>
+          <span>物质的炼金术 · 铅、墨、纸髓</span>
+        </div>
+        <div class="section-heading-block">
+          <h2 class="section-title">字体不是抽象代码，而是物理介质的化身</h2>
+          <p class="section-desc">
+            我们记录了活字铸造中的三种关键物质载体，并将它们的光学反射率、吸水率与磨损曲线，完整编织进数字字体的变轴（Variable Axes）与渲染着色器中。
+          </p>
+        </div>
+      </div>
+
+      <div class="materials-triptych">
+        <!-- Material 1 -->
+        <div class="material-card">
+          <span class="material-symbol-watermark">鉛</span>
+          <span class="material-kicker">ALLOY 01 · 铸合金</span>
+          <h3 class="material-title">铅锑三元活字合金</h3>
+          <p class="material-desc">
+            铅赋予金属流动性，锑保证冷却时不收缩并精准填满字模细微转角，锡增强韧性与耐磨度。熔点 240°C，重铸损耗率 1.2%。
+          </p>
+          <div class="material-formula-box">
+            <span>Pb: 80%~84% (底基)</span>
+            <span>Sb: 13%~16% (抗微缩膨胀)</span>
+            <span>Sn: 3%~5% (表面硬化)</span>
+          </div>
+        </div>
+
+        <!-- Material 2 -->
+        <div class="material-card">
+          <span class="material-symbol-watermark">墨</span>
+          <span class="material-kicker">PIGMENT 02 · 烟墨膏</span>
+          <h3 class="material-title">黄山松烟与桐油重胶</h3>
+          <p class="material-desc">
+            采集古松醇烟，加入生漆、桐油与皮胶千杵百炼。乌黑而沉静，光照微显紫玉光泽，干涸后遇水不化，具百年耐光牢度。
+          </p>
+          <div class="material-formula-box">
+            <span>颗粒粒径: 15~35 nm</span>
+            <span>着色力: 185% (对标碳黑)</span>
+            <span>吸油值: 48 ml/100g</span>
+          </div>
+        </div>
+
+        <!-- Material 3 -->
+        <div class="material-card">
+          <span class="material-symbol-watermark">紙</span>
+          <span class="material-kicker">CARRIER 03 · 构皮纸</span>
+          <h3 class="material-title">皖南手工雁皮生宣</h3>
+          <p class="material-desc">
+            采纯构树皮与青檀皮，经山泉浸沤与日光漂白。纸质绵韧如丝，帘纹隐约，纤维长达 8~12mm，受压时能产生绝妙的立体压痕深度。
+          </p>
+          <div class="material-formula-box">
+            <span>克重定量: 68 g/m²</span>
+            <span>pH 酸碱度: 7.8 (无酸永存)</span>
+            <span>抗张强度: 4.8 kN/m</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       SECTION 5: COLOPHON & INTERACTIVE IMPRINT SEAL
+       ========================================================================= -->
+  <section class="colophon-section" id="colophon">
+    <div class="content-wrapper">
+      <div class="colophon-grid">
+        <!-- Interactive Stamp Stage -->
+        <div class="seal-interactive-stage">
+          <div class="seal-stamp-box" id="stampBox" title="点击压印藏书印">
+            <svg class="seal-ink-graphic" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="6" y="6" width="88" height="88" rx="2" stroke="var(--vermilion)" stroke-width="5" fill="none"/>
+              <rect x="12" y="12" width="76" height="76" stroke="var(--vermilion)" stroke-width="1.5" stroke-dasharray="3 2" fill="none"/>
+              <!-- Seal Characters "拾遗印存 乙巳年造" in Ancient Seal Script style -->
+              <path d="M30 24V44M22 34H38M26 44H34" stroke="var(--vermilion)" stroke-width="3.5" stroke-linecap="square"/>
+              <path d="M70 24V44M62 34H78M66 24C66 30 74 30 74 38" stroke="var(--vermilion)" stroke-width="3.5" stroke-linecap="square"/>
+              <path d="M24 60H36V76M30 60V76" stroke="var(--vermilion)" stroke-width="3.5" stroke-linecap="square"/>
+              <path d="M64 60C74 60 74 76 64 76M70 60V76" stroke="var(--vermilion)" stroke-width="3.5" stroke-linecap="square"/>
+            </svg>
+          </div>
+          <span class="seal-hint" id="sealHint">[ 点击上方白文印印定契约 ]</span>
+        </div>
+
+        <!-- Subscription Form -->
+        <div class="colophon-form-side">
+          <h2 class="colophon-lead-title">加入「拾遗印存」年度文献与字体更新编目</h2>
+          <p class="colophon-lead-text">
+            我们每季向订阅学者与设计师寄送一份实体《活字试印折页标本》（含真实铅字手工压印页）与最新数字化字库的测试编译包。
+          </p>
+
+          <form id="subscribeForm" onsubmit="event.preventDefault(); handleSubscribe();" style="display:flex; flex-direction:column; gap:1rem;">
+            <div class="archive-input-group">
+              <input type="email" required placeholder="请输入您的电子邮箱（用于接收文献）" class="archive-input" id="subEmail">
+              <button type="submit" class="btn-vermilion" id="subBtn">加印入册</button>
+            </div>
+            <span class="mono" id="formStatus" style="font-size:0.75rem; color:var(--ink-muted);">我们尊重隐私，绝无商业推广信息。</span>
+          </form>
+        </div>
+      </div>
+
+      <!-- Site Colophon Footer -->
+      <footer class="site-footer">
+        <div class="footer-row">
+          <span>© 2026 拾遗印存工坊 Chrono-Typo Archive. 版权所有.</span>
+          <span>工坊坐标: 31°14'N, 121°28'E · 雁皮纸基底</span>
+          <span>纯内联视觉资产 · 无外部跟踪</span>
+        </div>
+      </footer>
+    </div>
+  </section>
+</main>
+
+<script>
+  /* ==========================================================================
+     THEME TOGGLER (PAPERS & CARBON INK)
+     ========================================================================== */
+  const themeToggleBtn = document.getElementById('themeToggle');
+  const themeLabel = document.getElementById('themeLabel');
+  let isDark = false;
+
+  themeToggleBtn.addEventListener('click', () => {
+    isDark = !isDark;
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      themeLabel.textContent = '素白雁皮';
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      themeLabel.textContent = '松烟墨色';
+    }
+    drawInkSimulation(); // Redraw canvas on theme switch
+  });
+
+  /* ==========================================================================
+     INTERACTIVE MOVABLE SLUG STATUS
+     ========================================================================== */
+  const slugs = document.querySelectorAll('.movable-slug');
+  const matrixStatus = document.getElementById('matrixSlugStatus');
+
+  slugs.forEach(slug => {
+    slug.addEventListener('mouseenter', () => {
+      const name = slug.getAttribute('data-name');
+      const pt = slug.getAttribute('data-pt');
+      matrixStatus.innerHTML = `<span style="color:var(--vermilion)">【已选定】${name}</span> <span>规格: ${pt} · 镜像字模已校准</span>`;
+    });
+  });
+
+  /* ==========================================================================
+     INTERACTIVE INK SQUISH SIMULATION CANVAS
+     ========================================================================== */
+  const canvas = document.getElementById('inkCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const sliderPressure = document.getElementById('sliderPressure');
+  const sliderViscosity = document.getElementById('sliderViscosity');
+  const sliderAbsorb = document.getElementById('sliderAbsorb');
+
+  const pressureVal = document.getElementById('pressureVal');
+  const viscosityVal = document.getElementById('viscosityVal');
+  const absorbVal = document.getElementById('absorbVal');
+
+  const readoutRim = document.getElementById('readoutRim');
+  const readoutDepth = document.getElementById('readoutDepth');
+  const readoutDensity = document.getElementById('readoutDensity');
+
+  let currentChar = '永';
+
+  document.querySelectorAll('.glyph-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.glyph-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentChar = btn.getAttribute('data-char');
+      drawInkSimulation();
+    });
+  });
+
+  function updateReadouts() {
+    const p = parseFloat(sliderPressure.value);
+    const v = parseInt(sliderViscosity.value);
+    const a = parseInt(sliderAbsorb.value);
+
+    pressureVal.textContent = p.toFixed(1) + ' Bar';
+    viscosityVal.textContent = v + '%';
+    absorbVal.textContent = a + '%';
+
+    const rim = (0.05 + (p * 0.035) - (v * 0.0004) + (a * 0.0008)).toFixed(2);
+    const depth = (12 + (p * 4.2) + (a * 0.22)).toFixed(1);
+    const density = (1.2 + (v * 0.01) - (a * 0.003)).toFixed(2);
+
+    readoutRim.textContent = rim + ' mm';
+    readoutDepth.textContent = depth + ' μm';
+    readoutDensity.textContent = density + ' D';
+  }
+
+  function drawInkSimulation() {
+    updateReadouts();
+
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const isCurrentDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+      (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+    const p = parseFloat(sliderPressure.value);
+    const v = parseInt(sliderViscosity.value);
+    const a = parseInt(sliderAbsorb.value);
+
+    // 1. Draw Fiber Grid Background on Canvas
+    ctx.save();
+    ctx.strokeStyle = isCurrentDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 30) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+    for (let y = 0; y < h; y += 30) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+
+    // 2. Draw Paper Fiber Strands (Organic look)
+    ctx.strokeStyle = isCurrentDark ? 'rgba(255,255,255,0.08)' : 'rgba(100,80,50,0.08)';
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 20; i++) {
+      const startX = ((i * 47) % w);
+      const startY = ((i * 83) % h);
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.bezierCurveTo(startX + 20, startY + 10, startX + 40, startY - 15, startX + 60, startY + 5);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // 3. Render Simulated Ink Squish Layers
+    const fontSize = 240;
+    const cx = w / 2;
+    const cy = h / 2 + 80;
+
+    ctx.save();
+    ctx.font = `700 ${fontSize}px "Songti SC", "Source Han Serif SC", "Noto Serif CJK SC", "STSong", serif`;
+    ctx.textAlign = 'center';
+
+    // Outer Feathering (Capillary Absorbency Halo)
+    const featherRadius = (a / 100) * 16 + (p * 2);
+    ctx.shadowBlur = featherRadius;
+    ctx.shadowColor = isCurrentDark ? 'rgba(235, 230, 220, 0.25)' : 'rgba(40, 30, 20, 0.25)';
+    ctx.fillStyle = isCurrentDark ? 'rgba(235, 230, 220, 0.4)' : 'rgba(40, 30, 20, 0.4)';
+    ctx.fillText(currentChar, cx, cy);
+
+    // Rim of Ink Squish (Concentrated perimeter from high pressure)
+    const rimWidth = 2 + p * 1.8;
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = isCurrentDark ? '#ffffff' : '#050505';
+    ctx.lineWidth = rimWidth;
+    ctx.strokeText(currentChar, cx, cy);
+
+    // Core Ink Fill (Slightly lighter in the center under extreme compression)
+    const centerAlpha = Math.max(0.65, (1 - (p * 0.06)));
+    ctx.fillStyle = isCurrentDark
+      ? `rgba(220, 215, 205, ${centerAlpha})`
+      : `rgba(28, 25, 20, ${centerAlpha})`;
+    ctx.fillText(currentChar, cx, cy);
+
+    // Impression Deboss Shading (Simulating 3D Paper indentation)
+    ctx.strokeStyle = isCurrentDark ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.7)';
+    ctx.lineWidth = 1;
+    ctx.strokeText(currentChar, cx - 1.5, cy - 1.5);
+
+    ctx.restore();
+  }
+
+  [sliderPressure, sliderViscosity, sliderAbsorb].forEach(slider => {
+    slider.addEventListener('input', drawInkSimulation);
+  });
+
+  // Initial render
+  drawInkSimulation();
+
+  /* ==========================================================================
+     INTERACTIVE SEAL STAMP ACTION
+     ========================================================================= */
+  const stampBox = document.getElementById('stampBox');
+  const sealHint = document.getElementById('sealHint');
+
+  stampBox.addEventListener('click', () => {
+    stampBox.classList.toggle('stamped');
+    if (stampBox.classList.contains('stamped')) {
+      sealHint.textContent = '✓ 已印定：庚子年聚珍文献编号 CTA-9428';
+      sealHint.style.color = 'var(--vermilion)';
+    } else {
+      sealHint.textContent = '[ 点击上方白文印印定契约 ]';
+    }
+  });
+
+  /* ==========================================================================
+     SUBSCRIPTION FORM HANDLER
+     ========================================================================== */
+  function handleSubscribe() {
+    const email = document.getElementById('subEmail').value;
+    const btn = document.getElementById('subBtn');
+    const status = document.getElementById('formStatus');
+
+    if (email) {
+      btn.textContent = '已加印入册 ✓';
+      btn.style.background = 'var(--copper)';
+      btn.style.borderColor = 'var(--copper)';
+      status.innerHTML = `<span style="color:var(--vermilion)">✓ 感谢！试印标本折页提取码已发往 ${email}</span>`;
+      stampBox.classList.add('stamped');
+      sealHint.textContent = '✓ 订阅凭证印章已生成';
+    }
+  }
+</script>
+</body>
+</html>

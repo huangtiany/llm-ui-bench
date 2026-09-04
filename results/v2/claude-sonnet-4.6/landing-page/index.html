@@ -1,0 +1,942 @@
+<title>Sakata Press</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap">
+
+<style>
+/* ── Token layer ─────────────────────────────────────────── */
+:root {
+  --ink:       #191720;
+  --ink-soft:  #2d2a38;
+  --cream:     #EDE5D0;
+  --cream-dim: #cfc7b0;
+  --gold:      #B89A5C;
+  --rust:      #8C3328;
+  --ash:       #9A9490;
+  --bg:        var(--ink);
+  --fg:        var(--cream);
+  --fg-dim:    var(--cream-dim);
+  --surface:   var(--ink-soft);
+  --accent:    var(--gold);
+  --hairline:  rgba(237,229,208,.12);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg:       var(--cream);
+    --fg:       var(--ink);
+    --fg-dim:   #5a5650;
+    --surface:  #e2d9c4;
+    --accent:   #7a5e2a;
+    --hairline: rgba(25,23,32,.1);
+  }
+}
+:root[data-theme="light"] {
+  --bg:       var(--cream);
+  --fg:       var(--ink);
+  --fg-dim:   #5a5650;
+  --surface:  #e2d9c4;
+  --accent:   #7a5e2a;
+  --hairline: rgba(25,23,32,.1);
+}
+:root[data-theme="dark"] {
+  --bg:       var(--ink);
+  --fg:       var(--cream);
+  --fg-dim:   var(--cream-dim);
+  --surface:  var(--ink-soft);
+  --accent:   var(--gold);
+  --hairline: rgba(237,229,208,.12);
+}
+
+/* ── Reset ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: clamp(15px, 1.6vw, 17px);
+  line-height: 1.7;
+  overflow-x: hidden;
+  transition: background .3s, color .3s;
+}
+img { max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+
+/* ── Grain overlay (persistent visual language) ──────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: .38;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+/* ── Nav ─────────────────────────────────────────────────── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 1.4rem 3rem;
+  background: transparent;
+}
+.nav-mark {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .78rem;
+  font-weight: 500;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.nav-links {
+  display: flex;
+  gap: 2.4rem;
+  list-style: none;
+  font-size: .72rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+}
+.nav-links a { transition: color .2s; }
+.nav-links a:hover { color: var(--fg); }
+.nav-links a:focus-visible { outline: 1px solid var(--accent); outline-offset: 3px; }
+
+/* ── Opening field ───────────────────────────────────────── */
+#opening {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 3rem 5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Washi texture rendered with canvas — fallback SVG pattern */
+#opening-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  opacity: .55;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.opening-eyebrow {
+  font-size: .68rem;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: 1.8rem;
+}
+.opening-headline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3.2rem, 9vw, 9rem);
+  font-weight: 300;
+  line-height: 1.0;
+  letter-spacing: -.01em;
+  max-width: 14ch;
+  text-wrap: balance;
+}
+.opening-headline em {
+  font-style: italic;
+  color: var(--accent);
+}
+.opening-sub {
+  margin-top: 2.8rem;
+  max-width: 42ch;
+  font-size: clamp(.88rem, 1.2vw, 1rem);
+  color: var(--fg-dim);
+  line-height: 1.8;
+}
+.opening-rule {
+  position: absolute;
+  right: 3rem; top: 0; bottom: 0;
+  width: 1px;
+  background: var(--hairline);
+}
+.opening-year {
+  position: absolute;
+  right: 1.1rem;
+  bottom: 5rem;
+  font-size: .65rem;
+  letter-spacing: .18em;
+  writing-mode: vertical-rl;
+  color: var(--ash);
+  text-transform: uppercase;
+}
+
+/* ── Divider ─────────────────────────────────────────────── */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--hairline);
+}
+
+/* ── Philosophy section ──────────────────────────────────── */
+#philosophy {
+  padding: 8rem 3rem 7rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6rem;
+  align-items: start;
+}
+.phil-label {
+  font-size: .65rem;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: 3rem;
+}
+.phil-statement {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.5rem, 3vw, 2.4rem);
+  font-weight: 300;
+  line-height: 1.35;
+  color: var(--fg);
+  text-wrap: balance;
+}
+.phil-statement strong {
+  font-weight: 500;
+}
+.phil-body { color: var(--fg-dim); }
+.phil-body p + p { margin-top: 1.2em; }
+
+/* ── Paper specimen ──────────────────────────────────────── */
+#specimen {
+  padding: 0 3rem 8rem;
+  overflow: hidden;
+}
+.specimen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: 4rem;
+}
+.specimen-header h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+.specimen-count {
+  font-size: .68rem;
+  color: var(--ash);
+  letter-spacing: .1em;
+}
+.papers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+.paper-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+.paper-swatch {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  position: relative;
+  overflow: hidden;
+}
+.paper-swatch canvas {
+  width: 100%; height: 100%;
+  display: block;
+}
+.paper-info { display: flex; flex-direction: column; gap: .3rem; }
+.paper-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+.paper-spec {
+  font-size: .65rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+/* ── Process section ─────────────────────────────────────── */
+#process {
+  padding: 8rem 3rem;
+  position: relative;
+}
+.process-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: .07;
+}
+.process-inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.5fr 1fr;
+  gap: 5rem;
+}
+.process-left {}
+.process-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem, 5vw, 4.5rem);
+  font-weight: 300;
+  line-height: 1.1;
+  margin-bottom: 3rem;
+}
+.process-title span { display: block; }
+.process-title .accent { color: var(--accent); font-style: italic; }
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--hairline);
+}
+.step {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr;
+  gap: 1.5rem;
+  padding: 2rem 0;
+  border-bottom: 1px solid var(--hairline);
+  cursor: default;
+  transition: background .2s;
+}
+.step:hover { background: rgba(184,154,92,.04); }
+.step-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .75rem;
+  letter-spacing: .1em;
+  color: var(--ash);
+  padding-top: .15em;
+  font-variant-numeric: tabular-nums;
+}
+.step-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  margin-bottom: .4rem;
+  font-weight: 500;
+}
+.step-desc { font-size: .85rem; color: var(--fg-dim); line-height: 1.65; }
+
+.process-aside {
+  padding-top: 1.5rem;
+}
+.aside-label {
+  font-size: .62rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: 2rem;
+}
+.aside-stat {
+  margin-bottom: 2.5rem;
+}
+.stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 3.2rem;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.stat-label { font-size: .72rem; color: var(--fg-dim); margin-top: .4rem; }
+
+/* ── Editorial pull ──────────────────────────────────────── */
+#pull {
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  padding: 6rem 3rem;
+  position: relative;
+  overflow: hidden;
+}
+.pull-texture {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(237,229,208,.018) 2px,
+    rgba(237,229,208,.018) 3px
+  );
+}
+.pull-quote {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.8rem, 4vw, 3.4rem);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.25;
+  max-width: 32ch;
+  margin: 0 auto;
+  text-align: center;
+  text-wrap: balance;
+  position: relative;
+}
+.pull-attr {
+  text-align: center;
+  margin-top: 2.4rem;
+  font-size: .68rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--ash);
+  position: relative;
+}
+
+/* ── Commission section ──────────────────────────────────── */
+#commission {
+  padding: 8rem 3rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  align-items: center;
+}
+.commission-left {}
+.commission-eyebrow {
+  font-size: .65rem;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: 1.5rem;
+}
+.commission-heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.8rem, 3.5vw, 3rem);
+  font-weight: 300;
+  line-height: 1.2;
+  text-wrap: balance;
+  margin-bottom: 2rem;
+}
+.commission-body { color: var(--fg-dim); line-height: 1.75; }
+.commission-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: .8rem;
+  margin-top: 2.5rem;
+  padding: .85rem 2rem;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: .7rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .25s, color .25s;
+  font-family: 'Libre Baskerville', serif;
+}
+.commission-cta:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+.commission-cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.commission-cta svg { transition: transform .25s; }
+.commission-cta:hover svg { transform: translateX(3px); }
+
+.commission-right {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--hairline);
+}
+.comm-item {
+  background: var(--bg);
+  padding: 2rem 1.5rem;
+}
+.comm-item-label {
+  font-size: .62rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: .6rem;
+}
+.comm-item-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+footer {
+  padding: 4rem 3rem;
+  border-top: 1px solid var(--hairline);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2rem;
+}
+.footer-brand {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.footer-address {
+  font-size: .68rem;
+  color: var(--ash);
+  line-height: 1.8;
+  text-align: center;
+}
+.footer-note {
+  font-size: .65rem;
+  color: var(--ash);
+  letter-spacing: .08em;
+  text-align: right;
+}
+
+/* ── Scroll reveals ──────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 720px) {
+  nav { padding: 1.2rem 1.5rem; }
+  nav .nav-links { display: none; }
+  #opening { padding: 0 1.5rem 4rem; }
+  .opening-rule, .opening-year { display: none; }
+  #philosophy { grid-template-columns: 1fr; gap: 3rem; padding: 5rem 1.5rem 4rem; }
+  #specimen { padding: 0 1.5rem 5rem; }
+  .papers { grid-template-columns: 1fr 1fr; }
+  #process { padding: 5rem 1.5rem; }
+  .process-inner { grid-template-columns: 1fr; gap: 3rem; }
+  #pull { padding: 4rem 1.5rem; }
+  #commission { grid-template-columns: 1fr; gap: 3rem; padding: 5rem 1.5rem; }
+  footer { flex-direction: column; align-items: flex-start; padding: 3rem 1.5rem; }
+  .footer-address, .footer-note { text-align: left; }
+}
+</style>
+
+<!-- ── Navigation ─────────────────────────────────────────── -->
+<nav aria-label="Primary">
+  <span class="nav-mark">坂田印刷 · Sakata Press</span>
+  <ul class="nav-links">
+    <li><a href="#specimen">Papers</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#commission">Commission</a></li>
+  </ul>
+</nav>
+
+<!-- ── Opening field ──────────────────────────────────────── -->
+<section id="opening" aria-label="Introduction">
+  <canvas id="opening-canvas" aria-hidden="true"></canvas>
+  <div class="opening-rule" aria-hidden="true"></div>
+  <p class="opening-eyebrow">Osaka, Japan · Established 1971</p>
+  <h1 class="opening-headline reveal">
+    Paper as<br>
+    <em>memory</em><br>
+    made visible
+  </h1>
+  <p class="opening-sub reveal">
+    Sakata Press is a second-generation letterpress and handmade paper atelier.
+    We work with artists, publishers, and families to create objects that will
+    outlast the occasion that called for them.
+  </p>
+  <span class="opening-year" aria-hidden="true">Est. 昭和46年</span>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── Philosophy ─────────────────────────────────────────── -->
+<section id="philosophy" aria-label="Studio philosophy">
+  <div class="reveal">
+    <p class="phil-label">On the work</p>
+    <p class="phil-statement">
+      A pressed sheet holds<br>
+      <strong>the weight of the hand</strong><br>
+      that made it.
+    </p>
+  </div>
+  <div class="phil-body reveal">
+    <p>
+      My father learned to pull paper in a workshop without windows —
+      he said the light inside the vat told you everything. I learned
+      it from him, knee-deep in a cold river, understanding that kozo
+      fiber carries the story of the tree it came from.
+    </p>
+    <p>
+      Every commission begins not with design but with touch. We ask
+      what the object must feel like before we discuss what it must say.
+      Weight, surface, transparency, deckle — these are the first
+      vocabulary, and they determine everything that follows.
+    </p>
+    <p>
+      We keep our press small by intention. Four craftspeople, one press,
+      a drying room that smells of rice paste and cold iron. We print
+      twelve to thirty projects each year. We do not rush.
+    </p>
+  </div>
+</section>
+
+<!-- ── Paper specimens ────────────────────────────────────── -->
+<section id="specimen" aria-label="Paper collection">
+  <div class="specimen-header">
+    <h2>Current specimens</h2>
+    <span class="specimen-count">Six papers · 2026 season</span>
+  </div>
+  <div class="papers">
+    <article class="paper-card reveal">
+      <div class="paper-swatch">
+        <canvas data-paper="shirogane" aria-label="Shirogane specimen"></canvas>
+      </div>
+      <div class="paper-info">
+        <p class="paper-name">白銀 Shirogane</p>
+        <p class="paper-spec">Kozo · 38 gsm · Translucent</p>
+      </div>
+    </article>
+    <article class="paper-card reveal">
+      <div class="paper-swatch">
+        <canvas data-paper="kumo" aria-label="Kumo specimen"></canvas>
+      </div>
+      <div class="paper-info">
+        <p class="paper-name">雲 Kumo</p>
+        <p class="paper-spec">Kozo / Gampi · 54 gsm · Cloud-fiber</p>
+      </div>
+    </article>
+    <article class="paper-card reveal">
+      <div class="paper-swatch">
+        <canvas data-paper="sumi" aria-label="Sumi-iro specimen"></canvas>
+      </div>
+      <div class="paper-info">
+        <p class="paper-name">墨色 Sumi-iro</p>
+        <p class="paper-spec">Kozo / Pine-ash · 72 gsm · Charcoal-toned</p>
+      </div>
+    </article>
+    <article class="paper-card reveal">
+      <div class="paper-swatch">
+        <canvas data-paper="kuchiba" aria-label="Kuchiba specimen"></canvas>
+      </div>
+      <div class="paper-info">
+        <p class="paper-name">朽葉 Kuchiba</p>
+        <p class="paper-spec">Kozo / Bamboo · 68 gsm · Late-autumn</p>
+      </div>
+    </article>
+    <article class="paper-card reveal">
+      <div class="paper-swatch">
+        <canvas data-paper="urushi" aria-label="Urushi-red specimen"></canvas>
+      </div>
+      <div class="paper-info">
+        <p class="paper-name">漆 Urushi-aka</p>
+        <p class="paper-spec">Kozo · 60 gsm · Iron-mordant</p>
+      </div>
+    </article>
+    <article class="paper-card reveal">
+      <div class="paper-swatch">
+        <canvas data-paper="hane" aria-label="Hane specimen"></canvas>
+      </div>
+      <div class="paper-info">
+        <p class="paper-name">羽 Hane</p>
+        <p class="paper-spec">Gampi · 28 gsm · Featherweight</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ── Process ────────────────────────────────────────────── -->
+<section id="process" aria-label="Our process">
+  <div class="process-backdrop" aria-hidden="true">
+    <canvas id="process-bg-canvas"></canvas>
+  </div>
+  <div class="process-inner">
+    <div class="process-left">
+      <h2 class="process-title reveal">
+        <span>How a sheet</span>
+        <span class="accent">comes into</span>
+        <span>the world</span>
+      </h2>
+      <div class="steps">
+        <div class="step reveal">
+          <span class="step-num">一</span>
+          <div>
+            <p class="step-name">Fiber preparation</p>
+            <p class="step-desc">Kozo or gampi bark is cooked in wood ash lye, then beaten by hand until the fiber reaches the desired length — shorter for translucency, longer for strength.</p>
+          </div>
+        </div>
+        <div class="step reveal">
+          <span class="step-num">二</span>
+          <div>
+            <p class="step-name">Vat and formation</p>
+            <p class="step-desc">Fiber is suspended in cold water with neri, a mucilage that slows drainage and allows the thin layer to build. The mould is moved in long, deliberate waves.</p>
+          </div>
+        </div>
+        <div class="step reveal">
+          <span class="step-num">三</span>
+          <div>
+            <p class="step-name">Couching and pressing</p>
+            <p class="step-desc">Each wet sheet is laid onto dampened felts and pressed overnight. Twelve hours. The weight does not vary.</p>
+          </div>
+        </div>
+        <div class="step reveal">
+          <span class="step-num">四</span>
+          <div>
+            <p class="step-name">Drying on cedar board</p>
+            <p class="step-desc">Sheets are brushed onto seasoned cedar boards and left in the open air. The drying is supervised — a single day of wind can change the surface character entirely.</p>
+          </div>
+        </div>
+        <div class="step reveal">
+          <span class="step-num">五</span>
+          <div>
+            <p class="step-name">Impression and aging</p>
+            <p class="step-desc">For letterpress work, dry sheets are humidified to 62% and printed on our 1964 Heidelberg Tiegel. The finished piece rests for a minimum of fourteen days before delivery.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="process-aside reveal">
+      <p class="aside-label">By the numbers</p>
+      <div class="aside-stat">
+        <div class="stat-num">53</div>
+        <div class="stat-label">Years the press has been running</div>
+      </div>
+      <div class="aside-stat">
+        <div class="stat-num">12</div>
+        <div class="stat-label">Commissions accepted per year</div>
+      </div>
+      <div class="aside-stat">
+        <div class="stat-num">4</div>
+        <div class="stat-label">Craftspeople in the studio</div>
+      </div>
+      <div class="aside-stat">
+        <div class="stat-num">1</div>
+        <div class="stat-label">Press. One press only.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Pull quote ─────────────────────────────────────────── -->
+<section id="pull" aria-label="Quote">
+  <div class="pull-texture" aria-hidden="true"></div>
+  <blockquote class="pull-quote reveal">
+    "We do not make stationery. We make the silence between the words —
+    the space where what cannot be said finds its weight."
+  </blockquote>
+  <p class="pull-attr reveal">Sakata Kenji · Master printer · 2019 interview, Bijutsu Techo</p>
+</section>
+
+<!-- ── Commission ─────────────────────────────────────────── -->
+<section id="commission" aria-label="Commission a project">
+  <div class="commission-left">
+    <p class="commission-eyebrow reveal">Begin a commission</p>
+    <h2 class="commission-heading reveal">
+      Every project is a conversation that takes months to complete
+    </h2>
+    <p class="commission-body reveal">
+      We work with artists, poets, publishers, and families. Wedding suites,
+      artist books, memorial editions, correspondence collections — we ask
+      only that time be part of the brief. Rush and the paper knows.
+    </p>
+    <button class="commission-cta reveal" type="button">
+      Inquire
+      <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+        <path d="M9 1l4 4-4 4M1 5h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+  <div class="commission-right reveal" role="list" aria-label="Commission details">
+    <div class="comm-item" role="listitem">
+      <p class="comm-item-label">Lead time</p>
+      <p class="comm-item-text">4 to 9 months from first meeting to delivery</p>
+    </div>
+    <div class="comm-item" role="listitem">
+      <p class="comm-item-label">Editions</p>
+      <p class="comm-item-text">Minimum 12 · Maximum 500</p>
+    </div>
+    <div class="comm-item" role="listitem">
+      <p class="comm-item-label">Languages</p>
+      <p class="comm-item-text">Japanese and English consultation available</p>
+    </div>
+    <div class="comm-item" role="listitem">
+      <p class="comm-item-label">Location</p>
+      <p class="comm-item-text">Studio visits by appointment, Osaka Nishi-ku</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ─────────────────────────────────────────────── -->
+<footer role="contentinfo">
+  <div class="footer-brand">坂田印刷<br>Sakata Press</div>
+  <address class="footer-address" style="font-style:normal;">
+    2-14-8 Horie, Nishi-ku, Osaka 550-0015<br>
+    press@sakata-horie.jp · +81 6 6532 0471
+  </address>
+  <p class="footer-note">
+    © 1971 – 2026 Sakata Handmade Paper &amp; Press<br>
+    Osaka · 大阪
+  </p>
+</footer>
+
+<!-- ── Scripts ────────────────────────────────────────────── -->
+<script>
+/* Deterministic pseudo-random (seeded) */
+function seededRng(seed) {
+  let s = seed;
+  return function() {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+/* ── Opening washi-fiber canvas ───────────────────────────── */
+(function() {
+  const canvas = document.getElementById('opening-canvas');
+  if (!canvas) return;
+  const resizeAndDraw = () => {
+    const w = canvas.offsetWidth, h = canvas.offsetHeight;
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    const rng = seededRng(42);
+    ctx.clearRect(0, 0, w, h);
+    // Long kozo fibers
+    for (let i = 0; i < 2200; i++) {
+      const x = rng() * w;
+      const y = rng() * h;
+      const len = 40 + rng() * 180;
+      const angle = (rng() - 0.5) * 0.9;
+      const alpha = 0.018 + rng() * 0.04;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      const cp1x = (rng() - 0.5) * 40;
+      const cp1y = -(len * 0.4);
+      const cp2x = (rng() - 0.5) * 40;
+      const cp2y = -(len * 0.75);
+      ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, (rng()-.5)*15, -len);
+      ctx.strokeStyle = `rgba(237,229,208,${alpha})`;
+      ctx.lineWidth = 0.4 + rng() * 0.9;
+      ctx.stroke();
+      ctx.restore();
+    }
+  };
+  resizeAndDraw();
+  window.addEventListener('resize', resizeAndDraw);
+})();
+
+/* ── Paper swatch canvases ───────────────────────────────── */
+const paperDefs = {
+  shirogane: { base: [242,238,228], fiber: [255,255,255], fiberAlpha: .7, grain: .18, fibers: 1800 },
+  kumo:      { base: [220,216,208], fiber: [240,238,234], fiberAlpha: .55, grain: .22, fibers: 1400, cloud: true },
+  sumi:      { base: [48,44,52], fiber: [80,76,86], fiberAlpha: .45, grain: .35, fibers: 1200 },
+  kuchiba:   { base: [168,138,88], fiber: [190,162,110], fiberAlpha: .5, grain: .28, fibers: 1400 },
+  urushi:    { base: [110,38,35], fiber: [145,60,52], fiberAlpha: .5, grain: .3, fibers: 1200 },
+  hane:      { base: [232,230,226], fiber: [248,246,242], fiberAlpha: .85, grain: .12, fibers: 2200 },
+};
+
+document.querySelectorAll('[data-paper]').forEach((canvas, idx) => {
+  const key = canvas.getAttribute('data-paper');
+  const def = paperDefs[key];
+  if (!def) return;
+  const draw = () => {
+    const w = canvas.offsetWidth || 220;
+    const h = canvas.offsetHeight || canvas.parentElement.offsetHeight || 275;
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    const rng = seededRng(idx * 137 + 7);
+    const [r,g,b] = def.base;
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fillRect(0, 0, w, h);
+    // Subtle vignette
+    const vg = ctx.createRadialGradient(w/2,h/2,0, w/2,h/2,Math.max(w,h)*.7);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.18)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(0,0,w,h);
+    // Fibers
+    const [fr,fg,fb] = def.fiber;
+    for (let i = 0; i < def.fibers; i++) {
+      const x = rng() * w, y = rng() * h;
+      const len = 20 + rng() * 80;
+      const angle = (rng() - 0.5) * 0.6;
+      const a = (def.fiberAlpha * 0.25 + rng() * def.fiberAlpha * 0.75) * .5;
+      ctx.save();
+      ctx.translate(x,y); ctx.rotate(angle);
+      ctx.beginPath(); ctx.moveTo(0,0);
+      ctx.bezierCurveTo((rng()-.5)*18, -len*.3, (rng()-.5)*18, -len*.7, (rng()-.5)*8, -len);
+      ctx.strokeStyle = `rgba(${fr},${fg},${fb},${a})`;
+      ctx.lineWidth = 0.3 + rng() * 0.7;
+      ctx.stroke();
+      ctx.restore();
+    }
+    // Cloud puffs for Kumo
+    if (def.cloud) {
+      for (let i = 0; i < 12; i++) {
+        const cx = rng()*w, cy = rng()*h;
+        const r2 = 15 + rng()*50;
+        const cg = ctx.createRadialGradient(cx,cy,0,cx,cy,r2);
+        cg.addColorStop(0,'rgba(255,255,255,0.12)');
+        cg.addColorStop(1,'rgba(255,255,255,0)');
+        ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(cx,cy,r2,0,Math.PI*2); ctx.fill();
+      }
+    }
+    // Grain
+    const id = ctx.getImageData(0,0,w,h);
+    const d = id.data;
+    const grn = seededRng(idx*31+999);
+    for (let i = 0; i < d.length; i += 4) {
+      const noise = (grn() - 0.5) * def.grain * 255;
+      d[i]   = Math.min(255,Math.max(0,d[i]+noise));
+      d[i+1] = Math.min(255,Math.max(0,d[i+1]+noise));
+      d[i+2] = Math.min(255,Math.max(0,d[i+2]+noise));
+    }
+    ctx.putImageData(id,0,0);
+  };
+  draw();
+  const ro = new ResizeObserver(draw);
+  ro.observe(canvas.parentElement);
+});
+
+/* ── Process backdrop canvas ─────────────────────────────── */
+(function() {
+  const c = document.getElementById('process-bg-canvas');
+  if (!c) return;
+  const draw = () => {
+    const sec = document.getElementById('process');
+    const w = sec.offsetWidth, h = sec.offsetHeight;
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    const rng = seededRng(77);
+    for (let i = 0; i < 900; i++) {
+      const x = rng()*w, y = rng()*h;
+      const len = 60 + rng()*200;
+      const angle = -0.15 + (rng()-0.5)*.4;
+      ctx.save(); ctx.translate(x,y); ctx.rotate(angle);
+      ctx.beginPath(); ctx.moveTo(0,0);
+      ctx.bezierCurveTo((rng()-.5)*30,-len*.4,(rng()-.5)*30,-len*.8,(rng()-.5)*15,-len);
+      ctx.strokeStyle = `rgba(237,229,208,${0.1+rng()*.2})`;
+      ctx.lineWidth = 0.5 + rng();
+      ctx.stroke(); ctx.restore();
+    }
+  };
+  draw();
+  window.addEventListener('resize', draw);
+})();
+
+/* ── Scroll reveal ───────────────────────────────────────── */
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+// Trigger opening elements immediately
+document.querySelectorAll('#opening .reveal').forEach(el => el.classList.add('visible'));
+</script>

@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>咖啡供应链管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @font-face {
+            font-family: 'Fraunces';
+            font-style: normal;
+            font-weight: 400;
+            src: local('Georgia');
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-weight: 300;
+            background: #F7F4EF;
+            color: #1F2421;
+            line-height: 1.6;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: #1F2421;
+            color: #F7F4EF;
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .logo {
+            font-family: 'Fraunces', Georgia, serif;
+            font-size: 24px;
+            letter-spacing: -0.02em;
+            color: #C4612F;
+        }
+
+        .nav-section {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #5C635D;
+            margin-bottom: 8px;
+        }
+
+        .nav-item {
+            padding: 10px 16px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 400;
+            font-size: 14px;
+            color: #F7F4EF;
+        }
+
+        .nav-item:hover {
+            background: rgba(247, 244, 239, 0.1);
+            transform: translateX(2px);
+        }
+
+        .nav-item.active {
+            background: #C4612F;
+            color: #FFFFFF;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            background: rgba(251, 249, 245, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #E7E1D7;
+            padding: 16px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .breadcrumb {
+            font-size: 14px;
+            color: #5C635D;
+        }
+
+        .breadcrumb strong {
+            color: #1F2421;
+            font-weight: 500;
+        }
+
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: #F2E3D6;
+            font-size: 12px;
+            font-weight: 500;
+            color: #C4612F;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #C4612F;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        .topbar-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #C4612F, #A94E22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Content Area */
+        .content {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .page-title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: #F2E3D6;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #C4612F;
+            width: fit-content;
+        }
+
+        h1 {
+            font-family: 'Fraunces', Georgia, serif;
+            font-size: 36px;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        h1 em {
+            font-style: italic;
+            color: #C4612F;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: 999px;
+            border: none;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #C4612F;
+            color: #FFFFFF;
+        }
+
+        .btn-primary:hover {
+            background: #A94E22;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(196, 97, 47, 0.3);
+        }
+
+        .btn-secondary {
+            background: #FFFFFF;
+            color: #1F2421;
+            border: 1px solid #E7E1D7;
+        }
+
+        .btn-secondary:hover {
+            background: #FBF9F5;
+            transform: translateY(-1px);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: #FFFFFF;
+            border: 1px solid #E7E1D7;
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(31, 36, 33, 0.06);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #5C635D;
+            font-weight: 400;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 400;
+            color: #1F2421;
+            font-family: 'Fraunces', Georgia, serif;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-change {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-change.positive {
+            color: #2D7738;
+        }
+
+        .stat-change.negative {
+            color: #C4612F;
+        }
+
+        /* Filters Bar */
+        .filters-bar {
+            background: #FFFFFF;
+            border: 1px solid #E7E1D7;
+            border-radius: 16px;
+            padding: 20px 24px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            color: #5C635D;
+            font-weight: 500;
+        }
+
+        .filter-input,
+        .filter-select {
+            padding: 8px 14px;
+            border: 1px solid #E7E1D7;
+            border-radius: 999px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 300;
+            background: #FBF9F5;
+            color: #1F2421;
+            transition: all 0.2s;
+        }
+
+        .filter-input:focus,
+        .filter-select:focus {
+            outline: none;
+            border-color: #C4612F;
+            background: #FFFFFF;
+        }
+
+        /* Main Grid Layout */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* Table */
+        .table-container {
+            background: #FFFFFF;
+            border: 1px solid #E7E1D7;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #E7E1D7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1F2421;
+        }
+
+        .table-count {
+            font-size: 13px;
+            color: #5C635D;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #FBF9F5;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 24px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #5C635D;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        th:hover {
+            background: #F7F4EF;
+        }
+
+        th.sortable::after {
+            content: '↕';
+            position: absolute;
+            right: 8px;
+            opacity: 0.3;
+            font-size: 10px;
+        }
+
+        th.sorted-asc::after {
+            content: '↑';
+            opacity: 1;
+            color: #C4612F;
+        }
+
+        th.sorted-desc::after {
+            content: '↓';
+            opacity: 1;
+            color: #C4612F;
+        }
+
+        td {
+            padding: 16px 24px;
+            border-top: 1px solid #E7E1D7;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #FBF9F5;
+        }
+
+        tr.selected {
+            background: #F2E3D6;
+        }
+
+        tr {
+            cursor: pointer;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge.pending {
+            background: #FFF4E6;
+            color: #D97706;
+        }
+
+        .badge.roasting {
+            background: #FEF3C7;
+            color: #CA8A04;
+        }
+
+        .badge.ready {
+            background: #D1FAE5;
+            color: #059669;
+        }
+
+        .badge.shipped {
+            background: #DBEAFE;
+            color: #0284C7;
+        }
+
+        .badge.delivered {
+            background: #E0E7FF;
+            color: #6366F1;
+        }
+
+        .origin-flag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        /* Detail Panel */
+        .detail-panel {
+            background: #FFFFFF;
+            border: 1px solid #E7E1D7;
+            border-radius: 16px;
+            padding: 0;
+            position: sticky;
+            top: 100px;
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-header {
+            padding: 24px;
+            border-bottom: 1px solid #E7E1D7;
+            position: sticky;
+            top: 0;
+            background: #FFFFFF;
+            z-index: 10;
+        }
+
+        .detail-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .detail-subtitle {
+            font-size: 13px;
+            color: #5C635D;
+        }
+
+        .detail-content {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .detail-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .detail-section-title {
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #5C635D;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .detail-label {
+            font-size: 13px;
+            color: #5C635D;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            font-weight: 400;
+            text-align: right;
+        }
+
+        .detail-value.strong {
+            font-weight: 500;
+            color: #C4612F;
+        }
+
+        /* Charts */
+        .chart-container {
+            background: #FFFFFF;
+            border: 1px solid #E7E1D7;
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .chart-header {
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .chart-subtitle {
+            font-size: 13px;
+            color: #5C635D;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: 240px;
+        }
+
+        .bar-chart-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 200px;
+            gap: 12px;
+            padding: 20px 0;
+        }
+
+        .bar {
+            flex: 1;
+            background: linear-gradient(180deg, #C4612F 0%, #A94E22 100%);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            transition: all 0.3s;
+            min-height: 20px;
+        }
+
+        .bar:hover {
+            opacity: 0.8;
+            transform: translateY(-4px);
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: #5C635D;
+            white-space: nowrap;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            font-weight: 500;
+            color: #1F2421;
+        }
+
+        .timeline-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            display: grid;
+            grid-template-columns: 80px 1fr 60px;
+            gap: 16px;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #E7E1D7;
+        }
+
+        .timeline-item:last-child {
+            border-bottom: none;
+        }
+
+        .timeline-date {
+            font-size: 12px;
+            color: #5C635D;
+        }
+
+        .timeline-event {
+            font-size: 14px;
+        }
+
+        .timeline-status {
+            text-align: right;
+        }
+
+        /* Form Elements */
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #1F2421;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            padding: 10px 14px;
+            border: 1px solid #E7E1D7;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 300;
+            background: #FBF9F5;
+            color: #1F2421;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: #C4612F;
+            background: #FFFFFF;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            padding-top: 8px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #5C635D;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-state-text {
+            font-size: 14px;
+        }
+
+        /* Donut Chart */
+        .donut-chart-container {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .donut-svg {
+            width: 180px;
+            height: 180px;
+        }
+
+        .donut-legend {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .legend-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .legend-value {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(31, 36, 33, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #FFFFFF;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(31, 36, 33, 0.3);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #E7E1D7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #5C635D;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #F7F4EF;
+            color: #1F2421;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">Aroma Supply</div>
+
+            <nav>
+                <div class="nav-section">
+                    <div class="nav-label">生产管理</div>
+                    <div class="nav-item active">批次追踪</div>
+                    <div class="nav-item">烘焙计划</div>
+                    <div class="nav-item">质量检验</div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-label">供应链</div>
+                    <div class="nav-item">采购订单</div>
+                    <div class="nav-item">库存管理</div>
+                    <div class="nav-item">物流跟踪</div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-label">分析报表</div>
+                    <div class="nav-item">产能分析</div>
+                    <div class="nav-item">成本核算</div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <div class="breadcrumb">
+                        生产管理 / <strong>批次追踪</strong>
+                    </div>
+                    <div class="status-chip">
+                        <span class="status-dot"></span>
+                        7 批次待处理
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="user-avatar">HT</div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="page-title-group">
+                        <span class="eyebrow">Production Dashboard</span>
+                        <h1>咖啡豆<em>批次</em>追踪</h1>
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-secondary" onclick="openImportModal()">导入批次</button>
+                        <button class="btn btn-primary" onclick="openCreateModal()">+ 新建批次</button>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">本周处理量</div>
+                        <div class="stat-value">2,847<span style="font-size:16px;margin-left:4px;">kg</span></div>
+                        <div class="stat-change positive">↑ 12.3% vs 上周</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">进行中批次</div>
+                        <div class="stat-value">23</div>
+                        <div class="stat-change positive">↑ 4 批次</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">平均周转时间</div>
+                        <div class="stat-value">8.2<span style="font-size:16px;margin-left:4px;">天</span></div>
+                        <div class="stat-change negative">↑ 0.5 天</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">质检合格率</div>
+                        <div class="stat-value">96.4%</div>
+                        <div class="stat-change positive">↑ 1.2%</div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters-bar">
+                    <div class="filter-group">
+                        <label class="filter-label">产地</label>
+                        <select class="filter-select" id="filter-origin" onchange="applyFilters()">
+                            <option value="">全部产地</option>
+                            <option value="埃塞俄比亚">埃塞俄比亚</option>
+                            <option value="哥伦比亚">哥伦比亚</option>
+                            <option value="巴西">巴西</option>
+                            <option value="肯尼亚">肯尼亚</option>
+                            <option value="危地马拉">危地马拉</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">状态</label>
+                        <select class="filter-select" id="filter-status" onchange="applyFilters()">
+                            <option value="">全部状态</option>
+                            <option value="pending">待处理</option>
+                            <option value="roasting">烘焙中</option>
+                            <option value="ready">待发货</option>
+                            <option value="shipped">已发货</option>
+                            <option value="delivered">已交付</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">搜索批次号</label>
+                        <input type="text" class="filter-input" id="filter-search" placeholder="输入批次号..."
+                            oninput="applyFilters()">
+                    </div>
+                </div>
+
+                <!-- Main Workspace Grid -->
+                <div class="workspace-grid">
+                    <!-- Table -->
+                    <div class="table-container">
+                        <div class="table-header">
+                            <div>
+                                <div class="table-title">批次列表</div>
+                                <div class="table-count" id="table-count">显示 12 批次</div>
+                            </div>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="sortable" onclick="sortTable('batch')">批次号</th>
+                                    <th class="sortable" onclick="sortTable('origin')">产地</th>
+                                    <th class="sortable" onclick="sortTable('quantity')">数量(kg)</th>
+                                    <th class="sortable" onclick="sortTable('roastProfile')">烘焙度</th>
+                                    <th class="sortable" onclick="sortTable('status')">状态</th>
+                                    <th class="sortable" onclick="sortTable('date')">入库日期</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batch-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Detail Panel -->
+                    <div class="detail-panel" id="detail-panel">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📦</div>
+                            <div class="empty-state-text">选择一个批次以查看详情</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px;">
+                    <!-- Bar Chart -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <div class="chart-title">本月各产地处理量</div>
+                            <div class="chart-subtitle">按重量统计（千克）</div>
+                        </div>
+                        <div class="bar-chart-container" id="origin-chart">
+                        </div>
+                    </div>
+
+                    <!-- Donut Chart -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <div class="chart-title">烘焙度分布</div>
+                            <div class="chart-subtitle">当前库存占比</div>
+                        </div>
+                        <div class="donut-chart-container" id="roast-chart">
+                            <svg class="donut-svg" viewBox="0 0 200 200">
+                                <circle cx="100" cy="100" r="70" fill="none" stroke="#E7E1D7" stroke-width="30">
+                                </circle>
+                                <circle cx="100" cy="100" r="70" fill="none" stroke="#C4612F" stroke-width="30"
+                                    stroke-dasharray="165 440" stroke-dashoffset="0" transform="rotate(-90 100 100)">
+                                </circle>
+                                <circle cx="100" cy="100" r="70" fill="none" stroke="#D97706" stroke-width="30"
+                                    stroke-dasharray="110 440" stroke-dashoffset="-165" transform="rotate(-90 100 100)">
+                                </circle>
+                                <circle cx="100" cy="100" r="70" fill="none" stroke="#CA8A04" stroke-width="30"
+                                    stroke-dasharray="88 440" stroke-dashoffset="-275" transform="rotate(-90 100 100)">
+                                </circle>
+                                <circle cx="100" cy="100" r="70" fill="none" stroke="#854D0E" stroke-width="30"
+                                    stroke-dasharray="77 440" stroke-dashoffset="-363" transform="rotate(-90 100 100)">
+                                </circle>
+                            </svg>
+                            <div class="donut-legend">
+                                <div class="legend-item">
+                                    <div class="legend-label">
+                                        <div class="legend-color" style="background:#C4612F;"></div>
+                                        浅烘焙
+                                    </div>
+                                    <div class="legend-value">37%</div>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-label">
+                                        <div class="legend-color" style="background:#D97706;"></div>
+                                        中烘焙
+                                    </div>
+                                    <div class="legend-value">25%</div>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-label">
+                                        <div class="legend-color" style="background:#CA8A04;"></div>
+                                        中深烘焙
+                                    </div>
+                                    <div class="legend-value">20%</div>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-label">
+                                        <div class="legend-color" style="background:#854D0E;"></div>
+                                        深烘焙
+                                    </div>
+                                    <div class="legend-value">18%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create Batch Modal -->
+    <div class="modal-overlay" id="create-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">新建咖啡豆批次</div>
+                <button class="modal-close" onclick="closeCreateModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form class="form-section" onsubmit="createBatch(event)">
+                    <div class="form-group">
+                        <label class="form-label">批次号</label>
+                        <input type="text" class="form-input" id="new-batch-id" placeholder="例如：BTH-2026-001" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">产地</label>
+                        <select class="form-select" id="new-origin" required>
+                            <option value="">选择产地</option>
+                            <option value="埃塞俄比亚">埃塞俄比亚</option>
+                            <option value="哥伦比亚">哥伦比亚</option>
+                            <option value="巴西">巴西</option>
+                            <option value="肯尼亚">肯尼亚</option>
+                            <option value="危地马拉">危地马拉</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">数量（千克）</label>
+                        <input type="number" class="form-input" id="new-quantity" placeholder="例如：250" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">烘焙度</label>
+                        <select class="form-select" id="new-roast" required>
+                            <option value="">选择烘焙度</option>
+                            <option value="浅烘焙">浅烘焙 (Light)</option>
+                            <option value="中烘焙">中烘焙 (Medium)</option>
+                            <option value="中深烘焙">中深烘焙 (Medium-Dark)</option>
+                            <option value="深烘焙">深烘焙 (Dark)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">备注</label>
+                        <textarea class="form-textarea" id="new-notes" placeholder="可选：添加批次备注..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">取消</button>
+                        <button type="submit" class="btn btn-primary">创建批次</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data
+        let batches = [
+            { id: 'BTH-2026-089', origin: '埃塞俄比亚', quantity: 250, roastProfile: '浅烘焙', status: 'pending', date: '2026-09-01', supplier: 'Yirgacheffe Co-op', altitude: '1800-2100m', processing: '水洗处理', cupping: 88, notes: '茉莉花香，柑橘调性' },
+            { id: 'BTH-2026-087', origin: '哥伦比亚', quantity: 180, roastProfile: '中烘焙', status: 'roasting', date: '2026-08-28', supplier: 'Huila Estate', altitude: '1600-1900m', processing: '蜜处理', cupping: 86, notes: '焦糖甜感，坚果尾韵' },
+            { id: 'BTH-2026-088', origin: '肯尼亚', quantity: 320, roastProfile: '浅烘焙', status: 'ready', date: '2026-08-30', supplier: 'Nyeri Farmers', altitude: '1700-2000m', processing: '水洗处理', cupping: 90, notes: '黑醋栗，番茄酸质' },
+            { id: 'BTH-2026-084', origin: '巴西', quantity: 450, roastProfile: '深烘焙', status: 'shipped', date: '2026-08-25', supplier: 'Santos Port', altitude: '900-1200m', processing: '日晒处理', cupping: 82, notes: '巧克力，低酸度' },
+            { id: 'BTH-2026-086', origin: '危地马拉', quantity: 200, roastProfile: '中深烘焙', status: 'ready', date: '2026-08-27', supplier: 'Antigua Valley', altitude: '1500-1700m', processing: '水洗处理', cupping: 85, notes: '可可，烟熏香料' },
+            { id: 'BTH-2026-083', origin: '埃塞俄比亚', quantity: 280, roastProfile: '浅烘焙', status: 'delivered', date: '2026-08-22', supplier: 'Sidamo Region', altitude: '1850-2100m', processing: '日晒处理', cupping: 89, notes: '蓝莓，蜂蜜甜感' },
+            { id: 'BTH-2026-085', origin: '哥伦比亚', quantity: 190, roastProfile: '中烘焙', status: 'ready', date: '2026-08-26', supplier: 'Nariño Collective', altitude: '1700-2000m', processing: '水洗处理', cupping: 87, notes: '红苹果，焦糖' },
+            { id: 'BTH-2026-082', origin: '肯尼亚', quantity: 300, roastProfile: '浅烘焙', status: 'roasting', date: '2026-08-20', supplier: 'Kirinyaga District', altitude: '1600-1900m', processing: '水洗处理', cupping: 91, notes: '葡萄柚，红茶感' },
+            { id: 'BTH-2026-081', origin: '巴西', quantity: 500, roastProfile: '中深烘焙', status: 'delivered', date: '2026-08-18', supplier: 'Cerrado Region', altitude: '1000-1300m', processing: '半水洗', cupping: 83, notes: '榛果，奶油质感' },
+            { id: 'BTH-2026-080', origin: '危地马拉', quantity: 220, roastProfile: '中烘焙', status: 'shipped', date: '2026-08-15', supplier: 'Atitlán Lake', altitude: '1500-1800m', processing: '水洗处理', cupping: 86, notes: '杏仁，柑橘' },
+            { id: 'BTH-2026-079', origin: '埃塞俄比亚', quantity: 260, roastProfile: '浅烘焙', status: 'pending', date: '2026-08-12', supplier: 'Guji Zone', altitude: '1900-2200m', processing: '日晒处理', cupping: 92, notes: '草莓，芒果' },
+            { id: 'BTH-2026-078', origin: '哥伦比亚', quantity: 175, roastProfile: '中深烘焙', status: 'ready', date: '2026-08-10', supplier: 'Tolima Hills', altitude: '1650-1950m', processing: '蜜处理', cupping: 85, notes: '深色水果，甜香料' }
+        ];
+
+        let filteredBatches = [...batches];
+        let selectedBatch = null;
+        let currentSort = { column: null, direction: 'asc' };
+
+        // Initialize
+        function init() {
+            renderTable();
+            renderOriginChart();
+        }
+
+        // Render Table
+        function renderTable() {
+            const tbody = document.getElementById('batch-table-body');
+            tbody.innerHTML = '';
+
+            filteredBatches.forEach(batch => {
+                const row = tbody.insertRow();
+                row.className = selectedBatch === batch.id ? 'selected' : '';
+                row.onclick = () => selectBatch(batch.id);
+
+                row.insertCell(0).textContent = batch.id;
+
+                const originCell = row.insertCell(1);
+                originCell.innerHTML = `<span class="origin-flag">${getOriginFlag(batch.origin)} ${batch.origin}</span>`;
+
+                row.insertCell(2).textContent = batch.quantity;
+                row.insertCell(3).textContent = batch.roastProfile;
+
+                const statusCell = row.insertCell(4);
+                statusCell.innerHTML = `<span class="badge ${batch.status}">${getStatusText(batch.status)}</span>`;
+
+                row.insertCell(5).textContent = batch.date;
+            });
+
+            document.getElementById('table-count').textContent = `显示 ${filteredBatches.length} 批次`;
+        }
+
+        // Select Batch
+        function selectBatch(batchId) {
+            selectedBatch = batchId;
+            renderTable();
+            renderDetailPanel();
+        }
+
+        // Render Detail Panel
+        function renderDetailPanel() {
+            const panel = document.getElementById('detail-panel');
+            const batch = batches.find(b => b.id === selectedBatch);
+
+            if (!batch) {
+                panel.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📦</div>
+            <div class="empty-state-text">选择一个批次以查看详情</div>
+          </div>
+        `;
+                return;
+            }
+
+            panel.innerHTML = `
+        <div class="detail-header">
+          <div>
+            <div class="detail-title">${batch.id}</div>
+            <div class="detail-subtitle">${batch.origin} · ${batch.roastProfile}</div>
+          </div>
+        </div>
+        <div class="detail-content">
+          <div class="detail-section">
+            <div class="detail-section-title">基本信息</div>
+            <div class="detail-row">
+              <span class="detail-label">数量</span>
+              <span class="detail-value strong">${batch.quantity} kg</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">烘焙度</span>
+              <span class="detail-value">${batch.roastProfile}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">状态</span>
+              <span class="detail-value"><span class="badge ${batch.status}">${getStatusText(batch.status)}</span></span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">入库日期</span>
+              <span class="detail-value">${batch.date}</span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <div class="detail-section-title">供应商信息</div>
+            <div class="detail-row">
+              <span class="detail-label">供应商</span>
+              <span class="detail-value">${batch.supplier}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">海拔</span>
+              <span class="detail-value">${batch.altitude}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">处理方式</span>
+              <span class="detail-value">${batch.processing}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">杯测分数</span>
+              <span class="detail-value strong">${batch.cupping} 分</span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <div class="detail-section-title">风味描述</div>
+            <div style="padding: 12px 16px; background: #FBF9F5; border-radius: 8px; font-size: 13px; line-height: 1.6; color: #5C635D;">
+              ${batch.notes}
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <div class="detail-section-title">处理时间线</div>
+            <div class="timeline-container">
+              ${generateTimeline(batch)}
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <button class="btn btn-primary" style="width:100%;" onclick="updateBatchStatus('${batch.id}')">
+              ${getNextActionText(batch.status)}
+            </button>
+          </div>
+        </div>
+      `;
+        }
+
+        // Generate Timeline
+        function generateTimeline(batch) {
+            const stages = [
+                { date: batch.date, event: '生豆入库', status: 'delivered' },
+                { date: getDateOffset(batch.date, 2), event: '质检完成', status: batch.status === 'pending' ? 'pending' : 'delivered' },
+                { date: getDateOffset(batch.date, 4), event: '烘焙处理', status: ['pending', 'roasting'].includes(batch.status) ? batch.status : 'delivered' },
+                { date: getDateOffset(batch.date, 6), event: '包装完成', status: ['pending', 'roasting', 'ready'].includes(batch.status) ? (batch.status === 'ready' ? 'ready' : 'pending') : 'delivered' },
+                { date: getDateOffset(batch.date, 8), event: '发货交付', status: batch.status === 'delivered' ? 'delivered' : (batch.status === 'shipped' ? 'shipped' : 'pending') }
+            ];
+
+            return stages.map(stage => `
+        <div class="timeline-item">
+          <div class="timeline-date">${stage.date}</div>
+          <div class="timeline-event">${stage.event}</div>
+          <div class="timeline-status">
+            <span class="badge ${stage.status}">${getStatusText(stage.status)}</span>
+          </div>
+        </div>
+      `).join('');
+        }
+
+        // Sort Table
+        function sortTable(column) {
+            const headers = document.querySelectorAll('th');
+            headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
+
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'asc';
+            }
+
+            const th = event.target;
+            th.classList.add(currentSort.direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+
+            filteredBatches.sort((a, b) => {
+                let aVal = a[column];
+                let bVal = b[column];
+
+                if (column === 'quantity') {
+                    aVal = parseInt(aVal);
+                    bVal = parseInt(bVal);
+                }
+
+                if (aVal < bVal) return currentSort.direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return currentSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            renderTable();
+        }
+
+        // Apply Filters
+        function applyFilters() {
+            const originFilter = document.getElementById('filter-origin').value;
+            const statusFilter = document.getElementById('filter-status').value;
+            const searchFilter = document.getElementById('filter-search').value.toLowerCase();
+
+            filteredBatches = batches.filter(batch => {
+                const matchOrigin = !originFilter || batch.origin === originFilter;
+                const matchStatus = !statusFilter || batch.status === statusFilter;
+                const matchSearch = !searchFilter || batch.id.toLowerCase().includes(searchFilter);
+                return matchOrigin && matchStatus && matchSearch;
+            });
+
+            renderTable();
+        }
+
+        // Render Origin Chart
+        function renderOriginChart() {
+            const originData = {};
+            batches.forEach(batch => {
+                originData[batch.origin] = (originData[batch.origin] || 0) + batch.quantity;
+            });
+
+            const maxValue = Math.max(...Object.values(originData));
+            const chartContainer = document.getElementById('origin-chart');
+            chartContainer.innerHTML = '';
+
+            Object.entries(originData).forEach(([origin, value]) => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = `${(value / maxValue) * 100}%`;
+                bar.innerHTML = `
+          <span class="bar-value">${value}</span>
+          <span class="bar-label">${origin}</span>
+        `;
+                chartContainer.appendChild(bar);
+            });
+        }
+
+        // Modal Functions
+        function openCreateModal() {
+            document.getElementById('create-modal').classList.add('active');
+        }
+
+        function closeCreateModal() {
+            document.getElementById('create-modal').classList.remove('active');
+            document.querySelector('form').reset();
+        }
+
+        function openImportModal() {
+            alert('导入功能：支持从 CSV/Excel 批量导入批次数据');
+        }
+
+        function createBatch(event) {
+            event.preventDefault();
+
+            const newBatch = {
+                id: document.getElementById('new-batch-id').value,
+                origin: document.getElementById('new-origin').value,
+                quantity: parseInt(document.getElementById('new-quantity').value),
+                roastProfile: document.getElementById('new-roast').value,
+                status: 'pending',
+                date: new Date().toISOString().split('T')[0],
+                supplier: '新供应商',
+                altitude: '1500-1800m',
+                processing: '待定',
+                cupping: 85,
+                notes: document.getElementById('new-notes').value || '暂无备注'
+            };
+
+            batches.unshift(newBatch);
+            filteredBatches = [...batches];
+            renderTable();
+            renderOriginChart();
+            closeCreateModal();
+
+            selectBatch(newBatch.id);
+        }
+
+        function updateBatchStatus(batchId) {
+            const batch = batches.find(b => b.id === batchId);
+            if (!batch) return;
+
+            const statusFlow = ['pending', 'roasting', 'ready', 'shipped', 'delivered'];
+            const currentIndex = statusFlow.indexOf(batch.status);
+            if (currentIndex < statusFlow.length - 1) {
+                batch.status = statusFlow[currentIndex + 1];
+                renderTable();
+                renderDetailPanel();
+            } else {
+                alert('批次已完成全部流程');
+            }
+        }
+
+        // Helper Functions
+        function getOriginFlag(origin) {
+            const flags = {
+                '埃塞俄比亚': '🇪🇹',
+                '哥伦比亚': '🇨🇴',
+                '巴西': '🇧🇷',
+                '肯尼亚': '🇰🇪',
+                '危地马拉': '🇬🇹'
+            };
+            return flags[origin] || '🌍';
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                'pending': '待处理',
+                'roasting': '烘焙中',
+                'ready': '待发货',
+                'shipped': '已发货',
+                'delivered': '已交付'
+            };
+            return texts[status] || status;
+        }
+
+        function getNextActionText(status) {
+            const actions = {
+                'pending': '开始烘焙',
+                'roasting': '完成烘焙',
+                'ready': '标记发货',
+                'shipped': '确认交付',
+                'delivered': '批次已完成'
+            };
+            return actions[status] || '下一步';
+        }
+
+        function getDateOffset(dateStr, days) {
+            const date = new Date(dateStr);
+            date.setDate(date.getDate() + days);
+            return date.toISOString().split('T')[0];
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+
+</html>

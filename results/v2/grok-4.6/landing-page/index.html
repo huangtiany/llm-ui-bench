@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="汀州蓝社，福建长汀水东街。蓼蓝入窖，七浸七晒。不售鲜蓝，只做旧色。" />
+  <title>汀州蓝社 · 长汀水东街</title>
+  <style>
+    :root {
+      --ink: #17140f;
+      --ink-soft: #3a342c;
+      --paper: #e7dfcf;
+      --paper-2: #d8cfbb;
+      --foam: #f4efe4;
+      --hemp: #c4b496;
+      --indigo-0: #cfd6dc;
+      --indigo-1: #8b9eae;
+      --indigo-2: #4a6b86;
+      --indigo-3: #1d3f5c;
+      --indigo-4: #0d2438;
+      --indigo-5: #08131f;
+      --vat: #07101a;
+      --seal: #9a3126;
+      --copper: #7a6a42;
+      --stitch: #1d3f5c;
+      --ease: cubic-bezier(.22, 1, .36, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "FangSong", "STFangsong", "仿宋", "Songti SC", "SimSun", Palatino, serif;
+      font-size: 18px;
+      line-height: 1.85;
+      letter-spacing: .04em;
+      overflow-x: hidden;
+      cursor: none;
+    }
+    @media (pointer: coarse) { body { cursor: auto; } }
+
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: inherit; }
+    img, svg { max-width: 100%; display: block; }
+    section { isolation: isolate; scroll-margin-top: 0; }
+
+    .serif {
+      font-family: "KaiTi", "Kaiti", "STKaiti", "楷体", "Palatino Linotype", Palatino, serif;
+    }
+    .latin {
+      font-family: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      letter-spacing: .32em;
+      text-transform: uppercase;
+      font-size: .68rem;
+    }
+
+    /* —— 贯穿全页的视觉语言：布边、纱线、颗粒、缸口 —— */
+    .grain,
+    .grain--fine {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 80;
+    }
+    .grain {
+      opacity: .18;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.09  0 0 0 0 0.08  0 0 0 0 0.06  0 0 0 .7 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+      background-size: 180px 180px;
+    }
+    .grain--fine {
+      z-index: 81;
+      opacity: .12;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.55'/></svg>");
+      background-size: 90px 90px;
+    }
+
+    .selvedge {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      width: 28px;
+      z-index: 70;
+      pointer-events: none;
+      mix-blend-mode: multiply;
+    }
+    .selvedge--left { left: 0; }
+    .selvedge--right { right: 0; transform: scaleX(-1); }
+    .selvedge::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 10px;
+      width: 1px;
+      background: repeating-linear-gradient(
+        to bottom,
+        var(--indigo-3) 0 7px,
+        transparent 7px 18px
+      );
+      opacity: .55;
+    }
+    .selvedge::after {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 16px;
+      width: 7px;
+      background: repeating-linear-gradient(
+        to bottom,
+        var(--indigo-2) 0 2px,
+        transparent 2px 14px
+      );
+      opacity: .35;
+    }
+
+    .fiber {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      opacity: .22;
+      mix-blend-mode: multiply;
+      background-image:
+        repeating-linear-gradient(90deg, transparent 0 3px, rgba(29, 63, 92, .07) 3px 4px),
+        repeating-linear-gradient(0deg, transparent 0 2px, rgba(23, 20, 15, .05) 2px 3px);
+    }
+
+    .vat-ghost {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(29, 63, 92, .28);
+      mix-blend-mode: multiply;
+      pointer-events: none;
+    }
+    .vat-ghost::before,
+    .vat-ghost::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      inset: 12%;
+      border: 1px solid rgba(29, 63, 92, .18);
+    }
+    .vat-ghost::after { inset: 28%; border-color: rgba(154, 49, 38, .18); }
+
+    .deckle {
+      -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 80' preserveAspectRatio='none'><path fill='white' d='M0,24 C40,8 70,48 110,22 C150,-4 180,40 230,18 C280,-6 320,36 370,20 C420,4 460,44 510,22 C560,0 600,40 650,18 C700,-4 740,38 790,20 C840,2 880,42 930,18 C980,-6 1020,36 1070,22 C1110,12 1160,40 1200,16 L1200,80 L0,80 Z'/></svg>");
+              mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 80' preserveAspectRatio='none'><path fill='white' d='M0,24 C40,8 70,48 110,22 C150,-4 180,40 230,18 C280,-6 320,36 370,20 C420,4 460,44 510,22 C560,0 600,40 650,18 C700,-4 740,38 790,20 C840,2 880,42 930,18 C980,-6 1020,36 1070,22 C1110,12 1160,40 1200,16 L1200,80 L0,80 Z'/></svg>");
+      -webkit-mask-size: 100% 100%;
+              mask-size: 100% 100%;
+    }
+
+    /* 自定义靛滴光标 */
+    .cursor {
+      position: fixed;
+      width: 14px;
+      height: 18px;
+      margin: -6px 0 0 -7px;
+      border-radius: 40% 40% 46% 46%;
+      background: radial-gradient(circle at 35% 30%, #6e8aa3, var(--indigo-4) 70%);
+      z-index: 200;
+      pointer-events: none;
+      mix-blend-mode: multiply;
+      transform: translate(-100px, -100px);
+      transition: transform .08s linear, width .2s var(--ease), height .2s var(--ease), opacity .3s;
+      opacity: 0;
+    }
+    .cursor.is-on { opacity: .85; }
+    .cursor.is-down {
+      width: 22px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    @media (pointer: coarse) { .cursor { display: none; } }
+
+    /* 页眉：像布头上的墨记，不是导航条 */
+    .mark {
+      position: fixed;
+      top: 22px;
+      left: 42px;
+      z-index: 90;
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      mix-blend-mode: multiply;
+      color: var(--ink);
+      transition: color .4s var(--ease);
+    }
+    body.on-ink .mark,
+    body.on-ink .mark a.visit,
+    body.on-ink .spine {
+      mix-blend-mode: normal;
+      color: var(--foam);
+    }
+    body.on-ink .mark a.visit { border-bottom-color: rgba(244, 239, 228, .45); }
+    body.on-ink .spine { color: var(--indigo-0); }
+    .mark strong {
+      font-family: "KaiTi", "Kaiti", "STKaiti", "楷体", serif;
+      font-weight: 400;
+      font-size: 1.05rem;
+      letter-spacing: .42em;
+    }
+    .mark a.visit {
+      margin-left: auto;
+      position: fixed;
+      right: 42px;
+      top: 24px;
+      font-size: .78rem;
+      letter-spacing: .38em;
+      border-bottom: 1px solid rgba(29, 63, 92, .45);
+      padding-bottom: 2px;
+    }
+
+    .spine {
+      position: fixed;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 90;
+      writing-mode: vertical-rl;
+      font-size: .68rem;
+      letter-spacing: .42em;
+      color: var(--indigo-3);
+      mix-blend-mode: multiply;
+      opacity: .7;
+    }
+    .spine a {
+      display: inline-block;
+      margin-block: .55em;
+      opacity: .45;
+      transition: opacity .4s;
+    }
+    .spine a.is-now { opacity: 1; }
+
+    /* —— 入缸 —— */
+    .enter {
+      min-height: 100vh;
+      position: relative;
+      display: grid;
+      grid-template-columns: 72px 1fr minmax(220px, 28vw);
+      padding: 0 48px 0 42px;
+      overflow: hidden;
+      background:
+        radial-gradient(120% 80% at 18% 120%, rgba(13, 36, 56, .22), transparent 55%),
+        linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
+    }
+    .enter .fiber { opacity: .3; }
+    .enter-epigraph {
+      writing-mode: vertical-rl;
+      font-size: .86rem;
+      letter-spacing: .28em;
+      color: var(--ink-soft);
+      padding-top: 18vh;
+      border-right: 1px solid rgba(29, 63, 92, .18);
+      padding-right: 18px;
+      height: 100vh;
+    }
+    .enter-main {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 12vh 4vw 12vh 5vw;
+    }
+    .enter h1 {
+      margin: 0;
+      font-family: "KaiTi", "Kaiti", "STKaiti", "楷体", serif;
+      font-weight: 400;
+      font-size: clamp(5.2rem, 17vw, 13.5rem);
+      line-height: .82;
+      letter-spacing: -.06em;
+      position: relative;
+      color: var(--indigo-4);
+    }
+    .enter h1 .fill {
+      position: relative;
+      display: inline-block;
+      color: var(--indigo-2);
+      background:
+        linear-gradient(to top, var(--indigo-5) 36%, var(--indigo-4) 52%, var(--indigo-3) 68%, var(--indigo-2) 86%);
+      background-size: 100% 180%;
+      background-position: 0 100%;
+      -webkit-background-clip: text;
+              background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: dye-rise 4.8s var(--ease) .3s forwards;
+    }
+    @keyframes dye-rise {
+      to { background-position: 0 0; }
+    }
+    .enter h1 em {
+      font-style: normal;
+      display: block;
+      font-size: .18em;
+      letter-spacing: .5em;
+      margin-top: .35em;
+      color: var(--indigo-3);
+      -webkit-text-fill-color: var(--indigo-3);
+      background: none;
+      white-space: nowrap;
+    }
+    .drip {
+      position: absolute;
+      left: 38%;
+      top: 58%;
+      width: 2px;
+      height: 0;
+      background: linear-gradient(to bottom, var(--indigo-3), transparent);
+      animation: drip 3.6s var(--ease) 2.2s forwards;
+      mix-blend-mode: multiply;
+    }
+    @keyframes drip { to { height: 28vh; } }
+
+    .enter-aside {
+      position: relative;
+      z-index: 2;
+      padding: 18vh 8px 8vh 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .enter-aside .latin { color: var(--indigo-3); }
+    .enter-aside p {
+      margin: 0;
+      font-size: .95rem;
+      max-width: 18em;
+      color: var(--ink-soft);
+    }
+    .year-stamp {
+      display: inline-block;
+      border: 1px solid var(--seal);
+      color: var(--seal);
+      padding: .45em .2em;
+      writing-mode: vertical-rl;
+      letter-spacing: .28em;
+      font-family: "KaiTi", "Kaiti", "STKaiti", "楷体", serif;
+      font-size: .85rem;
+      mix-blend-mode: multiply;
+      align-self: flex-end;
+    }
+    .cloth-hang {
+      position: absolute;
+      right: 6%;
+      top: -6%;
+      width: min(34vw, 420px);
+      height: 78vh;
+      z-index: 1;
+      background:
+        linear-gradient(180deg, var(--indigo-1) 0%, var(--indigo-3) 38%, var(--indigo-5) 100%);
+      -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 8%, #000 88%, transparent 100%),
+        repeating-linear-gradient(90deg, #000 0 7px, transparent 7px 8px);
+              mask-image: linear-gradient(180deg, transparent 0, #000 8%, #000 88%, transparent 100%),
+        repeating-linear-gradient(90deg, #000 0 7px, transparent 7px 8px);
+      mix-blend-mode: multiply;
+      opacity: .55;
+      transform-origin: 50% 0;
+      animation: sway 7.5s ease-in-out infinite;
+    }
+    .cloth-hang::after {
+      content: "";
+      position: absolute;
+      inset: auto 18% -2% 18%;
+      height: 18%;
+      background: inherit;
+      filter: blur(16px);
+      opacity: .45;
+    }
+    @keyframes sway {
+      0%, 100% { transform: rotate(-1.4deg) translateX(0); }
+      50% { transform: rotate(1.1deg) translateX(8px); }
+    }
+    .enter .vat-ghost {
+      width: min(52vw, 640px);
+      height: min(52vw, 640px);
+      left: -12%;
+      bottom: -28%;
+      opacity: .7;
+    }
+
+    /* —— 河笺 —— */
+    .letter {
+      position: relative;
+      padding: 14vh 8vw 16vh 6vw;
+      background: var(--foam);
+    }
+    .letter .fiber { opacity: .16; }
+    .letter .vat-ghost {
+      width: 280px;
+      height: 280px;
+      right: 8%;
+      top: 18%;
+      opacity: .5;
+    }
+    .letter-layout {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: auto minmax(0, 40em);
+      gap: 4vw 5vw;
+      align-items: start;
+    }
+    .letter h2 {
+      margin: 0;
+      writing-mode: vertical-rl;
+      font-family: "KaiTi", "Kaiti", "STKaiti", "楷体", serif;
+      font-weight: 400;
+      font-size: clamp(2.8rem, 7vw, 5.6rem);
+      line-height: 1;
+      letter-spacing: .32em;
+      color: var(--indigo-4);
+      height: min(72vh, 18em);
+    }
+    .letter header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 2.2rem;
+      color: var(--indigo-3);
+      font-size: .8rem;
+      letter-spacing: .4em;
+    }
+    .letter article {
+      font-size: 1.12rem;
+      text-indent: 2em;
+      color: var(--ink);
+    }
+    .letter article p { margin: 0 0 1.15em; }
+    .letter .bleed {
+      position: relative;
+    }
+    .letter .bleed::after {
+      content: "";
+      position: absolute;
+      left: -1.2em;
+      top: .35em;
+      width: 2.6em;
+      height: 1.1em;
+      background: radial-gradient(ellipse at 40% 50%, rgba(29, 63, 92, .22), transparent 70%);
+      mix-blend-mode: multiply;
+      pointer-events: none;
+    }
+    .signoff {
+      margin-top: 3rem;
+      text-indent: 0 !important;
+      text-align: right;
+      letter-spacing: .28em;
+      font-family: "KaiTi", "Kaiti", "STKaiti", "楷体", serif;
+    }
+    .letter-stain {
+      position: absolute;
+      left: 7vw;
+      bottom: 8vh;
+      width: 160px;
+      height: 210px;
+      background:
+        radial-gradient(ellipse at 50% 40%, rgba(13, 36, 56, .28), transparent 62%),
+        radial-gradient(ellipse at 60% 70%, rgba(74, 107, 134, .2), transparent 55%);
+      mix-blend-mode: multiply;
+      transform: rotate(-8deg);
+      pointer-events: none;
+    }
+
+    /* —— 七浸 —— */
+    .dips {
+      position: relative;
+      height: 720vh;
+      background: var(--paper-2);
+    }
+    .dips-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1fr minmax(220px, 34vw);
+      align-items: stretch;
+    }
+    .dips-stage {
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+    .vat-mouth {
+      position: absolute;
+      width: min(70vh, 70vw);
+      height: min(70vh, 70vw);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 46%,
+          rgba(207, 214, 220, .35) 0 8%,
+          rgba(29, 63, 92, .55) 18%,
+          rgba(8, 19, 31, .95) 42%,
+          rgba(7, 16, 26, 1) 58%,
+          rgba(29, 63, 92, .4) 72%,
+          transparent 73%);
+      mix-blend-mode: multiply;
+      box-shadow: inset 0 0 80px rgba(8, 19, 31, .4);
+    }
+    .vat-mouth::before {
+      content: "";
+      position: absolute;
+      inset: 27%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 32%, rgba(255, 255, 255, .16), transparent 36%);
+      mix-blend-mode: screen;
+      opacity: .7;
+    }
+    .dip-cloth {
+      position: relative;
+      width: min(28vh, 220px);
+      height: min(62vh, 520px);
+      background: var(--hemp);
+      box-shadow: 8px 18px 40px rgba(8, 19, 31, .18);
+      -webkit-mask-image: linear-gradient(#000, #000),
+        repeating-linear-gradient(90deg, #000 0 5px, transparent 5px 6px);
+              mask-image: linear-gradient(#000, #000),
+        repeating-linear-gradient(90deg, #000 0 5px, transparent 5px 6px);
+      transition: background-color .6s var(--ease), transform .6s var(--ease);
+      transform-origin: 50% 0;
+      z-index: 2;
+    }
+    .dip-cloth::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(90deg, transparent 0 6px, rgba(255,255,255,.06) 6px 7px),
+        linear-gradient(180deg, rgba(255,255,255,.12), transparent 18%, rgba(0,0,0,.18));
+      mix-blend-mode: overlay;
+      pointer-events: none;
+    }
+    .dip-cloth::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: var(--wet, 12%);
+      background: linear-gradient(to top, rgba(8,19,31,.35), transparent);
+      mix-blend-mode: multiply;
+      transition: height .5s var(--ease);
+    }
+    .dips-copy {
+      position: relative;
+      padding: 18vh 8vw 8vh 4vw;
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: linear-gradient(90deg, transparent, rgba(231, 223, 207, .55) 18%);
+    }
+    .dip-kicker {
+      font-size: .78rem;
+      letter-spacing: .48em;
+      color: var(--indigo-3);
+      margin-bottom: 1.4rem;
+    }
+    .dip-num {
+      font-family: "KaiTi", "Kaiti", "STKaiti", "楷体", serif;
+      font-size: clamp(3rem, 7vw, 5.4rem);
+      line-height: 1;
+      letter-spacing: .12em;
+      margin: 0 0 .6em;
+      color: var(--indigo-4);
+    }
+    .dip-text {
+      margin: 0;
+      max-width: 18em;
+      min-height: 7.4em;
+      font-size: 1.05rem;
+    }
+    .hold-hint {
+      margin-top: 2.8rem;
+      font-size: .78rem;
+      letter-spacing: .2em;
+      color: var(--ink-soft);
+    }
+    .hold-hint kbd {
+      font: inherit;
+      border-bottom: 1px solid var(--indigo-2);
+      padding-bottom: 1px;
+    }
+
+    /* —— 染谱 —— */
+    .almanac {
+      position: relative;
+      padding: 16vh 8vw 14vh;
+      background:
+        linear-gradient(180deg, var(--paper) 0%, var(--foam) 100%);
+    }
+    .almanac .fiber { opacity: .2; }
+    .almanac-head {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 2.4rem 3.2rem;
+      align-items: end;
+      margin-bottom: 8vh;
+    }
+    .almanac h2 {
+      margin: 0;
+      writing-mode: vertical-rl;
+      font-family: "KaiTi", "Kaiti", "STKaiti", "楷体", serif;
+      font-weight: 400;
+      font-size: clamp(2.8rem, 6vw, 4.8rem);
+      letter-spacing: .28em;
+      line-height: 1;
+      color: var(--indigo-4);
+    }
+    .almanac-head p {
+      margin: 0;
+      max-width: 34em;
+      color: var(--ink-soft);
+    }
+    .year-bar {
+      position: relative;
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      gap: 0 2.2rem;
+    }
+    .year-rail {
+      position: relative;
+    }
+    .year-rail span {
+      position: sticky;
+      top: 18vh;
+      display: block;
+      width: 10px;
+      height: 62vh;
+      margin-left: 26px;
+      background: linear-gradient(180deg, var(--indigo-0), var(--indigo-2) 35%, var(--indigo-5) 72%, var(--hemp) 100%);
+      border-radius: 99px;
+      mix-blend-mode: multiply;
+      box-shadow: inset 0 0 0 1px rgba(23, 20, 15, .12);
+    }
+    .year-rail span::before,
+    .year-rail span::after {
+      content: "开缸";
+      position: absolute;
+      left: 22px;
+      top: 0;
+      font-size: .7rem;
+      letter-spacing: .2em;
+      color: var(--indigo-3);
+      writing-mode: horizontal-tb;
+    }
+    .year-rail span::after { content: "封缸"; top: auto; bottom: 0; }
+    .terms { list-style: none; margin: 0; padding: 0; }
+    .terms li {
+      display: grid;
+      grid-template-columns: 7.2em 1fr;
+      gap: 1.4rem;
+      padding: 1.6rem 0 1.8rem;
+      border-top: 1px solid rgba(29, 63, 92, .16);
+      align-items: start;
+    }
+    .terms li:last-child { border-bottom: 1px solid rgba(29, 63, 92, .16); }
+    .terms .jieqi {
+      font-family: "KaiTi", "Kaiti", "STKaiti", "楷体", serif;
+      font-size: 1.7rem;
+      letter-spacing: .2em;
+      color: var(--indigo-4);
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+    .terms .jieqi small {
+      display: block;
+      margin-top: .35em;
+      font-family: Palatino, Georgia, serif;
+      font-size: .68rem;
+      letter-spacing: .22em;
+      color: var(--indigo-2);
+    }
+    .terms p { margin: 0; max-width: 38em; }
+    .terms li.is-now .jieqi { color: var(--seal); }
+    .terms li.is-now { background: linear-gradient(90deg, rgba(154, 49, 38, .06), transparent 70%); }
+
+    /* —— 三人 —— */
+    .voices {
+      position: relative;
+      padding: 18vh 6vw 16vh;
+      background: var(--paper-2);
+      min-height: 100vh;
+    }
+    .voices h2 {
+      position: absolute;
+      left: 5vw;
+      top: 10vh;
+      margin: 0;
+      writing-mode: vertical-rl;
+      font-family: "KaiTi", "Kaiti", "STKaiti", "楷体", serif;
+      font-weight: 400;
+      letter-spacing: .5em;
+      font-size: 1.1rem;
+      color: var(--indigo-3);
+    }
+    .sheets {
+      position: relative;
+      min-height: 78vh;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .sheet {
+      position: relative;
+      width: min(52vw, 520px);
+      padding: 2.4rem 2.2rem 2.6rem;
+      background: var(--foam);
+      box-shadow: 0 18px 40px rgba(23, 20, 15, .08);
+      mix-blend-mode: multiply;
+      isolation: isolate;
+    }
+    .sheet .fiber { opacity: .28; }
+    .sheet:nth-child(1) {
+      transform: rotate(-1.6deg);
+      z-index: 1;
+    }
+    .sheet:nth-child(2) {
+      margin-left: 22%;
+      margin-top: -4.5rem;
+      transform: rotate(1.2deg);
+      background: #efe6d4;
+      z-index: 2;
+    }
+    .sheet:nth-child(3) {
+      margin-left: 8%;
+      margin-top: -3.2rem;
+      transform: rotate(-.4deg);
+      background: #e4dcc8;
+      z-index: 3;
+    }
+    .sheet header {
+      display: flex;
+      justify-content: space-between;
+      font-size: .78rem;
+      letter-spacing: .28em;
+      color: var(--indigo-3);
+      margin-bottom: 1.1rem;
+    }
+    .sheet p { margin: 0; position: relative; }
+    .sheet .stain-sm {
+      position: absolute;
+      width: 90px;
+      height: 70px;
+      right: 10%;
+      bottom: 8%;
+      background: radial-gradient(ellipse, rgba(29, 63, 92, .16), transparent 70%);
+      mix-blend-mode: multiply;
+    }
+
+    /* —— 院落 —— */
+    .yard {
+      position: relative;
+      padding: 14vh 6vw 12vh;
+      background: var(--indigo-5);
+      color: var(--foam);
+    }
+    .yard .grain-local {
+      position: absolute;
+      inset: 0;
+      opacity: .25;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    }
+    .yard-grid {
+      display: grid;
+      grid-template-columns: minmax(240px, 34%) 1fr;
+      gap: 4vw;
+      align-items: start;
+    }
+    .yard h2 {
+      margin: 0 0 .6em;
+      font-family: "KaiTi", "Kaiti", "STKaiti", "楷体", serif;
+      font-weight: 400;
+      font-size: clamp(2.6rem, 6vw, 4.4rem);
+      letter-spacing: .28em;
+    }
+    .yard .lede {
+      color: var(--indigo-0);
+      max-width: 22em;
+    }
+    .yard address {
+      font-style: normal;
+      margin-top: 2.4rem;
+      letter-spacing: .16em;
+      line-height: 2;
+    }
+    .plan {
+      position: relative;
+      aspect-ratio: 5 / 4;
+      border: 1px solid rgba(207, 214, 220, .28);
+      padding: 18px;
+      background:
+        radial-gradient(circle at 78% 30%, rgba(74, 107, 134, .22), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,.03), transparent);
+    }
+    .plan svg { width: 100%; height: 100%; }
+    .plan figcaption {
+      position: absolute;
+      left: 18px;
+      bottom: 12px;
+      font-size: .72rem;
+      letter-spacing: .32em;
+      color: var(--indigo-1);
+    }
+    .note {
+      margin-top: 3rem;
+      padding-top: 1.4rem;
+      border-top: 1px solid rgba(207, 214, 220, .2);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      font-size: .95rem;
+      color: var(--indigo-0);
+    }
+    .note strong {
+      display: block;
+      font-weight: 400;
+      font-family: "KaiTi", "Kaiti", "STKaiti", "楷体", serif;
+      letter-spacing: .32em;
+      color: var(--foam);
+      margin-bottom: .4em;
+    }
+
+    /* —— 夜缸 —— */
+    .night {
+      position: relative;
+      min-height: 100vh;
+      background: var(--vat);
+      color: var(--foam);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      text-align: center;
+      padding: 12vh 8vw;
+    }
+    .night-vat {
+      position: absolute;
+      width: min(90vh, 90vw);
+      height: min(90vh, 90vw);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 48%,
+          rgba(180, 198, 214, .12) 0 6%,
+          rgba(13, 36, 56, .9) 22%,
+          #04080d 54%,
+          transparent 55%);
+      mix-blend-mode: screen;
+      opacity: .85;
+    }
+    .moon {
+      position: absolute;
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 36%, #f4efe4, #cfd6dc 60%, transparent 70%);
+      filter: blur(.4px);
+      mix-blend-mode: screen;
+      opacity: .5;
+      top: 14%;
+      left: 58%;
+      animation: moonfloat 8s ease-in-out infinite;
+    }
+    .moon-ref {
+      position: absolute;
+      width: 52px;
+      height: 90px;
+      left: 53.2%;
+      top: 48%;
+      background: linear-gradient(180deg, rgba(244, 239, 228, .28), transparent);
+      filter: blur(6px);
+      mix-blend-mode: screen;
+      clip-path: polygon(20% 0, 80% 0, 60% 100%, 40% 100%);
+      opacity: .5;
+    }
+    @keyframes moonfloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(10px); }
+    }
+    .night h2, .night p, .seal, .colophon { z-index: 2; }
+    .night h2 {
+      position: relative;
+      margin: 0 0 .8em;
+      font-family: "KaiTi", "Kaiti", "STKaiti", "楷体", serif;
+      font-weight: 400;
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      letter-spacing: .5em;
+    }
+    .night p {
+      position: relative;
+      margin: 0 auto 2.8rem;
+      max-width: 22em;
+      color: var(--indigo-0);
+    }
+    .seal {
+      position: relative;
+      width: 92px;
+      height: 92px;
+      margin: 0 auto;
+      color: var(--seal);
+      transform: rotate(-8deg) scale(.86);
+      opacity: 0;
+    }
+    .seal.is-in {
+      animation: stamp .55s var(--ease) forwards;
+    }
+    @keyframes stamp {
+      0% { opacity: 0; transform: rotate(-8deg) scale(1.2); }
+      70% { opacity: 1; transform: rotate(-11deg) scale(.96); }
+      100% { opacity: .92; transform: rotate(-8deg) scale(1); }
+    }
+    .colophon {
+      position: relative;
+      margin-top: 4rem;
+      font-size: .72rem;
+      letter-spacing: .28em;
+      color: var(--indigo-1);
+    }
+
+    .skip {
+      position: absolute;
+      left: -999px;
+      top: 8px;
+    }
+    .skip:focus { left: 12px; background: var(--foam); padding: 4px 8px; z-index: 300; }
+
+    @media (max-width: 860px) {
+      body { cursor: auto; }
+      .mark { left: 18px; top: 16px; }
+      .mark a.visit { right: 18px; top: 18px; }
+      .spine, .selvedge { display: none; }
+      .enter {
+        grid-template-columns: 1fr;
+        padding: 12vh 22px 8vh;
+        min-height: 100vh;
+      }
+      .enter-epigraph {
+        writing-mode: horizontal-tb;
+        height: auto;
+        padding: 0 0 1.4rem;
+        border: 0;
+        letter-spacing: .12em;
+        font-size: .86rem;
+      }
+      .enter-main {
+        min-height: 0;
+        padding: 4vh 0 3vh;
+        justify-content: flex-start;
+      }
+      .enter h1 { font-size: clamp(4.2rem, 26vw, 6.4rem); }
+      .enter h1 em { letter-spacing: .18em; font-size: .2em; }
+      .enter-aside { padding: 0 0 6vh; }
+      .enter-aside p { max-width: none; margin: 1.4rem 0 0; }
+      .year-stamp { margin-top: 1.6rem; }
+      .cloth-hang { width: 38vw; height: 22vh; opacity: .32; top: 10%; right: -6%; bottom: auto; z-index: 0; }
+      .enter-main, .enter-aside { z-index: 2; }
+      .letter { padding: 12vh 22px; }
+      .letter-layout { grid-template-columns: 1fr; gap: 1.6rem; }
+      .letter h2 {
+        writing-mode: horizontal-tb;
+        height: auto;
+        letter-spacing: .22em;
+        font-size: clamp(2.4rem, 12vw, 3.4rem);
+      }
+      .dips { height: 560vh; }
+      .dips-sticky {
+        position: sticky;
+        height: 100vh;
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+      }
+      .vat-mouth { width: 78vw; height: 78vw; top: 4vh; }
+      .dip-cloth { width: 28vw; height: 42vh; margin-top: 10vh; }
+      .dips-copy { padding: 0 22px 7vh; background: none; }
+      .almanac { padding: 12vh 22px; }
+      .almanac-head { grid-template-columns: 1fr; }
+      .almanac h2 { writing-mode: horizontal-tb; letter-spacing: .2em; }
+      .year-bar { grid-template-columns: 1fr; }
+      .year-rail { display: none; }
+      .terms li { grid-template-columns: 1fr; gap: .4rem; }
+      .voices { padding: 12vh 18px; }
+      .voices h2 { position: static; writing-mode: horizontal-tb; margin-bottom: 1.6rem; }
+      .sheet, .sheet:nth-child(n) {
+        width: auto;
+        margin: 0 0 1.2rem !important;
+        transform: none !important;
+      }
+      .yard-grid, .note { grid-template-columns: 1fr; }
+      .plan { margin-top: 2rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+      .enter h1 .fill {
+        background: none;
+        color: var(--indigo-4);
+        -webkit-text-fill-color: var(--indigo-4);
+      }
+      .seal { opacity: .92; transform: rotate(-8deg); }
+      .cursor { display: none; }
+      body { cursor: auto; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#letter">跳至正文</a>
+
+  <div class="grain" aria-hidden="true"></div>
+  <div class="grain--fine" aria-hidden="true"></div>
+  <div class="selvedge selvedge--left" aria-hidden="true"></div>
+  <div class="selvedge selvedge--right" aria-hidden="true"></div>
+  <div class="cursor" id="cursor" hidden></div>
+
+  <header class="mark">
+    <strong class="serif">汀州蓝社</strong>
+    <span class="latin">Tingzhou</span>
+    <a class="visit latin" href="#yard">访缸</a>
+  </header>
+
+  <nav class="spine" aria-label="篇章">
+    <a href="#enter" data-sec="enter">入缸</a>
+    <a href="#letter" data-sec="letter">河笺</a>
+    <a href="#dips" data-sec="dips">七浸</a>
+    <a href="#almanac" data-sec="almanac">染谱</a>
+    <a href="#voices" data-sec="voices">三人</a>
+    <a href="#yard" data-sec="yard">院落</a>
+    <a href="#night" data-sec="night">夜缸</a>
+  </nav>
+
+  <section class="enter" id="enter">
+    <div class="fiber" aria-hidden="true"></div>
+    <div class="vat-ghost" aria-hidden="true"></div>
+    <div class="cloth-hang" aria-hidden="true"></div>
+    <p class="enter-epigraph">蓼蓝一经霜则叶赤，投之灰水，宿而成靛。汀江在门前折了一下，把那点青气送进天井。</p>
+    <div class="enter-main">
+      <h1 class="serif"><span class="fill">蓝社</span><em>长汀 · 水东街 · 河背</em></h1>
+      <i class="drip" aria-hidden="true"></i>
+    </div>
+    <aside class="enter-aside">
+      <p class="latin">Indigo · Hakka · Ting River</p>
+      <p>民国二十七年立社。不做洋靛的鲜亮，只养一缸能沉下去的旧色。布要在河风里干透，才算汀州的蓝。</p>
+      <span class="year-stamp">丙午年白露前</span>
+    </aside>
+  </section>
+
+  <section class="letter" id="letter">
+    <div class="fiber" aria-hidden="true"></div>
+    <div class="vat-ghost" aria-hidden="true"></div>
+    <div class="letter-stain" aria-hidden="true"></div>
+    <div class="letter-layout">
+      <h2 class="serif">写给汀江</h2>
+      <div>
+        <header>
+          <span>水东街四十七号</span>
+          <span class="latin">A note to the river</span>
+        </header>
+        <article>
+          <p>江：你昨日涨了半寸。晒坪上那匹五浸的家机布，下摆被打湿，像有人在夜里把一角夜色叠了回去。</p>
+          <p class="bleed">社里的缸是石的，比我祖父的肩还宽。石灰、酒糟、蓼叶，一层层沉下去，表面却要留一层铜绿似的沫。管缸的人说，沫要是碎了，蓝就散了。我幼时不懂，只记得探头看自己的脸，脸是歪的，蓝却是正的。</p>
+          <p>客家的蓝不是画上的蓝。它要经过七次没入、七次见日。每一次从你身边走过，布都会轻一点、深一点。深到后来，不是颜色，是墙根雨后的那种湿。</p>
+          <p>洋靛来的那年，城里的布店都换了招牌。我们没有换。不是守旧，是那口缸还在发酵，停下来反而暴殄。</p>
+          <p class="signoff">蓝社 上　白露前三日</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="dips" id="dips">
+    <div class="dips-sticky">
+      <div class="dips-stage">
+        <div class="vat-mouth" aria-hidden="true"></div>
+        <div class="dip-cloth" id="dipCloth" style="--wet: 10%"></div>
+      </div>
+      <div class="dips-copy">
+        <p class="dip-kicker latin">Seven dips · Seven suns</p>
+        <h2 class="dip-num serif" id="dipNum">一浸</h2>
+        <p class="dip-text" id="dipText">布刚入水，只得一层影。河风还能从纱孔穿过，麻色仍在说话。</p>
+        <p class="hold-hint">按住布面，可再入一寸。松开，提出水面。<kbd>按住</kbd></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="almanac" id="almanac">
+    <div class="fiber" aria-hidden="true"></div>
+    <div class="almanac-head">
+      <h2 class="serif">染谱</h2>
+      <p>蓝社不按货架分色，按节气开缸。蓼有头水、二水、三水；布有家机、被面、帐幔。误了节气，蓝会闷，也会花。</p>
+    </div>
+    <div class="year-bar">
+      <div class="year-rail" aria-hidden="true"><span></span></div>
+      <ol class="terms">
+        <li>
+          <div class="jieqi">惊蛰<small>Jingzhe</small></div>
+          <p>开缸。石窖洗净，下石灰与酒糟，再覆蓼叶。三日后探沫，沫成圈，方可称「活缸」。</p>
+        </li>
+        <li>
+          <div class="jieqi">清明<small>Qingming</small></div>
+          <p>头水蓼蓝可采。专染家机布、围裙、小儿肚兜。色宜浅，像河在阴天里的那种灰青。</p>
+        </li>
+        <li>
+          <div class="jieqi">小满<small>Xiaoman</small></div>
+          <p>二水。婚嫁被面须在端午前干透，否则喜日会带潮气。此季最忙，晒坪上的布，远看像一段段浅潭。</p>
+        </li>
+        <li>
+          <div class="jieqi">大暑<small>Dashu</small></div>
+          <p>停缸。暑湿重，布易斑，靛亦易酸。人歇，缸也歇。只在清晨给石壁喷一点井水。</p>
+        </li>
+        <li class="is-now">
+          <div class="jieqi">白露<small>Bailu</small></div>
+          <p>三水。祠堂帐幔、寿布、修补旧衣。色要沉，沉到烛火里仍能辨出经纬。今年缸里还剩半尺活靛。</p>
+        </li>
+        <li>
+          <div class="jieqi">霜降<small>Shuangjiang</small></div>
+          <p>封缸。剩靛制成蓝饼，到来年惊蛰化开。晒坪收尽，只留竹竿上的影子。</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="voices" id="voices">
+    <h2 class="serif">三人</h2>
+    <div class="sheets">
+      <article class="sheet">
+        <div class="fiber" aria-hidden="true"></div>
+        <header><span>刘细妹 · 八十四</span><span>晒坪</span></header>
+        <p>布要听风，不听日头。日头急，色就焦。我晒布从十六岁晒到现在，手背是花的，像缸沿那圈沫。他们问我最深的蓝是哪一匹，我说是我嫁衣的里子，从来不给人看。</p>
+        <i class="stain-sm" aria-hidden="true"></i>
+      </article>
+      <article class="sheet">
+        <div class="fiber" aria-hidden="true"></div>
+        <header><span>钟石生 · 管缸</span><span>染房</span></header>
+        <p>缸有脾气。你若用棍猛搅，它就还你一块花布。要侧耳。气泡从石缝里上来，细得像有人在水底说话。活缸的味道是苦的，带一点酒。若是甜，就坏了，整窖都要废。</p>
+      </article>
+      <article class="sheet">
+        <div class="fiber" aria-hidden="true"></div>
+        <header><span>邱驼 · 货郎</span><span>河埠</span></header>
+        <p>我走韩江下游那些镇，人家认的不是招牌，是布边那道不齐的浅线。机织布边太齐，倒像假的。蓝社的布，叠起来会在箱底染出一圈影子。有人嫌，有人当嫁妆。</p>
+        <i class="stain-sm" aria-hidden="true"></i>
+      </article>
+    </div>
+  </section>
+
+  <section class="yard" id="yard">
+    <div class="grain-local" aria-hidden="true"></div>
+    <div class="yard-grid">
+      <div>
+        <h2 class="serif">访缸</h2>
+        <p class="lede">丙午年白露至霜降，晒坪尚开。不设橱窗，亦无号衣。门环是铜的，不亮。来人先在天井站一会，让眼睛习惯那口缸的暗。</p>
+        <address>
+          福建长汀 · 水东街 四十七号<br />
+          青砖门楼，进门左手井，右手染房<br />
+          河埠可通木船，水大时请走巷
+        </address>
+      </div>
+      <figure class="plan">
+        <svg viewBox="0 0 500 400" role="img" aria-label="蓝社院落平面：门厅、天井、染房、晒坪、河埠">
+          <rect x="8" y="8" width="484" height="384" fill="none" stroke="#8b9eae" stroke-width=".6"/>
+          <rect x="40" y="300" width="90" height="64" fill="none" stroke="#cfd6dc" stroke-width="1.2"/>
+          <text x="85" y="336" text-anchor="middle" fill="#cfd6dc" font-size="11" font-family="KaiTi, serif" letter-spacing="4">门厅</text>
+          <rect x="150" y="250" width="140" height="114" fill="rgba(207,214,220,.06)" stroke="#cfd6dc" stroke-width="1"/>
+          <circle cx="220" cy="308" r="22" fill="none" stroke="#8b9eae"/>
+          <circle cx="220" cy="308" r="6" fill="#8b9eae" opacity=".35"/>
+          <text x="220" y="348" text-anchor="middle" fill="#cfd6dc" font-size="11" font-family="KaiTi, serif" letter-spacing="4">天井 · 井</text>
+          <rect x="310" y="250" width="150" height="114" fill="rgba(13,36,56,.4)" stroke="#4a6b86" stroke-width="1.2"/>
+          <circle cx="360" cy="300" r="28" fill="#0d2438" stroke="#4a6b86"/>
+          <circle cx="418" cy="318" r="22" fill="#08131f" stroke="#4a6b86"/>
+          <text x="385" y="268" text-anchor="middle" fill="#cfd6dc" font-size="11" font-family="KaiTi, serif" letter-spacing="4">染房 · 双缸</text>
+          <rect x="150" y="40" width="310" height="190" fill="none" stroke="#8b9eae" stroke-dasharray="4 5"/>
+          <line x1="180" y1="60" x2="180" y2="210" stroke="#4a6b86" stroke-width="2"/>
+          <line x1="230" y1="70" x2="230" y2="220" stroke="#4a6b86" stroke-width="2"/>
+          <line x1="280" y1="55" x2="280" y2="205" stroke="#1d3f5c" stroke-width="3"/>
+          <line x1="330" y1="68" x2="330" y2="216" stroke="#4a6b86" stroke-width="2"/>
+          <line x1="380" y1="60" x2="380" y2="210" stroke="#1d3f5c" stroke-width="2.4"/>
+          <line x1="430" y1="78" x2="430" y2="200" stroke="#4a6b86" stroke-width="2"/>
+          <text x="305" y="32" text-anchor="middle" fill="#cfd6dc" font-size="11" font-family="KaiTi, serif" letter-spacing="6">晒坪</text>
+          <path d="M40 40 C80 70, 70 140, 40 200" fill="none" stroke="#8b9eae" stroke-width="1.4"/>
+          <path d="M28 50 C70 80, 60 150, 28 210" fill="none" stroke="#4a6b86" stroke-width=".8" opacity=".7"/>
+          <text x="58" y="130" fill="#8b9eae" font-size="11" font-family="KaiTi, serif" letter-spacing="3" writing-mode="tb">汀江 · 河埠</text>
+        </svg>
+        <figcaption class="latin">Courtyard · 1938–</figcaption>
+      </figure>
+    </div>
+    <div class="note">
+      <p><strong>若要一匹</strong>先来信，或立秋后上门。写明用途：嫁衣、帐幔、旧衣复染。布幅二尺四，一匹四丈。不寄鲜蓝样卡——样卡会骗人，真色在干透之后。</p>
+      <p><strong>信寄</strong>福建省长汀县水东街四十七号　汀州蓝社　钟石生　收。河埠有人认识「那口缸」即可。不作远程付款，色成之后再算工。</p>
+    </div>
+  </section>
+
+  <section class="night" id="night">
+    <div class="night-vat" aria-hidden="true"></div>
+    <div class="moon" aria-hidden="true"></div>
+    <div class="moon-ref" aria-hidden="true"></div>
+    <div>
+      <h2 class="serif">夜缸</h2>
+      <p>人走尽了，缸还在呼吸。沫一整圈，像一枚不肯寄出的印章。布在梁上，把月光滤成更旧的一层。</p>
+      <div class="seal" id="seal" aria-hidden="true">
+        <svg viewBox="0 0 100 100">
+          <rect x="6" y="6" width="88" height="88" fill="none" stroke="currentColor" stroke-width="3.2"/>
+          <rect x="12" y="12" width="76" height="76" fill="none" stroke="currentColor" stroke-width="1"/>
+          <text x="50" y="42" text-anchor="middle" fill="currentColor" font-size="20" font-family="KaiTi, STKaiti, serif">汀州</text>
+          <text x="50" y="68" text-anchor="middle" fill="currentColor" font-size="20" font-family="KaiTi, STKaiti, serif">蓝社</text>
+        </svg>
+      </div>
+      <p class="colophon latin">Tingzhou Indigo Society · Changting · Fujian</p>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      const dips = [
+        { n: "一浸", t: "布刚入水，只得一层影。河风还能从纱孔穿过，麻色仍在说话。", c: "#c4b496", w: "12%" },
+        { n: "二浸", t: "麻色退尽，像阴天的河。指腹按下去，会留下一块更浅的自己。", c: "#8b9eae", w: "22%" },
+        { n: "三浸", t: "开始有声音。靛沫在缸沿结成一圈铜绿，管缸的人说：沫在，蓝就在。", c: "#4a6b86", w: "34%" },
+        { n: "四浸", t: "晒坪上的布，远看像一段浅潭。近看，经线把风勒成细细的棱。", c: "#2c5574", w: "46%" },
+        { n: "五浸", t: "颜色开始往里走。不是布面的事了，是纱芯的事。", c: "#1d3f5c", w: "58%" },
+        { n: "六浸", t: "接近夜色，但还不是夜。烛火底下仍能数出纬线。", c: "#0d2438", w: "72%" },
+        { n: "七浸", t: "布干透后，才是汀州的蓝。不是洋靛的鲜，是雨后墙根的那种深。", c: "#08131f", w: "86%" }
+      ];
+
+      const cloth = document.getElementById("dipCloth");
+      const num = document.getElementById("dipNum");
+      const text = document.getElementById("dipText");
+      const dipsSec = document.getElementById("dips");
+      let dipIndex = 0;
+      let holding = false;
+
+      function paint(i, extra) {
+        const d = dips[Math.max(0, Math.min(dips.length - 1, i))];
+        cloth.style.backgroundColor = d.c;
+        cloth.style.setProperty("--wet", extra ? "96%" : d.w);
+        cloth.style.transform = extra ? "translateY(8%)" : "translateY(0)";
+        num.textContent = extra ? d.n + " · 入水" : d.n;
+        if (!extra) text.textContent = d.t;
+      }
+
+      function onScroll() {
+        const r = dipsSec.getBoundingClientRect();
+        const h = dipsSec.offsetHeight - window.innerHeight;
+        const p = Math.min(1, Math.max(0, -r.top / (h || 1)));
+        const i = Math.min(6, Math.floor(p * 6.999));
+        if (i !== dipIndex && !holding) {
+          dipIndex = i;
+          paint(i, false);
+        }
+
+        const y = window.scrollY + window.innerHeight * 0.42;
+        let current = "enter";
+        document.querySelectorAll(".spine a").forEach(function (a) {
+          const id = a.getAttribute("data-sec");
+          const el = document.getElementById(id);
+          if (!el) return;
+          const top = el.offsetTop;
+          const bottom = top + el.offsetHeight;
+          const on = y >= top && y < bottom;
+          a.classList.toggle("is-now", on);
+          if (on) current = id;
+        });
+        document.body.classList.toggle("on-ink", current === "yard" || current === "night");
+      }
+
+      paint(0, false);
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+
+      cloth.addEventListener("pointerdown", function (e) {
+        holding = true;
+        cloth.setPointerCapture(e.pointerId);
+        paint(Math.min(6, dipIndex + (dipIndex < 6 ? 1 : 0)), true);
+      });
+      cloth.addEventListener("pointerup", function () {
+        holding = false;
+        paint(dipIndex, false);
+      });
+      cloth.addEventListener("pointercancel", function () {
+        holding = false;
+        paint(dipIndex, false);
+      });
+
+      const cursor = document.getElementById("cursor");
+      const fine = window.matchMedia("(pointer: fine)").matches;
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (fine && !reduce) {
+        cursor.hidden = false;
+        window.addEventListener("pointermove", function (e) {
+          cursor.style.transform = "translate(" + e.clientX + "px," + e.clientY + "px)";
+          cursor.classList.add("is-on");
+        });
+        window.addEventListener("pointerdown", function () { cursor.classList.add("is-down"); });
+        window.addEventListener("pointerup", function () { cursor.classList.remove("is-down"); });
+        document.addEventListener("mouseleave", function () { cursor.classList.remove("is-on"); });
+      }
+
+      const seal = document.getElementById("seal");
+      if ("IntersectionObserver" in window) {
+        const io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting) seal.classList.add("is-in");
+          });
+        }, { threshold: 0.5 });
+        io.observe(seal);
+      } else {
+        seal.classList.add("is-in");
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>缺血钟 · 华东 OPO 夜班配型裁决台</title>
+<style>
+  :root {
+    --bg: #0b100e;
+    --bg-2: #101714;
+    --panel: #151e1a;
+    --panel-2: #1b2621;
+    --line: #2a3c34;
+    --line-2: #3d5348;
+    --text: #e7eee8;
+    --muted: #87a094;
+    --faint: #5d7468;
+    --gold: #d7b45c;
+    --amber: #e09a3a;
+    --red: #e05656;
+    --green: #4cbf8f;
+    --cyan: #6ec8bc;
+    --heart: #d56d6d;
+    --liver: #c9a45a;
+    --kidney: #6d96bc;
+    --lung: #74b89a;
+    --docket: #1a1712;
+    --docket-line: #3a3428;
+    --docket-paper: #f3ead2;
+    --docket-ink: #1c1810;
+    --shadow: 0 18px 40px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    background:
+      radial-gradient(1200px 500px at 70% -10%, rgba(215,180,92,.08), transparent 50%),
+      linear-gradient(180deg, #0e1512 0%, var(--bg) 40%);
+    color: var(--text);
+    overflow: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0; pointer-events: none; opacity: .18;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 3px, rgba(255,255,255,.015) 3px 4px),
+      repeating-linear-gradient(90deg, transparent 0 7px, rgba(76,191,143,.03) 7px 8px);
+  }
+  button, input, select, textarea { font-family: inherit; }
+  button { cursor: pointer; }
+  .mono { font-family: Consolas, "Cascadia Mono", "Sarasa Mono SC", monospace; }
+  #app {
+    height: 100%;
+    display: grid;
+    grid-template-rows: 56px 132px minmax(0, 1fr) 168px;
+    gap: 0;
+  }
+
+  header {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 22px;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(12,18,15,.88);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .mark { width: 34px; height: 34px; }
+  .brand h1 {
+    font-size: 15px; font-weight: 650; letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .brand p { font-size: 11px; color: var(--muted); letter-spacing: .08em; }
+  .shift {
+    display: flex; gap: 18px; align-items: center;
+    font-size: 12px; color: var(--muted);
+  }
+  .shift b { color: var(--text); font-weight: 600; }
+  .pulse-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+    box-shadow: 0 0 0 0 rgba(76,191,143,.7);
+    animation: pulse 1.8s infinite;
+  }
+  @keyframes pulse {
+    70% { box-shadow: 0 0 0 8px rgba(76,191,143,0); }
+    100% { box-shadow: 0 0 0 0 rgba(76,191,143,0); }
+  }
+  .clock-block { text-align: right; }
+  .clock-block .time { font-size: 22px; letter-spacing: .08em; color: var(--gold); }
+  .clock-block .sub { font-size: 11px; color: var(--muted); }
+  .alert-n {
+    min-width: 86px; text-align: center; padding: 6px 10px;
+    border: 1px solid var(--line); border-radius: 4px;
+    background: var(--panel);
+  }
+  .alert-n .n { font-size: 18px; color: var(--amber); }
+  .alert-n .l { font-size: 10px; color: var(--muted); letter-spacing: .14em; }
+
+  .rail-wrap {
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #121a17, #0e1412);
+    padding: 8px 14px 10px;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 6px;
+  }
+  .rail-label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 11px; letter-spacing: .18em; color: var(--faint); text-transform: uppercase;
+  }
+  .rail {
+    display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;
+    scrollbar-width: thin; scrollbar-color: var(--line-2) transparent;
+  }
+  .strip {
+    flex: 0 0 248px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 8px 10px 9px;
+    position: relative;
+    cursor: pointer;
+    transition: border-color .15s, transform .15s, background .15s;
+  }
+  .strip::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  }
+  .strip.heart::before { background: var(--heart); }
+  .strip.liver::before { background: var(--liver); }
+  .strip.kidney::before { background: var(--kidney); }
+  .strip.lung::before { background: var(--lung); }
+  .strip:hover { border-color: var(--line-2); transform: translateY(-1px); }
+  .strip.active {
+    border-color: var(--gold);
+    background: linear-gradient(180deg, #243028, #1a2420);
+    box-shadow: inset 0 0 0 1px rgba(215,180,92,.25);
+  }
+  .strip.allocated { opacity: .55; }
+  .strip.declined, .strip.shared { opacity: .45; filter: grayscale(.4); }
+  .strip.critical { animation: crit 1.2s ease-in-out infinite; }
+  @keyframes crit {
+    50% { box-shadow: 0 0 0 1px rgba(224,154,58,.55); }
+  }
+  .strip-top { display: flex; justify-content: space-between; align-items: center; }
+  .oid { font-size: 12px; letter-spacing: .04em; color: var(--gold); }
+  .otype { font-size: 11px; color: var(--muted); }
+  .strip-mid { display: flex; justify-content: space-between; margin-top: 6px; gap: 8px; }
+  .meta { font-size: 11px; color: var(--muted); line-height: 1.45; }
+  .cit {
+    text-align: right;
+  }
+  .cit .remain { font-size: 16px; letter-spacing: .04em; }
+  .cit .remain.warn { color: var(--amber); }
+  .cit .remain.hot { color: var(--red); }
+  .cit .cap { font-size: 10px; color: var(--faint); }
+  .bar { height: 3px; background: #24332c; margin-top: 8px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--green); }
+  .bar.warn > i { background: var(--amber); }
+  .bar.hot > i { background: var(--red); }
+  .hla-mini { margin-top: 6px; font-size: 10px; color: var(--faint); letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .st-pill {
+    position: absolute; right: 8px; bottom: 22px;
+    font-size: 9px; letter-spacing: .12em; padding: 1px 5px;
+    border: 1px solid var(--line-2); color: var(--muted);
+  }
+
+  .bench {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 372px;
+    min-height: 0;
+  }
+  .main {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) 214px;
+    min-height: 0;
+    border-right: 1px solid var(--line);
+  }
+  .filters {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+    background: #121916;
+  }
+  .chip {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    padding: 4px 9px;
+    border-radius: 99px;
+  }
+  .chip.on { border-color: var(--gold); color: var(--gold); background: rgba(215,180,92,.08); }
+  .filters label { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .filters select, .filters input[type="search"] {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--line);
+    padding: 4px 8px;
+    font-size: 12px;
+    outline: none;
+  }
+  .filters input[type="search"] { width: 168px; }
+  .mode-seg { display: flex; border: 1px solid var(--line); }
+  .mode-seg button {
+    background: transparent; color: var(--muted); border: 0;
+    padding: 4px 10px; font-size: 11px;
+  }
+  .mode-seg button.on { background: var(--gold); color: #1a1408; font-weight: 650; }
+
+  .table-wrap { overflow: auto; min-height: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th {
+    position: sticky; top: 0; z-index: 1;
+    background: #1a2420;
+    color: var(--muted);
+    font-weight: 550;
+    letter-spacing: .04em;
+    text-align: left;
+    padding: 7px 8px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+  }
+  thead th .arr { color: var(--gold); margin-left: 3px; }
+  tbody td {
+    padding: 6px 8px;
+    border-bottom: 1px solid rgba(42,60,52,.7);
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: rgba(110,200,188,.06); }
+  tbody tr.sel { background: rgba(215,180,92,.12); }
+  tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--gold); }
+  .score { font-weight: 650; }
+  .score.hi { color: var(--green); }
+  .score.mid { color: var(--gold); }
+  .score.lo { color: var(--amber); }
+  .flag {
+    display: inline-block; font-size: 10px; padding: 0 5px; margin-right: 3px;
+    border: 1px solid var(--line-2); color: var(--amber); border-radius: 2px;
+  }
+  .okdot, .nodot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px;
+  }
+  .okdot { background: var(--green); }
+  .nodot { background: var(--red); }
+  .buf.neg { color: var(--red); font-weight: 650; }
+  .buf.tight { color: var(--amber); }
+  .buf.ok { color: var(--green); }
+  .empty {
+    padding: 36px; text-align: center; color: var(--muted); font-size: 13px;
+  }
+
+  .charts {
+    display: grid;
+    grid-template-columns: 1.15fr .85fr;
+    border-top: 1px solid var(--line);
+    min-height: 0;
+  }
+  .chart {
+    padding: 8px 10px 6px;
+    min-width: 0;
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+  .chart + .chart { border-left: 1px solid var(--line); }
+  .chart h3 {
+    font-size: 11px; font-weight: 550; letter-spacing: .14em;
+    color: var(--muted); text-transform: uppercase;
+    display: flex; justify-content: space-between;
+  }
+  .chart h3 span { letter-spacing: 0; color: var(--faint); font-weight: 400; }
+  svg.plot { width: 100%; height: 100%; display: block; }
+  .tip {
+    position: fixed; pointer-events: none; z-index: 20;
+    background: #0f1613; border: 1px solid var(--gold);
+    color: var(--text); font-size: 11px; padding: 6px 8px;
+    max-width: 220px; display: none;
+  }
+
+  .docket {
+    background:
+      linear-gradient(90deg, rgba(0,0,0,.25), transparent 12px),
+      repeating-linear-gradient(180deg, #1c1913 0 28px, #1a1711 28px 29px);
+    color: var(--docket-paper);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+  }
+  .docket-head {
+    padding: 10px 14px 8px;
+    border-bottom: 1px dashed var(--docket-line);
+  }
+  .docket-head .k { font-size: 10px; letter-spacing: .22em; color: #9a8b68; }
+  .docket-head h2 { font-size: 15px; font-weight: 650; color: var(--docket-paper); margin-top: 2px; }
+  .pair {
+    margin-top: 8px; font-size: 12px; line-height: 1.5; color: #d8ccae;
+  }
+  .pair em { font-style: normal; color: var(--gold); }
+  .docket form {
+    overflow: auto; padding: 10px 14px 14px;
+    display: grid; gap: 8px; align-content: start;
+  }
+  .row { display: grid; gap: 4px; }
+  .row.two { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .docket label { font-size: 10px; letter-spacing: .12em; color: #9a8b68; }
+  .docket select, .docket input, .docket textarea {
+    width: 100%;
+    background: #12100c;
+    color: var(--docket-paper);
+    border: 1px solid var(--docket-line);
+    padding: 6px 8px;
+    font-size: 12px;
+    outline: none;
+  }
+  .docket textarea { min-height: 56px; resize: vertical; }
+  .checks { display: grid; gap: 6px; font-size: 12px; color: #d8ccae; }
+  .checks label { letter-spacing: 0; color: #d8ccae; display: flex; gap: 8px; align-items: flex-start; }
+  .warnbox {
+    font-size: 11px; color: #e0b36a; border: 1px solid #5a4a28;
+    padding: 6px 8px; background: rgba(224,154,58,.08); display: none;
+  }
+  .errbox {
+    font-size: 11px; color: #f0a0a0; border: 1px solid #5a3030;
+    padding: 6px 8px; background: rgba(224,86,86,.08); display: none;
+  }
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+  .btn {
+    border: 1px solid var(--gold); background: var(--gold); color: #1a1408;
+    padding: 8px 10px; font-size: 12px; font-weight: 700; letter-spacing: .12em;
+  }
+  .btn.ghost { background: transparent; color: var(--docket-paper); border-color: var(--docket-line); }
+  .stamp {
+    display: none; text-align: center; margin-top: 4px;
+    border: 2px solid var(--green); color: var(--green);
+    transform: rotate(-8deg); font-weight: 800; letter-spacing: .2em;
+    padding: 4px; font-size: 13px;
+  }
+  .stamp.show { display: block; }
+
+  .ledger {
+    border-top: 1px solid var(--line);
+    background: #0f1512;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+  }
+  .ledger-h {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 12px; font-size: 11px; letter-spacing: .16em; color: var(--faint);
+    text-transform: uppercase;
+  }
+  .ledger-h select {
+    background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    font-size: 11px; padding: 3px 6px;
+  }
+  .ledger .table-wrap { max-height: 100%; }
+  .toast {
+    position: fixed; right: 18px; bottom: 18px; z-index: 30;
+    background: #1d2a24; border: 1px solid var(--green); color: var(--text);
+    padding: 10px 14px; font-size: 12px; display: none; box-shadow: var(--shadow);
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 34 34" aria-hidden="true">
+        <circle cx="17" cy="17" r="15.5" fill="none" stroke="#d7b45c" stroke-width="1.2"/>
+        <path d="M17 6v11l7 4" fill="none" stroke="#e09a3a" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="17" cy="17" r="2" fill="#e05656"/>
+        <path d="M8 17h4M22 17h4M17 8v3M17 23v3" stroke="#6ec8bc" stroke-width="1"/>
+      </svg>
+      <div>
+        <h1>缺血钟 · SUTURE WINDOW</h1>
+        <p>华东人体器官获取组织 · 夜班配型裁决台</p>
+      </div>
+    </div>
+    <div class="shift">
+      <span class="pulse-dot"></span>
+      <span>班次 <b>N-02</b></span>
+      <span>协调员 <b>林晏</b></span>
+      <span>值班外科 <b>赵衡</b></span>
+      <span>在岗中心 <b>11</b></span>
+    </div>
+    <div class="alert-n">
+      <div class="n mono" id="critCount">0</div>
+      <div class="l">CIT &lt; 90′</div>
+    </div>
+    <div class="clock-block">
+      <div class="time mono" id="clock">--:--:--</div>
+      <div class="sub">上海时区 · 倒计时按获取完成起算</div>
+    </div>
+  </header>
+
+  <section class="rail-wrap">
+    <div class="rail-label">
+      <span>在途器官条带 · 点击进入配型面</span>
+      <span id="railHint">等待选择</span>
+    </div>
+    <div class="rail" id="rail"></div>
+  </section>
+
+  <section class="bench">
+    <div class="main">
+      <div class="filters">
+        <div class="mode-seg" id="transportMode">
+          <button data-mode="ground" class="on">陆运推演</button>
+          <button data-mode="hsr">高铁</button>
+          <button data-mode="heli">直升机</button>
+        </div>
+        <button class="chip" data-f="abo">仅 ABO 同型</button>
+        <button class="chip" data-f="hla">HLA-MM ≤ 2</button>
+        <button class="chip" data-f="or">手术室就绪</button>
+        <button class="chip" data-f="win">窗口内可达</button>
+        <label>HLA 上限
+          <select id="hlaMax">
+            <option value="6">6</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+            <option value="1">1</option>
+            <option value="0">0</option>
+          </select>
+        </label>
+        <label>紧急度
+          <select id="urgMin">
+            <option value="0">全部</option>
+            <option value="70">高优先</option>
+            <option value="85">极紧急</option>
+          </select>
+        </label>
+        <input type="search" id="q" placeholder="等候号 / 中心 / 姓名">
+        <span class="mono" id="countHint" style="margin-left:auto;color:var(--faint);font-size:11px"></span>
+      </div>
+      <div class="table-wrap" id="tableWrap"></div>
+      <div class="charts">
+        <div class="chart">
+          <h3>可达性散点 <span>横轴转运分钟 · 纵轴综合配型分 · 半径紧急度</span></h3>
+          <div id="scatter"></div>
+        </div>
+        <div class="chart">
+          <h3>选定对的冷缺血预算 <span id="citCaption">选择等候者后显示</span></h3>
+          <div id="citChart"></div>
+        </div>
+      </div>
+    </div>
+    <aside class="docket">
+      <div class="docket-head">
+        <div class="k">ALLOCATION DOCKET · 放行签发单</div>
+        <h2>夜间分配决定</h2>
+        <div class="pair" id="pairLine">先在条带中选择器官，再点选等候者。</div>
+      </div>
+      <form id="form" autocomplete="off">
+        <div class="row">
+          <label>决定</label>
+          <select name="decision">
+            <option value="allocate">分配给主受体</option>
+            <option value="backup">分配并指定备选</option>
+            <option value="decline">拒绝此器官</option>
+            <option value="share">转区域共享</option>
+          </select>
+        </div>
+        <div class="row two" id="backupRow" style="display:none">
+          <div>
+            <label>备选等候号</label>
+            <select name="backupId"></select>
+          </div>
+          <div>
+            <label>共享区域</label>
+            <select name="region">
+              <option value="华东">华东</option>
+              <option value="华北">华北</option>
+              <option value="全国">全国紧急共享</option>
+            </select>
+          </div>
+        </div>
+        <div class="row two">
+          <div>
+            <label>转运方式</label>
+            <select name="transport">
+              <option value="ground">陆运</option>
+              <option value="hsr">高铁</option>
+              <option value="heli">直升机</option>
+            </select>
+          </div>
+          <div>
+            <label>接台手术间</label>
+            <select name="orRoom"></select>
+          </div>
+        </div>
+        <div class="row">
+          <label>虚拟交叉配型</label>
+          <select name="xm">
+            <option value="neg">阴性 · 可放行</option>
+            <option value="pos">阳性 · 需主任特批</option>
+          </select>
+        </div>
+        <div class="row" id="reasonRow" style="display:none">
+          <label>拒绝 / 共享原因</label>
+          <select name="reason">
+            <option value="">请选择</option>
+            <option>无窗口内合适受体</option>
+            <option>供体质量不足以支持当前名单</option>
+            <option>感染风险不可接受</option>
+            <option>体型匹配失败</option>
+            <option>中心拒收</option>
+            <option>超时风险</option>
+          </select>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" name="consent"> 受体知情同意与手术同意书已核验</label>
+          <label><input type="checkbox" name="team"> 取器组、接台组与体外循环已口头确认</label>
+          <label><input type="checkbox" name="override"> 窗口不足或交叉配型阳性 · 申请值班外科特批</label>
+        </div>
+        <div class="row">
+          <label>特批说明 / 交接备注</label>
+          <textarea name="note" placeholder="例如：1A 受体机械循环支持中，直升机 00:40 起飞，备选为 WL-…"></textarea>
+        </div>
+        <div class="warnbox" id="warnbox"></div>
+        <div class="errbox" id="errbox"></div>
+        <div class="actions">
+          <button type="submit" class="btn">签发</button>
+          <button type="button" class="btn ghost" id="resetBtn">清空</button>
+        </div>
+        <div class="stamp" id="stamp">已签发 ALLOCATED</div>
+      </form>
+    </aside>
+  </section>
+
+  <section class="ledger">
+    <div class="ledger-h">
+      <span>本班签发账 · 可按决定筛选</span>
+      <select id="ledgerFilter">
+        <option value="all">全部决定</option>
+        <option value="allocate">分配</option>
+        <option value="backup">分配+备选</option>
+        <option value="decline">拒绝</option>
+        <option value="share">区域共享</option>
+      </select>
+    </div>
+    <div class="table-wrap" id="ledgerWrap"></div>
+  </section>
+</div>
+<div class="tip" id="tip"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  const CITIES = {
+    "上海": [121.47, 31.23],
+    "杭州": [120.16, 30.25],
+    "南京": [118.80, 32.06],
+    "苏州": [120.62, 31.32],
+    "合肥": [117.23, 31.82],
+    "济南": [117.00, 36.67],
+    "武汉": [114.31, 30.59],
+    "宁波": [121.54, 29.87],
+    "无锡": [120.30, 31.57],
+    "福州": [119.30, 26.08]
+  };
+  function km(a, b) {
+    if (a === b) return 8;
+    const A = CITIES[a], B = CITIES[b];
+    const dx = (A[0] - B[0]) * 95, dy = (A[1] - B[1]) * 111;
+    return Math.max(12, Math.round(Math.hypot(dx, dy)));
+  }
+  function travelMin(distance, mode) {
+    if (mode === "heli") return Math.round(distance * 0.28 + 22);
+    if (mode === "hsr") return distance < 90 ? Math.round(distance * 1.4 + 18) : Math.round(distance * 0.42 + 70);
+    return Math.round(distance * 1.15 + 16);
+  }
+  const LOCI = ["A", "A", "B", "B", "DR", "DR"];
+  const ALLELES = {
+    A: ["A1","A2","A3","A11","A24","A26","A31","A33"],
+    B: ["B7","B8","B13","B27","B35","B44","B46","B51","B58","B60"],
+    DR: ["DR1","DR4","DR7","DR9","DR11","DR12","DR13","DR15"]
+  };
+  const HOSPITALS = [
+    ["上海中山医院", "上海"], ["上海仁济医院", "上海"], ["复旦儿科医院", "上海"],
+    ["浙大一院", "杭州"], ["浙大二院", "杭州"], ["江苏省人民", "南京"],
+    ["南京鼓楼医院", "南京"], ["苏大附一", "苏州"], ["安医大一附院", "合肥"],
+    ["山东齐鲁医院", "济南"], ["华中同济医院", "武汉"], ["宁波李惠利", "宁波"],
+    ["无锡人民医院", "无锡"], ["福建协和医院", "福州"]
+  ];
+  const SURNAMES = "陈林王张李赵刘黄周吴徐孙马朱胡郭何高罗郑梁谢宋唐许韩冯邓曹彭曾肖田董袁潘蒋蔡余杜叶程魏苏吕丁任沈姚卢姜崔钟谭陆汪范金石廖贾夏".split("");
+  const ORGANS_META = {
+    heart: { label: "心脏", citH: 4, cls: "heart", prep: 55 },
+    liver: { label: "肝", citH: 10, cls: "liver", prep: 70 },
+    kidney: { label: "肾", citH: 20, cls: "kidney", prep: 45 },
+    lung: { label: "肺", citH: 6.5, cls: "lung", prep: 65 }
+  };
+  function mulberry(a) {
+    return function () {
+      let t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  const rnd = mulberry(20260905);
+  function pick(arr) { return arr[Math.floor(rnd() * arr.length)]; }
+  function hlaSet() {
+    return [
+      pick(ALLELES.A), pick(ALLELES.A),
+      pick(ALLELES.B), pick(ALLELES.B),
+      pick(ALLELES.DR), pick(ALLELES.DR)
+    ];
+  }
+  function aboPick() { return pick(["O+","O-","A+","A-","B+","B+","A+","AB+","AB-"]); }
+  function aboGroup(x) { return x.replace(/[+-]/g, ""); }
+  function aboCompat(donor, recip) {
+    const d = aboGroup(donor), r = aboGroup(recip);
+    if (d === "O") return true;
+    if (d === "A") return r === "A" || r === "AB";
+    if (d === "B") return r === "B" || r === "AB";
+    return r === "AB";
+  }
+  function hlaMM(donor, recip) {
+    let mm = 0;
+    for (let loc = 0; loc < 6; loc += 2) {
+      const rec = [recip[loc], recip[loc + 1]];
+      if (rec.indexOf(donor[loc]) < 0) mm++;
+      if (rec.indexOf(donor[loc + 1]) < 0) mm++;
+    }
+    return mm;
+  }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+    }[c]));
+  }
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+  function fmtHMS(ms) {
+    const sign = ms < 0 ? "-" : "";
+    ms = Math.abs(ms);
+    const s = Math.floor(ms / 1000);
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    return sign + pad(h) + ":" + pad(m) + ":" + pad(sec);
+  }
+  function fmtClock(d) {
+    return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
+  }
+
+  const now0 = Date.now();
+  const organs = [
+    { id:"HT-0921-04", type:"heart", blood:"A+", hla:["A2","A24","B7","B44","DR4","DR15"], donorAge:34, cause:"颅脑外伤", city:"上海", hospital:"上海仁济医院", weight:68, metric:"EF 62%", virus:"CMV+", procuredAt: now0 - 48*60000, status:"pending" },
+    { id:"HT-0921-07", type:"heart", blood:"O-", hla:["A1","A3","B8","B35","DR1","DR7"], donorAge:41, cause:"脑出血", city:"济南", hospital:"山东齐鲁医院", weight:74, metric:"EF 58%", virus:"全阴", procuredAt: now0 - 95*60000, status:"pending" },
+    { id:"LV-0921-11", type:"liver", blood:"O+", hla:["A11","A24","B13","B46","DR9","DR12"], donorAge:46, cause:"脑梗死", city:"杭州", hospital:"浙大一院", weight:71, metric:"脂肪变 8%", virus:"HBcAb+", procuredAt: now0 - 110*60000, status:"pending" },
+    { id:"LG-0921-02", type:"lung", blood:"AB+", hla:["A2","A11","B46","B58","DR9","DR15"], donorAge:29, cause:"颅脑外伤", city:"苏州", hospital:"苏大附一", weight:61, metric:"P/F 428", virus:"全阴", procuredAt: now0 - 70*60000, status:"pending" },
+    { id:"KD-0921-08", type:"kidney", blood:"B+", hla:["A2","A33","B46","B58","DR13","DR15"], donorAge:38, cause:"脑出血", city:"南京", hospital:"南京鼓楼医院", weight:70, metric:"KDRI 0.92", virus:"全阴", procuredAt: now0 - 80*60000, status:"pending" },
+    { id:"KD-0921-15", type:"kidney", blood:"A+", hla:["A2","A11","B7","B60","DR4","DR12"], donorAge:52, cause:"脑梗死", city:"合肥", hospital:"安医大一附院", weight:66, metric:"KDRI 1.14", virus:"CMV+", procuredAt: now0 - 40*60000, status:"pending" },
+    { id:"LV-0921-19", type:"liver", blood:"A+", hla:["A2","A26","B35","B51","DR4","DR11"], donorAge:33, cause:"外伤", city:"武汉", hospital:"华中同济医院", weight:69, metric:"脂肪变 5%", virus:"全阴", procuredAt: now0 - 200*60000, status:"pending" }
+  ];
+
+  const urgencySpec = {
+    heart: [[96,"1A / ECMO"],[88,"1A"],[74,"1B"],[55,"Status 2"]],
+    liver: [[94,"MELD 40"],[86,"MELD 35"],[72,"MELD 28"],[58,"MELD 22"],[44,"MELD 16"]],
+    lung: [[92,"LAS 72"],[80,"LAS 58"],[64,"LAS 44"],[50,"LAS 36"]],
+    kidney: [[90,"超敏 PRA"],[70,"儿科优先"],[58,"长等待"],[42,"常规"]]
+  };
+  const flagsPool = ["二次移植","机械循环","PRA>80","体型偏大","体型偏小","CMV错配","感染未清","糖尿病肾病","肺动脉高压","门脉血栓"];
+  const candidates = [];
+  let seq = 44020;
+  for (let i = 0; i < 64; i++) {
+    const type = pick(["heart","heart","liver","liver","kidney","kidney","kidney","lung"]);
+    const h = pick(HOSPITALS);
+    const urg = pick(urgencySpec[type]);
+    const pra = Math.round(rnd() * (urg[0] > 85 ? 90 : 40));
+    const wait = Math.round(20 + rnd() * (type === "kidney" ? 1400 : 420));
+    const flags = [];
+    if (rnd() > .72) flags.push(pick(flagsPool));
+    if (rnd() > .86) flags.push(pick(flagsPool));
+    const weight = Math.round(48 + rnd() * 40);
+    candidates.push({
+      id: "WL-" + (seq++),
+      name: pick(SURNAMES) + "某",
+      type, blood: aboPick(), hla: hlaSet(),
+      pra, urgency: urg[0], urgLabel: urg[1],
+      wait, hospital: h[0], city: h[1],
+      orReady: rnd() > 0.22,
+      team: pick(["一号组","二号组","三号组","儿科组"]),
+      orRoom: pick(["OR-3","OR-5","OR-7","杂交1","夜间急诊2"]),
+      weight, flags,
+      status: "wait"
+    });
+  }
+  // Guarantee a few sharp judgment cases for the first heart
+  candidates.unshift({
+    id:"WL-43801", name:"陈某", type:"heart", blood:"A+", hla:["A2","A24","B7","B13","DR4","DR7"],
+    pra:8, urgency:96, urgLabel:"1A / ECMO", wait:38, hospital:"上海中山医院", city:"上海",
+    orReady:true, team:"一号组", orRoom:"OR-3", weight:66, flags:["机械循环"], status:"wait"
+  }, {
+    id:"WL-43814", name:"林某", type:"heart", blood:"A-", hla:["A2","A11","B7","B44","DR4","DR15"],
+    pra:4, urgency:88, urgLabel:"1A", wait:210, hospital:"浙大一院", city:"杭州",
+    orReady:true, team:"二号组", orRoom:"OR-5", weight:71, flags:[], status:"wait"
+  }, {
+    id:"WL-43902", name:"王某", type:"heart", blood:"AB+", hla:["A3","A24","B35","B44","DR1","DR15"],
+    pra:62, urgency:90, urgLabel:"1A", wait:94, hospital:"华中同济医院", city:"武汉",
+    orReady:true, team:"一号组", orRoom:"杂交1", weight:80, flags:["体型偏大","PRA>80"], status:"wait"
+  });
+
+  const decisions = [
+    { t: now0 - 76*60000, organId:"HT-0920-22", organLabel:"心脏", candId:"WL-43110", name:"赵某", hospital:"上海中山医院", decision:"allocate", transport:"heli", buffer:41, by:"林晏" },
+    { t: now0 - 51*60000, organId:"KD-0920-18", organLabel:"肾", candId:"WL-42881", name:"吴某", hospital:"江苏省人民", decision:"allocate", transport:"ground", buffer:620, by:"林晏" },
+    { t: now0 - 22*60000, organId:"LV-0920-09", organLabel:"肝", candId:"—", name:"—", hospital:"—", decision:"share", transport:"hsr", buffer:null, by:"林晏" }
+  ];
+
+  const state = {
+    selectedOrganId: organs[0].id,
+    selectedCandidateId: null,
+    mode: "ground",
+    filters: { abo:false, hla:false, or:false, win:false },
+    hlaMax: 6,
+    urgMin: 0,
+    q: "",
+    sort: { key: "score", dir: -1 },
+    ledgerFilter: "all"
+  };
+
+  function organById(id) { return organs.find(o => o.id === id); }
+  function citLimitMs(o) { return ORGANS_META[o.type].citH * 3600000; }
+  function remainingMs(o, now) { return citLimitMs(o) - (now - o.procuredAt); }
+  function pairMetrics(o, c, mode, now) {
+    const dist = km(o.city, c.city);
+    const travel = travelMin(dist, mode);
+    const prep = ORGANS_META[o.type].prep;
+    const remMin = remainingMs(o, now) / 60000;
+    const buffer = remMin - travel - prep;
+    const mm = hlaMM(o.hla, c.hla);
+    const aboOk = aboCompat(o.blood, c.blood);
+    const aboSame = aboGroup(o.blood) === aboGroup(c.blood);
+    const size = 1 - Math.min(1, Math.abs(o.weight - c.weight) / 28);
+    let score = 0;
+    score += aboOk ? (aboSame ? 22 : 12) : 0;
+    score += (1 - mm / 6) * 28;
+    score += (c.urgency / 100) * 18;
+    score += size * 10;
+    score += Math.max(0, Math.min(1, buffer / 90)) * 14;
+    score += c.orReady ? 6 : 0;
+    score -= Math.min(12, c.pra / 10);
+    if (!aboOk) score = Math.min(score, 18);
+    score = Math.max(0, Math.round(score));
+    return { dist, travel, prep, buffer, mm, aboOk, aboSame, size, score, remMin };
+  }
+
+  function visibleRows(now) {
+    const o = organById(state.selectedOrganId);
+    if (!o) return [];
+    const q = state.q.trim().toLowerCase();
+    let rows = candidates.filter(c => c.type === o.type && c.status === "wait").map(c => {
+      const m = pairMetrics(o, c, state.mode, now);
+      return Object.assign({ c, o }, m);
+    });
+    rows = rows.filter(r => {
+      if (state.filters.abo && !r.aboSame) return false;
+      if (state.filters.hla && r.mm > 2) return false;
+      if (state.filters.or && !r.c.orReady) return false;
+      if (state.filters.win && r.buffer < 0) return false;
+      if (r.mm > state.hlaMax) return false;
+      if (r.c.urgency < state.urgMin) return false;
+      if (q && !(r.c.id + r.c.name + r.c.hospital).toLowerCase().includes(q)) return false;
+      return true;
+    });
+    const k = state.sort.key, dir = state.sort.dir;
+    rows.sort((a, b) => {
+      const read = (row) => k.indexOf("c.") === 0 ? row.c[k.slice(2)] : k === "flags" ? row.c.flags.length : row[k];
+      const va = read(a), vb = read(b);
+      if (typeof va === "string") return va.localeCompare(vb, "zh") * dir;
+      return ((va > vb) - (va < vb)) * dir;
+    });
+    return rows;
+  }
+
+  function renderClock(now) {
+    document.getElementById("clock").textContent = fmtClock(new Date(now));
+  }
+
+  function renderRail(now) {
+    const rail = document.getElementById("rail");
+    let crit = 0;
+    rail.innerHTML = organs.map(o => {
+      const rem = remainingMs(o, now);
+      const pct = Math.max(0, Math.min(100, rem / citLimitMs(o) * 100));
+      const hot = rem < 90 * 60000, warn = rem < 180 * 60000;
+      if (hot && o.status === "pending") crit++;
+      const cls = [
+        "strip", ORGANS_META[o.type].cls,
+        o.id === state.selectedOrganId ? "active" : "",
+        o.status, hot && o.status === "pending" ? "critical" : ""
+      ].join(" ");
+      const remainCls = hot ? "hot" : warn ? "warn" : "";
+      const barCls = hot ? "hot" : warn ? "warn" : "";
+      const st = { pending:"待配", allocated:"已分配", declined:"已拒绝", shared:"已共享" }[o.status];
+      return `<article class="${cls}" data-id="${esc(o.id)}">
+        <div class="strip-top">
+          <span class="oid mono">${esc(o.id)}</span>
+          <span class="otype">${esc(ORGANS_META[o.type].label)} · ${esc(o.blood)}</span>
+        </div>
+        <div class="strip-mid">
+          <div class="meta">${esc(o.hospital)} · ${esc(o.city)}<br>${o.donorAge}岁 · ${esc(o.cause)} · ${esc(o.metric)}</div>
+          <div class="cit">
+            <div class="remain mono ${remainCls}">${fmtHMS(rem)}</div>
+            <div class="cap">CIT 余量 / ${ORGANS_META[o.type].citH}h</div>
+          </div>
+        </div>
+        <div class="bar ${barCls}"><i style="width:${pct}%"></i></div>
+        <div class="hla-mini mono">${o.hla.join(" ")} · ${esc(o.virus)}</div>
+        <span class="st-pill">${st}</span>
+      </article>`;
+    }).join("");
+    document.getElementById("critCount").textContent = crit;
+    const o = organById(state.selectedOrganId);
+    document.getElementById("railHint").textContent = o
+      ? (o.id + " · 供体 " + o.blood + " · " + o.hla.join(" / "))
+      : "";
+  }
+
+  function arrMark(key) {
+    if (state.sort.key !== key) return "";
+    return `<span class="arr">${state.sort.dir > 0 ? "↑" : "↓"}</span>`;
+  }
+
+  function renderTable(now) {
+    const rows = visibleRows(now);
+    document.getElementById("countHint").textContent = rows.length + " 名等候者 · 场景 " + ({ground:"陆运",hsr:"高铁",heli:"直升机"}[state.mode]);
+    if (!state.selectedCandidateId && rows[0]) state.selectedCandidateId = rows[0].c.id;
+    if (state.selectedCandidateId && !rows.some(r => r.c.id === state.selectedCandidateId) && rows[0]) {
+      state.selectedCandidateId = rows[0].c.id;
+    }
+    const cols = [
+      ["score","综合分"],["c.id","等候号"],["c.name","受体"],["c.hospital","中心"],
+      ["c.blood","血型"],["mm","HLA-MM"],["c.pra","PRA"],["c.urgency","紧急"],
+      ["c.wait","等待日"],["dist","距离km"],["travel","运时′"],["buffer","窗口缓冲′"],
+      ["c.orReady","手术室"],["flags","风险"]
+    ];
+    if (!rows.length) {
+      document.getElementById("tableWrap").innerHTML = `<div class="empty">当前器官与筛选条件下没有等候者。放宽 HLA 或改用直升机推演。</div>`;
+      return;
+    }
+    const head = cols.map(([k,l]) => `<th data-k="${k}">${l}${arrMark(k)}</th>`).join("");
+    const body = rows.map(r => {
+      const bufCls = r.buffer < 0 ? "neg" : r.buffer < 25 ? "tight" : "ok";
+      const scCls = r.score >= 72 ? "hi" : r.score >= 50 ? "mid" : "lo";
+      const flags = r.c.flags.map(f => `<span class="flag">${esc(f)}</span>`).join("") || "—";
+      return `<tr class="${r.c.id === state.selectedCandidateId ? "sel" : ""}" data-id="${r.c.id}">
+        <td class="score ${scCls} mono">${r.score}</td>
+        <td class="mono">${esc(r.c.id)}</td>
+        <td>${esc(r.c.name)}</td>
+        <td>${esc(r.c.hospital)}</td>
+        <td>${esc(r.c.blood)}${r.aboOk ? "" : " <span class=\"flag\">不相容</span>"}</td>
+        <td class="mono">${r.mm}</td>
+        <td class="mono">${r.c.pra}%</td>
+        <td>${esc(r.c.urgLabel)}</td>
+        <td class="mono">${r.c.wait}</td>
+        <td class="mono">${r.dist}</td>
+        <td class="mono">${r.travel}</td>
+        <td class="buf ${bufCls} mono">${r.buffer < 0 ? r.buffer : "+" + Math.round(r.buffer)}</td>
+        <td>${r.c.orReady ? "<span class=\"okdot\"></span>就绪 "+esc(r.c.orRoom) : "<span class=\"nodot\"></span>无体外组"}</td>
+        <td>${flags}</td>
+      </tr>`;
+    }).join("");
+    document.getElementById("tableWrap").innerHTML = `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  }
+
+  function svgEl(w, h) {
+    return `<svg class="plot" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img">`;
+  }
+
+  function renderScatter(now) {
+    const el = document.getElementById("scatter");
+    const rows = visibleRows(now);
+    const w = Math.max(320, el.clientWidth || 480);
+    const h = Math.max(160, el.clientHeight || 180);
+    const p = { l: 42, r: 12, t: 12, b: 28 };
+    const iw = w - p.l - p.r, ih = h - p.t - p.b;
+    const maxT = Math.max(80, ...rows.map(r => r.travel), 1);
+    const x = t => p.l + (t / maxT) * iw;
+    const y = s => p.t + (1 - s / 100) * ih;
+    let grid = "";
+    for (let i = 0; i <= 4; i++) {
+      const gy = p.t + ih * i / 4;
+      grid += `<line x1="${p.l}" y1="${gy}" x2="${w-p.r}" y2="${gy}" stroke="#2a3c34" stroke-width="1"/>`;
+      grid += `<text x="6" y="${gy+4}" fill="#5d7468" font-size="10" font-family="Consolas,monospace">${100 - i*25}</text>`;
+    }
+    const o = organById(state.selectedOrganId);
+    const rem = o ? remainingMs(o, now) / 60000 : 0;
+    const prep = o ? ORGANS_META[o.type].prep : 50;
+    const limitT = Math.max(0, rem - prep);
+    const lx = x(Math.min(limitT, maxT));
+    const zone = `<rect x="${p.l}" y="${p.t}" width="${Math.max(0, lx-p.l)}" height="${ih}" fill="rgba(76,191,143,.06)"/>
+      <line x1="${lx}" y1="${p.t}" x2="${lx}" y2="${p.t+ih}" stroke="#4cbf8f" stroke-dasharray="3 3" stroke-width="1"/>`;
+    const dots = rows.map(r => {
+      const sel = r.c.id === state.selectedCandidateId;
+      const fill = r.buffer < 0 ? "#e05656" : r.buffer < 25 ? "#e09a3a" : "#4cbf8f";
+      const rad = 4 + r.c.urgency / 40;
+      return `<circle class="dot" data-id="${r.c.id}" cx="${x(r.travel)}" cy="${y(r.score)}" r="${sel ? rad+2 : rad}" fill="${fill}" fill-opacity="${sel?1:.75}" stroke="${sel?"#d7b45c":"none"}" stroke-width="2"/>`;
+    }).join("");
+    el.innerHTML = `${svgEl(w,h)}
+      ${grid}${zone}${dots}
+      <text x="${w/2}" y="${h-6}" fill="#5d7468" font-size="10" text-anchor="middle">转运时间（分钟） · 绿虚线=剩余 CIT 扣除接台后的最晚出发极限</text>
+    </svg>`;
+  }
+
+  function renderCit(now) {
+    const el = document.getElementById("citChart");
+    const o = organById(state.selectedOrganId);
+    const c = candidates.find(x => x.id === state.selectedCandidateId);
+    const w = Math.max(280, el.clientWidth || 360);
+    const h = Math.max(160, el.clientHeight || 180);
+    if (!o || !c || c.type !== o.type) {
+      el.innerHTML = `<svg class="plot" viewBox="0 0 ${w} ${h}"><text x="${w/2}" y="${h/2}" fill="#5d7468" text-anchor="middle" font-size="12">选择一名等候者</text></svg>`;
+      document.getElementById("citCaption").textContent = "选择等候者后显示";
+      return;
+    }
+    const m = pairMetrics(o, c, state.mode, now);
+    const limit = ORGANS_META[o.type].citH * 60;
+    const used = (now - o.procuredAt) / 60000;
+    const segs = [
+      { l:"已消耗", v: Math.max(0, used), col:"#3d5348" },
+      { l:"转运", v: m.travel, col:"#6d96bc" },
+      { l:"接台", v: m.prep, col:"#d7b45c" }
+    ];
+    let acc = 0;
+    const y0 = 54, bh = 26, x0 = 16, iw = w - 32;
+    const scale = v => x0 + (v / limit) * iw;
+    const bars = segs.map(s => {
+      const x = scale(acc);
+      const ww = Math.max(1, (s.v / limit) * iw);
+      acc += s.v;
+      return `<rect x="${x}" y="${y0}" width="${ww}" height="${bh}" fill="${s.col}"/>
+        <text x="${x + 4}" y="${y0 - 6}" fill="#87a094" font-size="10">${s.l} ${Math.round(s.v)}′</text>`;
+    }).join("");
+    const eta = used + m.travel + m.prep;
+    const overflow = Math.max(0, eta - limit);
+    const overRect = overflow
+      ? `<rect x="${scale(limit)}" y="${y0}" width="${Math.min(iw, overflow/limit*iw)}" height="${bh}" fill="#e05656"/>`
+      : "";
+    const needle = `<line x1="${scale(Math.min(eta, limit + overflow))}" y1="${y0-10}" x2="${scale(Math.min(eta, limit + overflow))}" y2="${y0+bh+10}" stroke="#e7eee8" stroke-width="1.5"/>`;
+    const hla = o.hla.map((a,i) => {
+      const loc = i - (i % 2);
+      const match = a === c.hla[loc] || a === c.hla[loc + 1];
+      const x = 16 + i * ((w - 32) / 6);
+      return `<rect x="${x}" y="108" width="${(w-40)/6 - 6}" height="22" fill="${match ? "#1e3a30" : "#3a2424"}" stroke="${match ? "#4cbf8f" : "#e05656"}"/>
+        <text x="${x+4}" y="123" fill="#e7eee8" font-size="10" font-family="Consolas,monospace">${a}</text>
+        <text x="${x+4}" y="148" fill="#87a094" font-size="10" font-family="Consolas,monospace">${c.hla[i]}</text>`;
+    }).join("");
+    document.getElementById("citCaption").textContent =
+      (m.buffer >= 0 ? "缓冲 +" + Math.round(m.buffer) + "′" : "超窗 " + Math.round(m.buffer) + "′") +
+      " · HLA-MM " + m.mm + " · " + ({ground:"陆运",hsr:"高铁",heli:"直升机"}[state.mode]);
+    el.innerHTML = `${svgEl(w,h)}
+      <text x="16" y="18" fill="#87a094" font-size="11">极限 ${ORGANS_META[o.type].citH}h · 吻合开始预估 ${Math.round(eta)}′</text>
+      <rect x="${x0}" y="${y0}" width="${iw}" height="${bh}" fill="#101714" stroke="#2a3c34"/>
+      ${bars}${overRect}${needle}
+      <text x="${x0}" y="${y0+bh+16}" fill="#5d7468" font-size="10">0</text>
+      <text x="${x0+iw-20}" y="${y0+bh+16}" fill="#5d7468" font-size="10">CIT 极限</text>
+      <text x="16" y="102" fill="#5d7468" font-size="10">HLA 指纹 · 上供体 / 下受体</text>
+      ${hla}
+    </svg>`;
+  }
+
+  let lastPairKey = "";
+  function renderForm(now) {
+    const o = organById(state.selectedOrganId);
+    const c = candidates.find(x => x.id === state.selectedCandidateId);
+    const form = document.getElementById("form");
+    const pair = document.getElementById("pairLine");
+    const warn = document.getElementById("warnbox");
+    if (!o) { pair.textContent = "未选择器官。"; return; }
+    if (!c) { pair.innerHTML = `<em>${esc(o.id)}</em> 已选，等候者未选。`; return; }
+    const m = pairMetrics(o, c, state.mode, now);
+    pair.innerHTML = `器官 <em>${esc(o.id)}</em> ${esc(ORGANS_META[o.type].label)} ${esc(o.blood)} → 受体 <em>${esc(c.id)}</em> ${esc(c.name)} · ${esc(c.hospital)}<br>配型 ${m.score} 分 · 错配 ${m.mm} · 缓冲 ${m.buffer < 0 ? Math.round(m.buffer) : "+" + Math.round(m.buffer)}′`;
+    const pairKey = o.id + "|" + c.id + "|" + state.mode;
+    if (pairKey !== lastPairKey) {
+      const keepBackup = form.backupId.value;
+      const others = visibleRows(now).filter(r => r.c.id !== c.id).slice(0, 12);
+      form.backupId.innerHTML = others.map(r => `<option value="${r.c.id}">${esc(r.c.id)} ${esc(r.c.name)} ${r.score}分</option>`).join("") || `<option value="">无</option>`;
+      if (keepBackup && others.some(r => r.c.id === keepBackup)) form.backupId.value = keepBackup;
+      const rooms = [c.orRoom, "OR-3", "OR-5", "夜间急诊2", "杂交1"].filter((v,i,a)=>a.indexOf(v)===i);
+      const keepOr = form.orRoom.value;
+      form.orRoom.innerHTML = rooms.map(v => `<option>${v}</option>`).join("");
+      if (rooms.indexOf(keepOr) >= 0) form.orRoom.value = keepOr;
+      form.transport.value = state.mode;
+      lastPairKey = pairKey;
+    }
+    const notes = [];
+    if (m.buffer < 0) notes.push("当前转运方式无法在冷缺血极限前开始吻合。改用直升机，或勾选特批。");
+    if (!c.orReady) notes.push("接台中心夜班体外循环组未就绪。");
+    if (!m.aboOk) notes.push("ABO 不相容，禁止常规分配。");
+    if (c.pra >= 80) notes.push("高 PRA，虚拟交叉配型风险升高。");
+    if (o.status !== "pending") notes.push("该器官已有终态决定，不能重复签发。");
+    warn.style.display = notes.length ? "block" : "none";
+    warn.textContent = notes.join(" ");
+  }
+
+  function renderLedger() {
+    const f = state.ledgerFilter;
+    const rows = decisions.filter(d => f === "all" || d.decision === f).slice().sort((a,b) => b.t - a.t);
+    const lab = { allocate:"分配", backup:"分配+备选", decline:"拒绝", share:"区域共享" };
+    const html = `<table><thead><tr>
+      <th>时间</th><th>器官</th><th>等候号</th><th>受体</th><th>中心</th><th>决定</th><th>转运</th><th>缓冲′</th><th>签发</th>
+    </tr></thead><tbody>${
+      rows.map(d => `<tr>
+        <td class="mono">${fmtClock(new Date(d.t))}</td>
+        <td class="mono">${esc(d.organId)} ${esc(d.organLabel)}</td>
+        <td class="mono">${esc(d.candId)}</td>
+        <td>${esc(d.name)}</td>
+        <td>${esc(d.hospital)}</td>
+        <td>${lab[d.decision] || d.decision}</td>
+        <td>${({ground:"陆运",hsr:"高铁",heli:"直升机"}[d.transport] || "—")}</td>
+        <td class="mono">${d.buffer == null ? "—" : Math.round(d.buffer)}</td>
+        <td>${esc(d.by)}</td>
+      </tr>`).join("") || `<tr><td colspan="9">本筛选下无记录</td></tr>`
+    }</tbody></table>`;
+    document.getElementById("ledgerWrap").innerHTML = html;
+  }
+
+  function toast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.style.display = "block";
+    clearTimeout(toast._id);
+    toast._id = setTimeout(() => { t.style.display = "none"; }, 2800);
+  }
+
+  function render() {
+    const now = Date.now();
+    renderClock(now);
+    renderRail(now);
+    renderTable(now);
+    renderScatter(now);
+    renderCit(now);
+    renderForm(now);
+    renderLedger();
+  }
+
+  document.getElementById("rail").addEventListener("click", e => {
+    const s = e.target.closest(".strip");
+    if (!s) return;
+    state.selectedOrganId = s.dataset.id;
+    state.selectedCandidateId = null;
+    lastPairKey = "";
+    document.getElementById("stamp").classList.remove("show");
+    document.getElementById("errbox").style.display = "none";
+    render();
+  });
+  document.getElementById("tableWrap").addEventListener("click", e => {
+    const th = e.target.closest("th");
+    if (th && th.dataset.k) {
+      if (state.sort.key === th.dataset.k) state.sort.dir *= -1;
+      else { state.sort.key = th.dataset.k; state.sort.dir = th.dataset.k === "score" ? -1 : 1; }
+      render();
+      return;
+    }
+    const tr = e.target.closest("tr[data-id]");
+    if (!tr) return;
+    state.selectedCandidateId = tr.dataset.id;
+    render();
+  });
+  document.getElementById("scatter").addEventListener("click", e => {
+    const d = e.target.closest(".dot");
+    if (!d) return;
+    state.selectedCandidateId = d.dataset.id;
+    render();
+  });
+  const tip = document.getElementById("tip");
+  document.getElementById("scatter").addEventListener("mousemove", e => {
+    const d = e.target.closest(".dot");
+    if (!d) { tip.style.display = "none"; return; }
+    const c = candidates.find(x => x.id === d.dataset.id);
+    const o = organById(state.selectedOrganId);
+    if (!c || !o) return;
+    const m = pairMetrics(o, c, state.mode, Date.now());
+    tip.style.display = "block";
+    tip.style.left = (e.clientX + 12) + "px";
+    tip.style.top = (e.clientY + 12) + "px";
+    tip.innerHTML = `<b>${esc(c.id)}</b> ${esc(c.name)}<br>${esc(c.hospital)} · 分 ${m.score} · 运 ${m.travel}′ · 缓冲 ${Math.round(m.buffer)}′`;
+  });
+  document.getElementById("scatter").addEventListener("mouseleave", () => { tip.style.display = "none"; });
+
+  document.getElementById("transportMode").addEventListener("click", e => {
+    const b = e.target.closest("button[data-mode]");
+    if (!b) return;
+    state.mode = b.dataset.mode;
+    [...e.currentTarget.children].forEach(x => x.classList.toggle("on", x === b));
+    document.getElementById("form").transport.value = state.mode;
+    render();
+  });
+  document.querySelector(".filters").addEventListener("click", e => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    const f = chip.dataset.f;
+    state.filters[f] = !state.filters[f];
+    chip.classList.toggle("on", state.filters[f]);
+    render();
+  });
+  document.getElementById("hlaMax").addEventListener("change", e => { state.hlaMax = +e.target.value; render(); });
+  document.getElementById("urgMin").addEventListener("change", e => { state.urgMin = +e.target.value; render(); });
+  document.getElementById("q").addEventListener("input", e => { state.q = e.target.value; render(); });
+  document.getElementById("ledgerFilter").addEventListener("change", e => { state.ledgerFilter = e.target.value; renderLedger(); });
+
+  const form = document.getElementById("form");
+  form.decision.addEventListener("change", () => {
+    const d = form.decision.value;
+    document.getElementById("backupRow").style.display = d === "backup" || d === "share" ? "grid" : "none";
+    document.getElementById("reasonRow").style.display = d === "decline" || d === "share" ? "grid" : "none";
+  });
+  form.transport.addEventListener("change", () => {
+    state.mode = form.transport.value;
+    [...document.querySelectorAll("#transportMode button")].forEach(b => b.classList.toggle("on", b.dataset.mode === state.mode));
+    render();
+  });
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const now = Date.now();
+    const o = organById(state.selectedOrganId);
+    const c = candidates.find(x => x.id === state.selectedCandidateId);
+    const err = document.getElementById("errbox");
+    const showErr = m => { err.style.display = "block"; err.textContent = m; };
+    if (!o || o.status !== "pending") return showErr("该器官不可签发。");
+    const d = form.decision.value;
+    if (d === "allocate" || d === "backup") {
+      if (!c) return showErr("请选择主受体。");
+      const m = pairMetrics(o, c, form.transport.value, now);
+      if (!m.aboOk) return showErr("ABO 不相容，不能分配。");
+      if (!form.consent.checked || !form.team.checked) return showErr("须核验知情同意并确认三组到位。");
+      if (form.xm.value === "pos" && !form.override.checked) return showErr("交叉配型阳性必须值班外科特批。");
+      if (m.buffer < 0 && !form.override.checked) return showErr("超窗分配必须特批，或改用更快转运。");
+      if ((form.xm.value === "pos" || m.buffer < 0) && form.note.value.trim().length < 8)
+        return showErr("特批须写明理由（不少于 8 字）。");
+      if (d === "backup" && !form.backupId.value) return showErr("请指定备选等候者。");
+      o.status = "allocated";
+      c.status = "accepted";
+      decisions.unshift({
+        t: now, organId: o.id, organLabel: ORGANS_META[o.type].label,
+        candId: c.id, name: c.name, hospital: c.hospital,
+        decision: d, transport: form.transport.value, buffer: m.buffer, by: "林晏"
+      });
+      document.getElementById("stamp").classList.add("show");
+      toast((d === "backup" ? "已分配并指定备选 " : "已分配给 ") + c.id);
+    } else {
+      if (!form.reason.value) return showErr("拒绝或共享必须选择原因。");
+      o.status = d === "share" ? "shared" : "declined";
+      decisions.unshift({
+        t: now, organId: o.id, organLabel: ORGANS_META[o.type].label,
+        candId: c ? c.id : "—", name: c ? c.name : "—", hospital: c ? c.hospital : "—",
+        decision: d, transport: form.transport.value, buffer: c ? pairMetrics(o,c,form.transport.value,now).buffer : null, by: "林晏"
+      });
+      document.getElementById("stamp").classList.add("show");
+      toast(d === "share" ? "已转入 " + form.region.value + " 共享池" : "已拒绝该器官");
+    }
+    lastPairKey = "";
+    document.getElementById("errbox").style.display = "none";
+    render();
+  });
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    form.reset();
+    form.transport.value = state.mode;
+    lastPairKey = "";
+    document.getElementById("stamp").classList.remove("show");
+    document.getElementById("errbox").style.display = "none";
+    document.getElementById("backupRow").style.display = "none";
+    document.getElementById("reasonRow").style.display = "none";
+  });
+
+  document.addEventListener("keydown", e => {
+    if (e.target.matches("input, select, textarea")) return;
+    const rows = visibleRows(Date.now());
+    const idx = rows.findIndex(r => r.c.id === state.selectedCandidateId);
+    if (e.key === "j" || e.key === "ArrowDown") {
+      if (rows[idx + 1]) { state.selectedCandidateId = rows[idx + 1].c.id; render(); }
+    } else if (e.key === "k" || e.key === "ArrowUp") {
+      if (rows[idx - 1]) { state.selectedCandidateId = rows[idx - 1].c.id; render(); }
+    } else if (/^[1-7]$/.test(e.key)) {
+      const o = organs[+e.key - 1];
+      if (o) { state.selectedOrganId = o.id; state.selectedCandidateId = null; render(); }
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    const now = Date.now();
+    renderScatter(now);
+    renderCit(now);
+  });
+  setInterval(() => {
+    const now = Date.now();
+    renderClock(now);
+    renderRail(now);
+    const o = organById(state.selectedOrganId);
+    const c = candidates.find(x => x.id === state.selectedCandidateId);
+    if (o && c) {
+      renderCit(now);
+      const sel = document.querySelector("#tableWrap tr.sel td.buf");
+      if (sel) {
+        const m = pairMetrics(o, c, state.mode, now);
+        sel.textContent = m.buffer < 0 ? String(Math.round(m.buffer)) : "+" + Math.round(m.buffer);
+      }
+    }
+  }, 1000);
+
+  render();
+  requestAnimationFrame(() => {
+    const now = Date.now();
+    renderScatter(now);
+    renderCit(now);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>渚 · 一只会站住的智能体</title>
+<style>
+:root {
+  --plaster: #d7d3cb;
+  --paper: #e7e3da;
+  --ink: #1c1d1a;
+  --mute: #6a6d67;
+  --faint: #93968f;
+  --line: rgba(28, 29, 26, .13);
+  --bronze: #4a534c;
+  --patina: #6d8076;
+  --beak: #c4a45a;
+  --leg: #9a5a38;
+  --seal: #8c3b2c;
+  --wood: #5a5248;
+  --serif: Georgia, "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC", serif;
+  --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--plaster);
+  color: var(--ink);
+  font-family: var(--sans);
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  opacity: .45;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .055 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+::selection { background: var(--seal); color: var(--paper); }
+button, textarea { font: inherit; color: inherit; }
+
+/* —— 楣额 —— */
+.lintel {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 22px clamp(20px, 5vw, 56px) 4px;
+  flex: none;
+}
+.mark {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.mark h1 {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: .18em;
+}
+.mark h1 span {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: .22em;
+  color: var(--mute);
+  margin-left: 10px;
+  font-weight: 400;
+}
+.live {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .28em;
+  color: var(--mute);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.live b { font-weight: 500; color: var(--bronze); }
+.pulse {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--patina);
+  box-shadow: 0 0 0 0 rgba(109, 128, 118, .45);
+}
+body[data-state="idle"] .pulse { animation: rest 3.6s ease-in-out infinite; }
+body[data-state="listen"] .pulse { background: var(--bronze); animation: rest 1.4s ease-in-out infinite; }
+body[data-state="think"] .pulse { background: var(--beak); animation: rest .7s ease-in-out infinite; }
+body[data-state="speak"] .pulse { background: var(--seal); animation: rest 1s ease-in-out infinite; }
+@keyframes rest {
+  0%, 100% { transform: scale(.85); opacity: .55; }
+  50% { transform: scale(1); opacity: 1; }
+}
+
+/* —— 话题：窗上挂签，不是侧栏 —— */
+.tags {
+  display: flex;
+  gap: 4px;
+  padding: 8px clamp(20px, 5vw, 56px) 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex: none;
+  border-bottom: 1px solid var(--line);
+}
+.tags::-webkit-scrollbar { display: none; }
+.tag {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 10px 14px 12px;
+  white-space: nowrap;
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--mute);
+  position: relative;
+  letter-spacing: .04em;
+}
+.tag em {
+  font-style: normal;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .16em;
+  color: var(--faint);
+  margin-right: 8px;
+}
+.tag::after {
+  content: "";
+  position: absolute;
+  left: 14px; right: 14px; bottom: -1px;
+  height: 1px;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .35s cubic-bezier(.22, 1, .36, 1);
+}
+.tag:hover { color: var(--ink); }
+.tag.on { color: var(--ink); }
+.tag.on::after { transform: scaleX(1); }
+.tag.add { color: var(--faint); letter-spacing: .12em; font-size: 12px; font-family: var(--sans); }
+.tag:focus-visible, #ask:focus-visible {
+  outline: 1px dashed var(--bronze);
+  outline-offset: 3px;
+}
+
+/* —— 主栏：窗 → 字 → 沿 —— */
+.room {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(720px, 100%);
+  margin: 0 auto;
+}
+
+/* 窗：铜鹭所在 */
+.window {
+  flex: none;
+  padding: 8px 24px 0;
+  transition: padding .55s cubic-bezier(.22, 1, .36, 1);
+}
+#scene {
+  display: block;
+  width: 100%;
+  height: clamp(200px, 38vh, 330px);
+  overflow: visible;
+  cursor: default;
+  transition: height .6s cubic-bezier(.22, 1, .36, 1);
+}
+body.has-talk #scene { height: clamp(128px, 24vh, 188px); }
+.caption {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .32em;
+  color: var(--faint);
+  margin-top: -4px;
+  height: 18px;
+}
+
+/* —— 对话：书信，不是气泡 —— */
+.letters {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 28px 18px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(28, 29, 26, .2) transparent;
+}
+.letters::-webkit-scrollbar { width: 4px; }
+.letters::-webkit-scrollbar-thumb { background: rgba(28, 29, 26, .16); }
+.when {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 18px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .26em;
+  color: var(--faint);
+}
+.when::before, .when::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.hello {
+  font-family: var(--serif);
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 400;
+  letter-spacing: .02em;
+  line-height: 1.45;
+  margin: 6px 0 10px;
+}
+.hello p {
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--mute);
+  max-width: 28em;
+  margin-top: 10px;
+}
+.hints {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 22px 0 8px;
+}
+.hint {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--mute);
+  font-size: 13.5px;
+  padding: 4px 0;
+  letter-spacing: .04em;
+  border-bottom: 1px solid transparent;
+}
+.hint:hover { color: var(--ink); border-bottom-color: var(--ink); }
+.hint i {
+  font-style: normal;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  margin-right: 10px;
+  letter-spacing: .12em;
+}
+.msg { margin: 22px 0; animation: rise .5s cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.msg.agent {
+  font-family: var(--serif);
+  font-size: 16.5px;
+  line-height: 1.9;
+  max-width: 36em;
+  white-space: pre-wrap;
+}
+.msg.agent .who {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .28em;
+  color: var(--patina);
+  margin-bottom: 8px;
+}
+.msg.user {
+  display: flex;
+  justify-content: flex-end;
+}
+.msg.user .txt {
+  max-width: 22em;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #4e524c;
+  text-align: right;
+  padding-right: 12px;
+  border-right: 2px solid var(--leg);
+  white-space: pre-wrap;
+}
+.caret {
+  display: inline-block;
+  width: 1px;
+  height: .9em;
+  background: var(--seal);
+  margin-left: 3px;
+  vertical-align: -1px;
+  animation: blink 1s steps(2) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* —— 窗沿输入 —— */
+.sill {
+  flex: none;
+  padding: 0 28px 16px;
+}
+.sill-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  border-bottom: 1px solid rgba(28, 29, 26, .28);
+  padding: 8px 0 10px;
+  transition: border-color .3s;
+}
+.sill-row:focus-within { border-color: var(--ink); }
+#say {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: none;
+  resize: none;
+  min-height: 28px;
+  max-height: 120px;
+  line-height: 1.6;
+  font-family: var(--serif);
+  font-size: 16px;
+  caret-color: var(--seal);
+}
+#say::placeholder {
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--faint);
+  letter-spacing: .08em;
+}
+#ask {
+  width: 34px; height: 34px;
+  border: 0;
+  background: var(--seal);
+  color: var(--paper);
+  cursor: pointer;
+  font-family: var(--serif);
+  font-size: 13px;
+  letter-spacing: .08em;
+  flex: none;
+  transition: transform .2s, background .2s;
+}
+#ask:hover { transform: translateY(-1px); background: #732f22; }
+#ask:disabled { opacity: .35; cursor: default; transform: none; }
+.foot {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0 0;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .2em;
+  color: var(--faint);
+}
+
+/* —— 铜鹭动态：以颈、喙、冠、眼为关节（原点取 viewBox） —— */
+#heron, #neck, #head, #beak-low, #crest, #wing, .lid, .ripple {
+  transform-box: view-box;
+}
+#heron { transform-origin: 292px 348px; }
+body[data-state="idle"] #heron { animation: shift 8s ease-in-out infinite; }
+@keyframes shift {
+  0%, 100% { transform: rotate(-.6deg); }
+  50% { transform: rotate(.8deg); }
+}
+#neck { transform-origin: 258px 250px; transition: transform .85s cubic-bezier(.22, 1, .36, 1); }
+#head { transform-origin: 214px 108px; transition: transform .7s cubic-bezier(.22, 1, .36, 1); }
+#beak-low { transform-origin: 198px 114px; transition: transform .18s ease; }
+#crest { transform-origin: 232px 96px; transition: transform .8s ease; }
+#wing { transform-origin: 318px 236px; }
+body.watching #neck { transform: rotate(11deg) translate(6px, 10px); }
+body[data-state="idle"] #wing { animation: rustle 5.4s ease-in-out infinite; }
+@keyframes rustle {
+  0%, 100% { transform: rotate(0deg); }
+  40% { transform: rotate(2.2deg); }
+  70% { transform: rotate(-1deg); }
+}
+body[data-state="listen"] #neck { transform: rotate(-11deg) translate(-4px, -8px); }
+body[data-state="listen"] #head { transform: rotate(-6deg); }
+body[data-state="listen"] #crest { transform: rotate(-8deg); }
+body[data-state="think"] #neck { transform: rotate(26deg) translate(10px, 14px); }
+body[data-state="think"] #head { transform: rotate(16deg); }
+body[data-state="think"] #crest { transform: rotate(12deg); }
+body[data-state="speak"] #neck { transform: rotate(-3deg); }
+body[data-state="speak"] #beak-low { transform: rotate(9deg); }
+body[data-state="speak"] #crest { transform: rotate(-4deg); }
+.lid { transform-origin: 206px 104px; transform: scaleY(0); transition: transform .09s ease-in; }
+.ripple { transform-origin: 286px 356px; opacity: 0; }
+body[data-state="think"] .ripple,
+body[data-state="speak"] .ripple { animation: ring 2.2s ease-out infinite; }
+body[data-state="speak"] .ripple { animation-duration: 1.5s; }
+.ripple.d2 { animation-delay: .7s; }
+.ripple.d3 { animation-delay: 1.3s; }
+@keyframes ring {
+  0% { transform: scale(.25); opacity: .4; }
+  100% { transform: scale(1.15); opacity: 0; }
+}
+#fish { will-change: transform; }
+#pupil { transition: cx .15s linear, cy .15s linear; }
+
+@media (max-width: 640px) {
+  .lintel { padding: 16px 16px 0; }
+  .mark h1 span { display: none; }
+  .window, .letters, .sill { padding-left: 16px; padding-right: 16px; }
+  .tag { padding-left: 10px; padding-right: 10px; }
+  .hello { font-size: 20px; }
+  .msg.agent { font-size: 15.5px; }
+}
+@media (max-height: 700px) {
+  #scene { height: 140px; }
+  body.has-talk #scene { height: 100px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+</style>
+</head>
+<body data-state="idle">
+
+<header class="lintel">
+  <div class="mark">
+    <h1>渚<span>一只站住了的智能体</span></h1>
+  </div>
+  <div class="live" aria-live="polite">
+    <i class="pulse" aria-hidden="true"></i>
+    <span>渚 · <b id="status">立着</b></span>
+  </div>
+</header>
+
+<nav class="tags" id="tags" aria-label="话题"></nav>
+
+<div class="room">
+  <div class="window">
+    <svg id="scene" viewBox="0 0 480 400" role="img" aria-label="铜鹭渚：立在浅水里，会侧耳、入水、开口">
+      <defs>
+        <pattern id="muntin" width="64" height="64" patternUnits="userSpaceOnUse">
+          <path d="M64 0V64H0" fill="none" stroke="#5a5248" stroke-width="3.2" opacity=".22"/>
+        </pattern>
+        <linearGradient id="day" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ece8e0"/>
+          <stop offset="100%" stop-color="#cfd4ce"/>
+        </linearGradient>
+        <linearGradient id="bronze" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#8a978c"/>
+          <stop offset="42%" stop-color="#556258"/>
+          <stop offset="100%" stop-color="#2f3530"/>
+        </linearGradient>
+        <linearGradient id="bronze2" x1="1" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#9aa894"/>
+          <stop offset="100%" stop-color="#3d4740"/>
+        </linearGradient>
+        <linearGradient id="beakG" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#6b4e1e"/>
+          <stop offset="55%" stop-color="#c4a45a"/>
+          <stop offset="100%" stop-color="#e6d39a"/>
+        </linearGradient>
+        <linearGradient id="legG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#c47a52"/>
+          <stop offset="100%" stop-color="#6e3a22"/>
+        </linearGradient>
+        <linearGradient id="waterG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#8a9a94" stop-opacity=".0"/>
+          <stop offset="40%" stop-color="#6d7e78" stop-opacity=".35"/>
+          <stop offset="100%" stop-color="#4a5854" stop-opacity=".55"/>
+        </linearGradient>
+        <clipPath id="pane">
+          <rect x="48" y="22" width="384" height="356" rx="2"/>
+        </clipPath>
+      </defs>
+
+      <!-- 窗格子：场所，不是装饰一次性贴图 -->
+      <rect x="44" y="18" width="392" height="364" fill="none" stroke="#5a5248" stroke-width="7"/>
+      <rect x="48" y="22" width="384" height="356" fill="url(#day)"/>
+      <rect x="48" y="22" width="384" height="356" fill="url(#muntin)"/>
+      <rect x="48" y="22" width="384" height="356" fill="none" stroke="#5a5248" stroke-width="1.4"/>
+      <rect x="58" y="32" width="11" height="11" fill="#8c3b2c"/>
+      <text x="63.5" y="41" text-anchor="middle" font-size="8" font-family="Georgia, serif" fill="#e7e3da">渚</text>
+
+      <g clip-path="url(#pane)">
+        <!-- 浅水 -->
+        <ellipse cx="286" cy="368" rx="168" ry="28" fill="url(#waterG)"/>
+        <ellipse class="ripple" cx="286" cy="356" rx="70" ry="12" fill="none" stroke="#3d4a46" stroke-width="1"/>
+        <ellipse class="ripple d2" cx="286" cy="356" rx="70" ry="12" fill="none" stroke="#3d4a46" stroke-width=".8"/>
+        <ellipse class="ripple d3" cx="286" cy="356" rx="70" ry="12" fill="none" stroke="#3d4a46" stroke-width=".6"/>
+
+        <!-- 石 -->
+        <ellipse cx="292" cy="354" rx="28" ry="7" fill="#6a6660"/>
+        <path d="M268 352 C274 344 310 344 318 353 C308 358 276 358 268 352Z" fill="#8a8680"/>
+
+        <!-- 鱼：闲时鹭会看它 -->
+        <g id="fish" transform="translate(120,362)">
+          <ellipse cx="0" cy="0" rx="9" ry="3.2" fill="#2a302c" opacity=".45"/>
+          <polygon points="8,0 14,-3.5 14,3.5" fill="#2a302c" opacity=".4"/>
+        </g>
+
+        <!-- 倒影 -->
+        <g opacity=".14" transform="translate(0,392) scale(1,-.22)" aria-hidden="true">
+          <path d="M286 248 C248 238 228 210 236 176 C244 148 268 128 214 108" fill="none" stroke="#1c1d1a" stroke-width="10" stroke-linecap="round"/>
+          <ellipse cx="310" cy="250" rx="46" ry="28"/>
+        </g>
+
+        <g id="heron">
+          <!-- 后腿（收起） -->
+          <path d="M308 272 Q328 292 312 308" fill="none" stroke="url(#legG)" stroke-width="3.4" stroke-linecap="round"/>
+          <path d="M312 308 L304 312" stroke="#6e3a22" stroke-width="2.2" stroke-linecap="round"/>
+
+          <!-- 翼：折在背上 -->
+          <g id="wing">
+            <path d="M286 222 C328 204 372 222 378 258 C368 286 328 292 292 274 C278 252 274 232 286 222Z" fill="url(#bronze2)"/>
+            <path d="M300 228 C338 218 360 236 366 258" fill="none" stroke="#2f3530" stroke-width="1" opacity=".32"/>
+            <path d="M296 242 C330 234 348 250 354 268" fill="none" stroke="#2f3530" stroke-width=".8" opacity=".26"/>
+            <path d="M292 256 C320 250 336 262 342 278" fill="none" stroke="#2f3530" stroke-width=".7" opacity=".2"/>
+            <ellipse cx="352" cy="240" rx="14" ry="8" fill="#6d8076" opacity=".38"/>
+          </g>
+
+          <!-- 身：前胸圆、后尾尖 -->
+          <path d="M248 248
+                   C 252 222 286 208 322 214
+                   C 358 220 386 242 378 268
+                   C 370 294 336 308 298 306
+                   C 262 304 240 284 238 264
+                   C 236 252 242 248 248 248 Z" fill="url(#bronze)"/>
+          <ellipse cx="286" cy="236" rx="26" ry="12" fill="#c5cec0" opacity=".2"/>
+          <path d="M360 250 C372 258 376 270 370 282" fill="none" stroke="#2f3530" stroke-width="1.4" stroke-linecap="round" opacity=".35"/>
+
+          <!-- 立腿：膝反向一折 -->
+          <path d="M296 300 L290 324 L284 354" fill="none" stroke="url(#legG)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="290" cy="324" r="2.4" fill="#c47a52"/>
+          <path d="M268 353 L284 352 L300 356 L310 352" fill="none" stroke="#6e3a22" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M284 352 L284 357" stroke="#6e3a22" stroke-width="2.3" stroke-linecap="round"/>
+
+          <g id="neck">
+            <path d="M258 250
+                     C 236 242 218 216 224 184
+                     C 230 152 252 132 208 112
+                     L 216 124
+                     C 248 140 246 160 240 184
+                     C 234 214 248 234 270 248 Z"
+                  fill="url(#bronze)"/>
+            <path d="M256 246 C234 234 226 206 230 180 C234 154 250 136 214 118"
+                  fill="none" stroke="#c5cec0" stroke-width="1.2" opacity=".3"/>
+
+            <g id="head">
+              <ellipse cx="214" cy="108" rx="24" ry="16" transform="rotate(-18 214 108)" fill="url(#bronze)"/>
+              <!-- 冠羽 -->
+              <g id="crest">
+                <path d="M232 98 C252 78 268 70 278 62" fill="none" stroke="#2f3530" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M234 102 C250 88 266 84 276 76" fill="none" stroke="#4a534c" stroke-width="1.3" stroke-linecap="round"/>
+              </g>
+              <!-- 上喙 -->
+              <path d="M198 104 L118 112 L198 113 Q204 108 198 104Z" fill="url(#beakG)"/>
+              <!-- 下喙：开口 -->
+              <path id="beak-low" d="M198 113 L128 118 L198 116 Q202 114 198 113Z" fill="#8a6a2a"/>
+              <path d="M198 108 L118 112" stroke="#5a4218" stroke-width=".5" opacity=".4"/>
+              <!-- 眼 -->
+              <ellipse cx="206" cy="104" rx="5.2" ry="4.6" fill="#d8d0b8"/>
+              <circle id="pupil" cx="206.6" cy="104.2" r="2.15" fill="#1a1916"/>
+              <circle cx="207.6" cy="103.2" r=".7" fill="#f4f1ea"/>
+              <rect class="lid" id="lid" x="200" y="99" width="12" height="10" rx="4" fill="url(#bronze)"/>
+            </g>
+          </g>
+        </g>
+      </g>
+    </svg>
+    <div class="caption" id="caption">浅水 · 一足</div>
+  </div>
+
+  <div class="letters" id="letters"></div>
+
+  <form class="sill" id="form" autocomplete="off">
+    <div class="sill-row">
+      <textarea id="say" rows="1" placeholder="把一句话放在水边……"></textarea>
+      <button type="submit" id="ask" aria-label="问渚">问</button>
+    </div>
+    <div class="foot">
+      <span>Enter 问 · Shift+Enter 换行</span>
+      <span id="count">立着等你</span>
+    </div>
+  </form>
+</div>
+
+<script>
+(function () {
+  const STATUS = {
+    idle: "立着",
+    listen: "侧耳",
+    think: "入水",
+    speak: "开口"
+  };
+  const CAPTION = {
+    idle: "浅水 · 一足",
+    listen: "颈向前 · 风停了一下",
+    think: "喙收进肩羽",
+    speak: "水纹从趾间散开"
+  };
+
+  const threads = [
+    {
+      id: "noon",
+      no: "01",
+      title: "未命名的午后",
+      date: "九月四日 · 此刻",
+      messages: []
+    },
+    {
+      id: "east",
+      no: "02",
+      title: "东阶的影子",
+      date: "九月四日 · 午后",
+      messages: [
+        { role: "user", text: "下午事情太多，帮我理一理。" },
+        { role: "agent", text: "先分成三块，不要五块。\n一块只放需要判断的事。另外两块用来执行。\n你心里最重的是哪一件？" }
+      ]
+    },
+    {
+      id: "rain",
+      no: "03",
+      title: "雨停之前",
+      date: "九月三日 · 薄暮",
+      messages: [
+        { role: "user", text: "把这段话写干净：我们会尽快给你回复并持续关注后续进展。" },
+        { role: "agent", text: "收到。两日内书面回复；若有变，先告诉你原因。" }
+      ]
+    }
+  ];
+
+  const pool = [
+    "这件事可以更短。你真正要决定的，只有一句。把它说出来。",
+    "我听见了。先不给结论。你更在意对不对，还是来不来得及？",
+    "把名单缩到三个。多出来的，不是选择，是拖延。",
+    "可以。我建议你先写标题，再写理由。理由超过三行，就还没想清。",
+    "停一下。刚才那句里有一个词在发力，其余是礼貌。把那个词留下。"
+  ];
+
+  function replyTo(text) {
+    const t = text.trim();
+    if (/下午|计划|安排|忙/.test(t)) {
+      return "下午只留一件要判断的事。其余按顺序做，不并行。\n现在这件判断，用一句话说完。";
+    }
+    if (/写|润色|句子|邮件|回复/.test(t)) {
+      return "先删掉所有“尽快”“持续关注”。\n留下：谁，做什么，何时。我可以按这个结构重写一版。";
+    }
+    if (/决定|选|纠结/.test(t)) {
+      return "两个选项各用七个字。写完如果还对称，说明还没碰到真正的损失。\n告诉我，选错会丢掉什么。";
+    }
+    if (/你是谁|你叫|介绍/.test(t)) {
+      return "我是渚。一只铜鹭，也是一个通用智能体。\n我习惯先站住，再开口。你把事情放在水边即可。";
+    }
+    return pool[Math.abs(hash(t)) % pool.length];
+  }
+  function hash(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    return h;
+  }
+  function esc(s) {
+    return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  }
+
+  const body = document.body;
+  const tagsEl = document.getElementById("tags");
+  const letters = document.getElementById("letters");
+  const say = document.getElementById("say");
+  const ask = document.getElementById("ask");
+  const statusEl = document.getElementById("status");
+  const caption = document.getElementById("caption");
+  const count = document.getElementById("count");
+  const pupil = document.getElementById("pupil");
+  const lid = document.getElementById("lid");
+  const fish = document.getElementById("fish");
+  const scene = document.getElementById("scene");
+
+  let current = 0;
+  let busy = false;
+  let typing = false;
+  const hashId = location.hash.replace(/^#/, "");
+  if (hashId) {
+    const hi = threads.findIndex(t => t.id === hashId);
+    if (hi >= 0) current = hi;
+  }
+
+  function setState(s) {
+    body.dataset.state = s;
+    statusEl.textContent = STATUS[s];
+    caption.textContent = CAPTION[s];
+  }
+
+  function renderTags() {
+    tagsEl.innerHTML = threads.map((t, i) =>
+      `<button type="button" class="tag${i === current ? " on" : ""}" data-i="${i}"><em>${t.no}</em>${esc(t.title)}</button>`
+    ).join("") + `<button type="button" class="tag add" data-new>+ 新的一页</button>`;
+  }
+
+  function renderLetters() {
+    const th = threads[current];
+    body.classList.toggle("has-talk", th.messages.length > 0);
+    if (!th.messages.length) {
+      letters.innerHTML = `
+        <div class="when">${esc(th.date)}</div>
+        <div class="hello">你好，我是渚。
+          <p>把一件事放在浅水里。我先站住，再决定要不要伸颈。</p>
+        </div>
+        <div class="hints">
+          <button type="button" class="hint" data-q="帮我理清今天下午。"><i>一</i>帮我理清今天下午</button>
+          <button type="button" class="hint" data-q="把这句话写干净：我们会尽快给你回复。"><i>二</i>把一句话写干净</button>
+          <button type="button" class="hint" data-q="我在两个方案之间，帮我做一次决定。"><i>三</i>陪我做一次决定</button>
+        </div>`;
+      return;
+    }
+    letters.innerHTML = `<div class="when">${esc(th.date)}</div>` + th.messages.map(m => {
+      if (m.role === "user") {
+        return `<div class="msg user"><div class="txt">${esc(m.text)}</div></div>`;
+      }
+      return `<div class="msg agent"><span class="who">渚</span><span class="txt">${esc(m.text)}</span></div>`;
+    }).join("");
+    letters.scrollTop = letters.scrollHeight;
+  }
+
+  function blink(times) {
+    let n = times || 1;
+    const once = () => {
+      lid.style.transform = "scaleY(1)";
+      setTimeout(() => { lid.style.transform = "scaleY(0)"; }, 110);
+    };
+    once();
+    if (n > 1) setTimeout(() => blink(n - 1), 220);
+  }
+
+  function scheduleBlink() {
+    const wait = 2800 + Math.random() * 4200;
+    setTimeout(() => {
+      if (body.dataset.state !== "think") blink(Math.random() < .2 ? 2 : 1);
+      scheduleBlink();
+    }, wait);
+  }
+
+  function send(text) {
+    const t = (text || "").trim();
+    if (!t || busy) return;
+    const th = threads[current];
+    th.messages.push({ role: "user", text: t });
+    if (/^未命名/.test(th.title) && th.messages.length === 1) {
+      th.title = t.slice(0, 8) + (t.length > 8 ? "…" : "");
+    }
+    say.value = "";
+    autosize();
+    renderTags();
+    renderLetters();
+    busy = true;
+    ask.disabled = true;
+    setState("think");
+    count.textContent = "它把喙收进肩羽";
+
+    const wait = 720 + Math.min(1400, t.length * 24);
+    setTimeout(() => {
+      const answer = replyTo(t);
+      th.messages.push({ role: "agent", text: "" });
+      renderLetters();
+      const slot = letters.querySelector(".msg.agent:last-child .txt");
+      setState("speak");
+      count.textContent = "水纹散开";
+      let i = 0;
+      const tick = () => {
+        i++;
+        const shown = answer.slice(0, i);
+        th.messages[th.messages.length - 1].text = shown;
+        if (slot) slot.innerHTML = esc(shown) + (i < answer.length ? '<span class="caret"></span>' : "");
+        letters.scrollTop = letters.scrollHeight;
+        if (i < answer.length) {
+          setTimeout(tick, /[。？；\n]/.test(answer[i - 1]) ? 90 : 18 + Math.random() * 22);
+        } else {
+          busy = false;
+          ask.disabled = false;
+          setState("idle");
+          count.textContent = "立着等你";
+          blink(1);
+        }
+      };
+      tick();
+    }, wait);
+  }
+
+  function autosize() {
+    say.style.height = "auto";
+    say.style.height = Math.min(say.scrollHeight, 120) + "px";
+  }
+
+  tagsEl.addEventListener("click", e => {
+    const neu = e.target.closest("[data-new]");
+    if (neu) {
+      const n = threads.length + 1;
+      threads.push({
+        id: "n" + n,
+        no: String(n).padStart(2, "0"),
+        title: "未命名的午后",
+        date: "此刻",
+        messages: []
+      });
+      current = threads.length - 1;
+      renderTags();
+      renderLetters();
+      setState("idle");
+      say.focus();
+      return;
+    }
+    const btn = e.target.closest("[data-i]");
+    if (!btn || busy) return;
+    current = +btn.dataset.i;
+    renderTags();
+    renderLetters();
+    blink(1);
+    setState("idle");
+  });
+
+  letters.addEventListener("click", e => {
+    const h = e.target.closest(".hint");
+    if (h) send(h.dataset.q);
+  });
+
+  document.getElementById("form").addEventListener("submit", e => {
+    e.preventDefault();
+    send(say.value);
+  });
+  say.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      send(say.value);
+    }
+  });
+  say.addEventListener("input", () => {
+    autosize();
+    typing = true;
+    if (!busy) setState(say.value.trim() ? "listen" : "idle");
+    count.textContent = say.value.trim() ? "侧耳" : "立着等你";
+  });
+  say.addEventListener("focus", () => {
+    if (!busy) setState(say.value.trim() ? "listen" : "listen");
+  });
+  say.addEventListener("blur", () => {
+    typing = false;
+    if (!busy) setTimeout(() => { if (!busy && !typing) setState("idle"); }, 400);
+  });
+
+  scene.addEventListener("mousemove", e => {
+    const r = scene.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - .55;
+    const y = (e.clientY - r.top) / r.height - .28;
+    pupil.setAttribute("cx", (206.6 + x * 2.2).toFixed(2));
+    pupil.setAttribute("cy", (104.2 + y * 1.6).toFixed(2));
+  });
+  scene.addEventListener("click", () => {
+    blink(2);
+    if (!busy) {
+      setState("listen");
+      setTimeout(() => { if (!busy && !typing) setState("idle"); }, 900);
+    }
+  });
+
+  let dir = 1;
+  let fx = 110;
+  function swim(now) {
+    fx += dir * 0.32;
+    if (fx > 340) dir = -1;
+    if (fx < 100) dir = 1;
+    const fy = 362 + Math.sin(now / 420) * 2.4;
+    fish.setAttribute("transform", `translate(${fx.toFixed(1)},${fy.toFixed(1)}) scale(${dir},1)`);
+    const near = !busy && body.dataset.state === "idle" && Math.abs(fx - 286) < 48;
+    body.classList.toggle("watching", near);
+    requestAnimationFrame(swim);
+  }
+
+  renderTags();
+  renderLetters();
+  scheduleBlink();
+  requestAnimationFrame(swim);
+})();
+</script>
+</body>
+</html>

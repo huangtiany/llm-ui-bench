@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能体</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --cream: #F7F4EF;
+            --surface-1: #FBF9F5;
+            --surface-2: #FFFFFF;
+            --border: #E7E1D7;
+            --ink: #1F2421;
+            --muted: #5C635D;
+            --terracotta: #C4612F;
+            --terracotta-hover: #A94E22;
+            --terracotta-tint: #F2E3D6;
+        }
+
+        @font-face {
+            font-family: 'Fraunces';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url('data:font/woff2;base64,d09GMgABAAAAABEkAA8AAAAApAAAABDHAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGhYbgWocg0oGYACDEAhUCYN8EQwKgdAsgb8BC4N6AAE2AiQDhxQEIAWDdAeFbgxXG+pPAWV8EzuC7OcE2yYCGydqJGDRxjX//5NYm91JGTQsOjKi4xARHR0dHRsjAsSIjoxoNCJCo6OjoyOjozE6MqIjOtK0EeFKyj4X') format('woff2');
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 300;
+            background: var(--cream);
+            color: var(--ink);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            background: rgba(247, 244, 239, 0.72);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Fraunces', serif;
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
+            color: var(--ink);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(196, 97, 47, 0.12);
+            border-color: var(--terracotta);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 56rem;
+            margin: 0 auto;
+            padding: 0 2rem 2rem;
+            min-height: calc(100vh - 140px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Character Stage */
+        .character-stage {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 0;
+            min-height: 400px;
+        }
+
+        .character-container {
+            position: relative;
+            width: 240px;
+            height: 240px;
+            margin-bottom: 2rem;
+        }
+
+        /* Conversations Drawer Toggle */
+        .conversations-toggle {
+            position: fixed;
+            left: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48px;
+            height: 48px;
+            border-radius: 999px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 50;
+        }
+
+        .conversations-toggle:hover {
+            transform: translateY(-50%) translateX(2px);
+            box-shadow: 0 4px 16px rgba(196, 97, 47, 0.15);
+        }
+
+        .conversations-drawer {
+            position: fixed;
+            left: -320px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: var(--surface-1);
+            border-right: 1px solid var(--border);
+            transition: left 0.3s ease;
+            z-index: 99;
+            padding: 5rem 1.5rem 2rem;
+            overflow-y: auto;
+        }
+
+        .conversations-drawer.open {
+            left: 0;
+        }
+
+        .conversation-item {
+            padding: 0.875rem 1rem;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .conversation-item:hover {
+            background: var(--surface-2);
+            border-color: var(--border);
+            transform: translateX(2px);
+        }
+
+        .conversation-title {
+            font-size: 0.9375rem;
+            font-weight: 400;
+            color: var(--ink);
+            margin-bottom: 0.25rem;
+        }
+
+        .conversation-preview {
+            font-size: 0.8125rem;
+            color: var(--muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Welcome State */
+        .welcome-content {
+            text-align: center;
+            max-width: 28rem;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            padding: 0.375rem 1rem;
+            border-radius: 999px;
+            background: var(--terracotta-tint);
+            color: var(--terracotta);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            margin-bottom: 1.5rem;
+        }
+
+        .welcome-title {
+            font-family: 'Fraunces', serif;
+            font-size: 2.5rem;
+            line-height: 1.2;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-title em {
+            font-style: italic;
+            color: var(--terracotta);
+        }
+
+        .welcome-subtitle {
+            font-size: 1.0625rem;
+            color: var(--muted);
+            line-height: 1.7;
+            font-weight: 300;
+        }
+
+        /* Input Area */
+        .input-container {
+            position: sticky;
+            bottom: 0;
+            background: var(--cream);
+            padding: 1.5rem 0;
+        }
+
+        .input-wrapper {
+            position: relative;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 1rem 1.25rem;
+            box-shadow: 0 2px 12px rgba(31, 36, 33, 0.04);
+            transition: all 0.2s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--terracotta);
+            box-shadow: 0 4px 20px rgba(196, 97, 47, 0.12);
+        }
+
+        .input-field {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 300;
+            color: var(--ink);
+            background: transparent;
+            resize: none;
+            min-height: 24px;
+            max-height: 200px;
+        }
+
+        .input-field::placeholder {
+            color: var(--muted);
+        }
+
+        .input-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .agent-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8125rem;
+            color: var(--muted);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--terracotta);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .send-btn {
+            padding: 0.625rem 1.75rem;
+            border-radius: 999px;
+            border: none;
+            background: var(--terracotta);
+            color: white;
+            font-family: inherit;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .send-btn:hover {
+            background: var(--terracotta-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(196, 97, 47, 0.25);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Messages */
+        .messages {
+            flex: 1;
+            padding: 2rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .message {
+            display: flex;
+            gap: 1rem;
+            opacity: 0;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+
+        .message-content {
+            flex: 1;
+            padding-top: 0.5rem;
+        }
+
+        .message-text {
+            font-size: 0.9375rem;
+            line-height: 1.7;
+            color: var(--ink);
+        }
+
+        .message.user .message-avatar {
+            background: var(--terracotta-tint);
+            color: var(--terracotta);
+        }
+
+        /* Hidden state */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">智能体</div>
+        <div class="nav-actions">
+            <div class="icon-btn" title="设置">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5" />
+                    <path
+                        d="M9 1.5V3M9 15V16.5M16.5 9H15M3 9H1.5M14.5 3.5L13.5 4.5M4.5 13.5L3.5 14.5M14.5 14.5L13.5 13.5M4.5 4.5L3.5 3.5"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+            </div>
+            <div class="icon-btn" title="新对话">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <path d="M9 4.5V13.5M4.5 9H13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conversations Toggle -->
+    <div class="conversations-toggle" onclick="toggleDrawer()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M3 5H17M3 10H17M3 15H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+    </div>
+
+    <!-- Conversations Drawer -->
+    <div class="conversations-drawer" id="drawer">
+        <div class="conversation-item">
+            <div class="conversation-title">关于产品设计的思考</div>
+            <div class="conversation-preview">我想和你讨论一下极简设计的原则...</div>
+        </div>
+        <div class="conversation-item">
+            <div class="conversation-title">代码重构建议</div>
+            <div class="conversation-preview">这段代码可以如何优化？</div>
+        </div>
+        <div class="conversation-item">
+            <div class="conversation-title">学习计划制定</div>
+            <div class="conversation-preview">帮我制定一个为期三个月的学习计划</div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Welcome State -->
+        <div class="character-stage" id="welcomeState">
+            <div class="character-container">
+                <svg width="240" height="240" viewBox="0 0 240 240" id="character">
+                    <!-- Character will be rendered here -->
+                </svg>
+            </div>
+            <div class="welcome-content">
+                <span class="eyebrow">AI 对话助手</span>
+                <h1 class="welcome-title">与智能体展开<em>深度</em>对话</h1>
+                <p class="welcome-subtitle">一个安静、克制但充满生命感的对话空间，专注于思考的深度与表达的精确</p>
+            </div>
+        </div>
+
+        <!-- Messages Area (hidden initially) -->
+        <div class="messages hidden" id="messages"></div>
+
+        <!-- Input Area -->
+        <div class="input-container">
+            <div class="input-wrapper">
+                <textarea class="input-field" id="input" placeholder="输入消息..." rows="1"></textarea>
+                <div class="input-actions">
+                    <div class="agent-status">
+                        <span class="status-indicator"></span>
+                        <span id="statusText">准备就绪</span>
+                    </div>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Character Animation
+        const character = document.getElementById('character');
+        let state = 'idle'; // idle, thinking, speaking
+
+        function createCharacter() {
+            const svg = `
+        <!-- Outer glow -->
+        <defs>
+          <radialGradient id="glow">
+            <stop offset="0%" stop-color="#C4612F" stop-opacity="0.15"/>
+            <stop offset="100%" stop-color="#C4612F" stop-opacity="0"/>
+          </radialGradient>
+          <filter id="blur">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
+          </filter>
+        </defs>
+
+        <!-- Ambient glow -->
+        <circle cx="120" cy="120" r="90" fill="url(#glow)" class="glow-circle"/>
+
+        <!-- Core organic form -->
+        <g id="coreForm" transform="translate(120, 120)">
+          <!-- Central body -->
+          <path id="bodyPath" class="body-shape" fill="#FBF9F5" stroke="#E7E1D7" stroke-width="1.5"/>
+
+          <!-- Inner essence -->
+          <circle id="essence" r="12" fill="#C4612F" opacity="0.6" class="essence-circle"/>
+
+          <!-- Orbital particles -->
+          <g id="particles">
+            <circle class="particle" r="2" fill="#C4612F" opacity="0.4"/>
+            <circle class="particle" r="1.5" fill="#C4612F" opacity="0.5"/>
+            <circle class="particle" r="2.5" fill="#C4612F" opacity="0.3"/>
+            <circle class="particle" r="1.8" fill="#C4612F" opacity="0.45"/>
+          </g>
+        </g>
+      `;
+            character.innerHTML = svg;
+            animateCharacter();
+        }
+
+        function animateCharacter() {
+            const bodyPath = document.getElementById('bodyPath');
+            const essence = document.getElementById('essence');
+            const particles = document.querySelectorAll('.particle');
+            const glowCircle = document.querySelector('.glow-circle');
+
+            let time = 0;
+
+            function animate() {
+                time += 0.01;
+
+                // Breathing body shape
+                const breath = Math.sin(time) * 0.15 + 1;
+                const squeeze = Math.cos(time * 0.7) * 0.08;
+
+                const d = `
+          M ${-30 * breath + squeeze * 10} ${-40 * breath}
+          C ${-45 * breath} ${-20 * breath}, ${-45 * breath} ${20 * breath}, ${-25 * breath - squeeze * 10} ${42 * breath}
+          C ${-10 * breath} ${50 * breath}, ${10 * breath} ${50 * breath}, ${25 * breath + squeeze * 10} ${42 * breath}
+          C ${45 * breath} ${20 * breath}, ${45 * breath} ${-20 * breath}, ${30 * breath - squeeze * 10} ${-40 * breath}
+          C ${15 * breath} ${-48 * breath}, ${-15 * breath} ${-48 * breath}, ${-30 * breath + squeeze * 10} ${-40 * breath}
+          Z
+        `;
+                bodyPath.setAttribute('d', d);
+
+                // Pulsing essence
+                const essenceScale = 1 + Math.sin(time * 2) * 0.2;
+                essence.setAttribute('r', 12 * essenceScale);
+                essence.setAttribute('opacity', 0.5 + Math.sin(time * 2) * 0.15);
+
+                // Orbiting particles
+                particles.forEach((particle, i) => {
+                    const angle = time * (0.5 + i * 0.3) + (i * Math.PI / 2);
+                    const radius = 35 + Math.sin(time * 2 + i) * 8;
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    particle.setAttribute('cx', x);
+                    particle.setAttribute('cy', y);
+                });
+
+                // Glow breathing
+                const glowScale = 85 + Math.sin(time * 0.8) * 8;
+                glowCircle.setAttribute('r', glowScale);
+
+                // State-based modifications
+                if (state === 'thinking') {
+                    // Faster, more erratic movement
+                    particles.forEach((particle, i) => {
+                        const extra = Math.sin(time * 5 + i * 2) * 5;
+                        const currentX = parseFloat(particle.getAttribute('cx'));
+                        const currentY = parseFloat(particle.getAttribute('cy'));
+                        particle.setAttribute('cx', currentX + extra);
+                    });
+                } else if (state === 'speaking') {
+                    // Rhythmic pulsing
+                    const pulse = 1 + Math.sin(time * 4) * 0.1;
+                    essence.setAttribute('r', 12 * pulse * 1.3);
+                }
+
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        }
+
+        // Drawer toggle
+        function toggleDrawer() {
+            const drawer = document.getElementById('drawer');
+            drawer.classList.toggle('open');
+        }
+
+        // Auto-resize textarea
+        const input = document.getElementById('input');
+        input.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        // Send message
+        function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Hide welcome state
+            const welcomeState = document.getElementById('welcomeState');
+            const messagesArea = document.getElementById('messages');
+            welcomeState.classList.add('hidden');
+            messagesArea.classList.remove('hidden');
+
+            // Add user message
+            addMessage('user', text);
+
+            // Clear input
+            input.value = '';
+            input.style.height = 'auto';
+
+            // Simulate agent response
+            state = 'thinking';
+            updateStatus('思考中...');
+
+            setTimeout(() => {
+                state = 'speaking';
+                updateStatus('回复中...');
+
+                setTimeout(() => {
+                    const responses = [
+                        '我理解你的想法。让我们深入探讨一下这个问题的本质。',
+                        '这是一个很有意思的角度。在我看来，我们可以从以下几个方面来思考：',
+                        '感谢你的提问。我注意到这个问题背后可能涉及更深层的考量。',
+                        '让我帮你梳理一下思路。首先，我们需要明确几个关键概念。'
+                    ];
+                    const response = responses[Math.floor(Math.random() * responses.length)];
+                    addMessage('agent', response);
+
+                    state = 'idle';
+                    updateStatus('准备就绪');
+                }, 1500);
+            }, 1000);
+        }
+
+        function addMessage(role, text) {
+            const messagesArea = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = role === 'user' ? '你' : 'AI';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+
+            const textDiv = document.createElement('div');
+            textDiv.className = 'message-text';
+            textDiv.textContent = text;
+
+            content.appendChild(textDiv);
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            messagesArea.appendChild(messageDiv);
+
+            // Scroll to bottom
+            messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+
+        function updateStatus(text) {
+            document.getElementById('statusText').textContent = text;
+        }
+
+        // Enter to send
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Initialize
+        createCharacter();
+    </script>
+</body>
+
+</html>
